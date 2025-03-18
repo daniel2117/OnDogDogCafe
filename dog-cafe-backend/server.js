@@ -1,15 +1,40 @@
-require("dotenv").config();
 const express = require("express");
-const connectDB = require("./config/db");
+const mongoose = require("mongoose");
+require("dotenv").config();
+const cors = require("cors");
+const reservationRoutes = require("./routes/reservationRoutes");
 
 const app = express();
+
+// Middleware
+app.use(cors());
 app.use(express.json());
 
+// MongoDB Connection
+const connectDB = async () => {
+    try {
+        await mongoose.connect(process.env.MONGO_URI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
+        console.log("✅ MongoDB Connected Successfully");
+    } catch (err) {
+        console.error("❌ MongoDB Connection Error:", err);
+        process.exit(1); // Exit process if connection fails
+    }
+};
+
+// Call Database Connection
 connectDB();
 
-app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/api/reservations", require("./routes/reservationRoutes"));
+// API Routes
+app.use("/api/reservations", reservationRoutes);
+
+// Root Route (Optional for testing if server is running)
 app.get("/", (req, res) => {
-  res.send("API is running...");
+    res.send("Dog Café Reservation Backend is Running!");
 });
-app.listen(5000, () => console.log("Server running on port 5000"));
+
+// Start Server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
