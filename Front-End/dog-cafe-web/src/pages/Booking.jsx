@@ -102,7 +102,7 @@ const Booking = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4ebe4] p-6 flex flex-col items-center">
+    <div className="min-h-screen bg-white p-6 flex flex-col items-center">
       <img src="/logo.png" alt="logo" className="h-20 mb-6" />
 
       {step === 1 && (

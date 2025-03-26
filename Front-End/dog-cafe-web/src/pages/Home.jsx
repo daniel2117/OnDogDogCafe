@@ -30,7 +30,7 @@ Tuesday–Sunday: 1–7 pm`,
   const t = texts[lang];
 
   return (
-    <div className="min-h-screen bg-[#f4ebe4] flex flex-col items-center px-4 py-6 text-[#333] font-sans">
+    <div className="min-h-screen bg-white flex flex-col items-center px-4 py-6 text-[#333] font-sans">
       {/* Header */}
       <div className="w-full flex justify-between items-center max-w-4xl mb-4">
         <img src="/logo.png" alt="Dog Dog Cafe" className="h-14" />
