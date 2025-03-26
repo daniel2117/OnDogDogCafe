@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Booking from "./pages/Booking";
 import Adoption from "./pages/Adoption";
+import DogDetail from "./pages/DogDetail";
 
 function App() {
   const [lang, setLang] = useState("en"); // "en" or "zh"
@@ -17,6 +18,7 @@ function App() {
         <Route path="/" element={<Home lang={lang} toggleLang={toggleLang} />} />
         <Route path="/booking" element={<Booking lang={lang} />} />
         <Route path="/adoption" element={<Adoption lang={lang} />} />
+        <Route path="/dog/:id" element={<DogDetail />} />
       </Routes>
     </Router>
   );

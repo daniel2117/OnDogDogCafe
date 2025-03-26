@@ -42,8 +42,8 @@ const DogDetail = () => {
     const dog = {
         name: "Magie",
         petId: "80638810",
-        profile: "/dogs/magie.jpg",
-        images: ["1.jpg", "2.jpg", "3.jpg", "4.jpg", "5.jpg"],
+        profile: "/images/3.jpeg",
+        images: ["1.jpeg", "2.jpeg", "3.jpeg", "4.jpeg", "5.jpeg"],
         gender: "Female",
         breed: "Shiba Inu",
         age: "14 month",
@@ -86,7 +86,7 @@ const DogDetail = () => {
                 {dog.images.map((img, i) => (
                     <img
                         key={i}
-                        src={`/dogs/magie${img}`}
+                        src={`/images/${img}`}
                         alt={`thumb-${i}`}
                         className="w-24 h-20 object-cover rounded cursor-pointer"
                     />
@@ -166,7 +166,7 @@ const DogDetail = () => {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-10">
                 {similarPets.map((name, i) => (
                     <div key={i} className="text-center">
-                        <img src={`/dogs/${name.toLowerCase()}.jpg`} alt={name} className="w-24 h-24 object-cover rounded-full mx-auto mb-2" />
+                        <img src={`/images/${name.toLowerCase()}.jpeg`} alt={name} className="w-24 h-24 object-cover rounded-full mx-auto mb-2" />
                         <div className="font-semibold text-sm">{name}</div>
                         <div className="text-xs text-gray-500">Shiba Inu</div>
                         <button
