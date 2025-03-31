@@ -3,25 +3,27 @@ const {
     createReservation,
     getAvailableSlots,
     updateReservationStatus,
-    getReservations,  // ✅ Added function to fetch user reservations
-    cancelReservation // ✅ Added function for cancellation
+    getReservations,
+    cancelReservation
 } = require("../controllers/reservationController");
+
+const { protect } = require("../middleware/authMiddleware"); // 🔒 Optional: Authentication middleware
 
 const router = express.Router();
 
-// Create a new reservation
-router.post("/", createReservation);
+// Create a new reservation (protected)
+router.post("/", protect, createReservation);
 
-// Get all reservations for the logged-in user
-router.get("/", getReservations);  // ✅ Added route for fetching user reservations
+// Get all reservations for the logged-in user (protected)
+router.get("/", protect, getReservations);
 
-// Get available time slots for a service
-router.get("/available", getAvailableSlots);
+// Get available time slots for a service (renamed for clarity)
+router.get("/availability", getAvailableSlots);
 
-// Update reservation status (Confirm / Cancel)
-router.patch("/:reservationId/status", updateReservationStatus);
+// Update reservation status (Confirm / Cancel) (protected)
+router.patch("/:reservationId/status", protect, updateReservationStatus);
 
-// Cancel a reservation
-router.delete("/:id", cancelReservation);  // ✅ Added route for deletion
+// Cancel a reservation (protected & consistent naming)
+router.delete("/:reservationId", protect, cancelReservation);
 
 module.exports = router;
