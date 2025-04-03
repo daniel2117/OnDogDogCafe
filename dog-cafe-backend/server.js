@@ -2,15 +2,19 @@ const express = require("express");
 const mongoose = require("mongoose");
 require("dotenv").config();
 const cors = require("cors");
-const rateLimit = require('express-rate-limit'); // Add rate limiting
-const helmet = require('helmet'); // Add security headers
-const mongoSanitize = require('express-mongo-sanitize'); // Prevent NoSQL injection
-const compression = require('compression'); // Add compression
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const compression = require('compression');
+const fileUpload = require('express-fileupload');
+const path = require('path');
+const config = require('./config/config');
 
 // Route imports
 const reservationRoutes = require("./routes/reservationRoutes");
 const adoptionRoutes = require("./routes/adoptionRoutes");
-const authRoutes = require("./routes/authRoutes"); // Add authentication routes
+const authRoutes = require("./routes/authRoutes");
+const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
@@ -31,60 +35,46 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Rate Limiting
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
+const generalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
     message: 'Too many requests from this IP, please try again later.'
 });
-app.use('/api/', limiter);
 
-// Special rate limit for interest toggles
-const interestLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000, // 1 hour
-    max: 50, // limit each IP to 50 interest toggles per hour
-    message: 'Too many interest actions, please try again later.'
+const adoptionLimiter = rateLimit({
+    windowMs: 24 * 60 * 60 * 1000,
+    max: 5,
+    message: 'Maximum adoption applications limit reached for today.'
 });
-app.use('/api/adoption/dogs/:id/interest', interestLimiter);
+
+const reservationLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 10,
+    message: 'Maximum reservation limit reached for this hour.'
+});
+
+app.use('/api/', generalLimiter);
+app.use('/api/adoption/applications', adoptionLimiter);
+app.use('/api/reservations', reservationLimiter);
+
+// File Upload Middleware
+app.use(fileUpload({
+    limits: { fileSize: config.uploads.maxSize },
+    createParentPath: true,
+    useTempFiles: true,
+    tempFileDir: '/tmp/',
+    debug: process.env.NODE_ENV === 'development'
+}));
 
 // Body Parser Middleware
-app.use(express.json({ limit: '10mb' })); // Increased limit for image uploads
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// MongoDB Connection with enhanced options
-const connectDB = async () => {
-    try {
-        await mongoose.connect(process.env.MONGO_URI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-            autoIndex: true, // Build indexes
-            maxPoolSize: 10, // Maintain up to 10 socket connections
-            serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
-            socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-            family: 4 // Use IPv4, skip trying IPv6
-        });
+// Static Files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-        console.log("🟢 MongoDB Connected Successfully");
-
-        // Handle connection events
-        mongoose.connection.on("error", (err) => {
-            console.error("🔴 MongoDB Connection Error:", err);
-        });
-
-        mongoose.connection.on("disconnected", () => {
-            console.log("🟡 MongoDB Disconnected");
-        });
-
-        mongoose.connection.on("reconnected", () => {
-            console.log("🟢 MongoDB Reconnected");
-        });
-
-    } catch (err) {
-        console.error("🔴 Initial MongoDB Connection Error:", err);
-        process.exit(1);
-    }
-};
-
-// Call Database Connection
+// MongoDB Connection
+const connectDB = require('./db');
 connectDB();
 
 // API Routes
@@ -92,16 +82,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/reservations", reservationRoutes);
 app.use("/api/adoption", adoptionRoutes);
 
-// Error Handling Middleware
-app.use((err, req, res, next) => {
-    console.error('🔴 Error:', err);
-    res.status(err.status || 500).json({
-        error: {
-            message: err.message || 'Internal server error',
-            ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-        }
-    });
-});
+// Error Handler
+app.use(errorHandler);
 
 // Root Route
 app.get("/", (req, res) => {
@@ -119,33 +101,32 @@ app.get("/", (req, res) => {
 // Cleanup function
 const cleanup = async () => {
     try {
-        console.log("\n🟡 Shutting down server...");
+        console.log("\n Shutting down server...");
         await mongoose.connection.close();
-        console.log("🟢 Database connection closed.");
+        console.log(" Database connection closed.");
         process.exit(0);
     } catch (err) {
-        console.error("🔴 Error during cleanup:", err);
+        console.error(" Error during cleanup:", err);
         process.exit(1);
     }
 };
 
-// Graceful shutdown handlers
+// Event handlers
 process.on("SIGINT", cleanup);
 process.on("SIGTERM", cleanup);
-
-// Error handlers
 process.on("unhandledRejection", (err) => {
-    console.error("🔴 Unhandled Rejection:", err);
+    console.error("Unhandled Rejection:", err);
 });
-
 process.on("uncaughtException", (err) => {
-    console.error("🔴 Uncaught Exception:", err);
+    console.error(" Uncaught Exception:", err);
     cleanup();
 });
 
 // Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`🟢 Server running on port ${PORT}`);
-    console.log(`🌐 API Documentation: http://localhost:${PORT}/api-docs`);
+    console.log(` Server running on port ${PORT}`);
+    console.log(` Environment: ${process.env.NODE_ENV}`);
 });
+
+module.exports = app; // Export for testing

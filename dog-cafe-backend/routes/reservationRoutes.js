@@ -1,29 +1,25 @@
 const express = require("express");
 const {
-    createReservation,
+    requestReservation,
+    verifyReservation,
+    getReservations,
     getAvailableSlots,
     updateReservationStatus,
-    getReservations,
     cancelReservation
 } = require("../controllers/reservationController");
-
-const { protect } = require("../middleware/authMiddleware"); // 🔒 Optional: Authentication middleware
+const { protect } = require("../middleware/authMiddleware");
+const { validateReservation } = require("../middleware/validationMiddleware");
 
 const router = express.Router();
 
-// Create a new reservation (protected)
-router.post("/", protect, createReservation);
-
-// Get all reservations for the logged-in user (protected)
-router.get("/", protect, getReservations);
-
-// Get available time slots for a service (renamed for clarity)
+// Public routes
 router.get("/availability", getAvailableSlots);
+router.get("/verify/:token", verifyReservation);
 
-// Update reservation status (Confirm / Cancel) (protected)
+// Protected routes
+router.post("/request", protect, validateReservation, requestReservation);
+router.get("/", protect, getReservations);
 router.patch("/:reservationId/status", protect, updateReservationStatus);
-
-// Cancel a reservation (protected & consistent naming)
 router.delete("/:reservationId", protect, cancelReservation);
 
 module.exports = router;

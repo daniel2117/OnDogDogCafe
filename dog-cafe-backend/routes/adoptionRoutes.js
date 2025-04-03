@@ -1,28 +1,35 @@
 const express = require('express');
-const {
-    getAvailableDogs,
-    getDogDetails,
-    getFilteredDogs,
-    toggleDogInterest,
-    getTrendingDogs,
-    submitAdoptionRequest,
-    reviewAdoptionRequest,
-    submitAdopterRequest
-} = require('../controllers/adoptionController');
-const { protect } = require('../middleware/authMiddleware');
-
 const router = express.Router();
+const { protect, authorize } = require('../middleware/auth');
+const {
+    submitInitialInterest,
+    scheduleMeetGreet,
+    updateMeetGreet,
+    scheduleHomeVisit,
+    updateHomeVisit,
+    startTrialPeriod,
+    addTrialLog,
+    requestSupport,
+    completeFinalAdoption
+} = require('../controllers/adoptionProcessController');
 
-// Public routes
-router.get('/dogs', getAvailableDogs);
-router.get('/dogs/trending', getTrendingDogs);
-router.get('/dogs/filtered', getFilteredDogs);
-router.get('/dogs/:id', getDogDetails);
+// Initial Interest
+router.post('/applications', protect, submitInitialInterest);
 
-// Protected routes
-router.post('/dogs/:id/interest', protect, toggleDogInterest);
-router.post('/submit', protect, submitAdoptionRequest);
-router.put('/review/:id', protect, reviewAdoptionRequest);
-router.post('/adopt', protect, submitAdopterRequest);
+// Meet & Greet
+router.post('/meet-greet', protect, scheduleMeetGreet);
+router.put('/meet-greet/:id', protect, authorize('staff', 'admin'), updateMeetGreet);
+
+// Home Visit
+router.post('/home-visit', protect, authorize('staff', 'admin'), scheduleHomeVisit);
+router.put('/home-visit/:id', protect, authorize('staff', 'admin'), updateHomeVisit);
+
+// Trial Period
+router.post('/trial', protect, authorize('staff', 'admin'), startTrialPeriod);
+router.put('/trial/:id/log', protect, addTrialLog);
+router.post('/trial/:id/support', protect, requestSupport);
+
+// Final Adoption
+router.post('/finalize', protect, authorize('staff', 'admin'), completeFinalAdoption);
 
 module.exports = router;

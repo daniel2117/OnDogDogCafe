@@ -1,36 +1,107 @@
 const mongoose = require('mongoose');
 
-const DogAdoptionListingSchema = new mongoose.Schema({
-    dogName: { type: String, required: true },
-    gender: { type: String, enum: ['Male', 'Female'], required: true },
-    breed: { type: String, required: true },
-    age: { type: Number, required: true },
-    size: { type: String, enum: ['Small', 'Medium', 'Big'], required: true },
-    shortDescription: { type: String, required: true },
-    profilePhoto: { type: String, required: true },
-    photos: [{ type: String }], // Array of up to 5 photos
-    story: { type: String, required: true },
+const dogAdoptionListingSchema = new mongoose.Schema({
+    dogName: {
+        type: String,
+        required: [true, 'Dog name is required'],
+        trim: true
+    },
+    gender: {
+        type: String,
+        required: [true, 'Gender is required'],
+        enum: ['Male', 'Female']
+    },
+    breed: {
+        type: String,
+        required: [true, 'Breed is required'],
+        trim: true
+    },
+    age: {
+        type: Number,
+        required: [true, 'Age is required'],
+        min: 0
+    },
+    size: {
+        type: String,
+        required: [true, 'Size is required'],
+        enum: ['Small', 'Medium', 'Big']
+    },
+    shortDescription: {
+        type: String,
+        required: [true, 'Short description is required'],
+        maxLength: 200
+    },
+    story: {
+        type: String,
+        required: [true, 'Story is required'],
+        maxLength: 1000
+    },
     characteristics: [{
         type: String,
-        enum: [
-            'Can live with children',
-            'Vaccinated',
-            'House-Trained',
-            'Neutered',
-            'Shots up to date',
-            'Microchipped'
-        ]
+        required: true
     }],
-    color: { type: String, required: true },
-    weight: { type: Number, required: true }, // in kg
-    height: { type: Number, required: true }, // in cm
+    color: {
+        type: String,
+        required: [true, 'Color is required'],
+        trim: true
+    },
+    weight: {
+        type: Number,
+        required: [true, 'Weight is required'],
+        min: 0
+    },
+    height: {
+        type: Number,
+        required: [true, 'Height is required'],
+        min: 0
+    },
+    profilePhoto: {
+        type: String,
+        required: [true, 'Profile photo is required']
+    },
+    photos: [{
+        type: String,
+        required: true
+    }],
     vaccination: [{
         age: Number,
-        vaccinated: Boolean,
+        vaccinated: String,
         match: Boolean
     }],
-    interestCount: { type: Number, default: 0 },
-    status: { type: String, enum: ['Available', 'Adopted'], default: 'Available' }
-}, { timestamps: true });
+    adoptionStatus: {
+        type: String,
+        enum: ['Available', 'Meet&Greet', 'Trial', 'Adopted', 'Unavailable'],
+        default: 'Available'
+    },
+    currentApplication: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'AdoptionApplication',
+        default: null
+    },
+    status: {
+        type: String,
+        required: true,
+        enum: ['Available', 'Pending', 'Adopted'],
+        default: 'Available'
+    },
+    interestCount: {
+        type: Number,
+        default: 0
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now
+    }
+}, {
+    timestamps: true
+});
 
-module.exports = mongoose.model('DogAdoptionListing', DogAdoptionListingSchema);
+// Indexes
+dogAdoptionListingSchema.index({ status: 1, breed: 1, age: 1 });
+dogAdoptionListingSchema.index({ status: 1, createdAt: -1 });
+
+module.exports = mongoose.model('DogAdoptionListing', dogAdoptionListingSchema);
