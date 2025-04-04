@@ -5,7 +5,7 @@ const {
     getDogById, 
     createAdoptionApplication, 
     getMyApplications 
-} = require('../controllers/adoptionController');
+} = require('../controllers/adoptioncontroller');
 const { protect } = require('../middleware/authMiddleware');
 
 router.get('/dogs', getAllDogs);
