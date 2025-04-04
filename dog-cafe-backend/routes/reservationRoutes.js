@@ -5,7 +5,7 @@ const {
     getMyReservations,
     updateReservation,
     cancelReservation
-} = require('../controllers/reservationController');
+} = require('../controllers/reservationcontroller');
 const { protect } = require('../middleware/authMiddleware');
 
 router.route('/')
