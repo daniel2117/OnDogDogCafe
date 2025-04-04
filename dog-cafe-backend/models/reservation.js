@@ -1,13 +1,33 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-const ReservationSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  service: { type: String, required: true, enum: ["Tourist Area", "Dog Play Area", "Pet Grooming", "Indoor Dog Pool", "Dog Hotel"] },
-  date: { type: String, required: true }, // YYYY-MM-DD format
-  time: { type: String, required: true }, // HH:mm format
-  visitors: { type: Number, required: true },
-  dogs: { type: Number, default: 0 },
-  status: { type: String, enum: ["Pending", "Confirmed", "Cancelled"], default: "Pending" },
+const reservationSchema = new mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    date: {
+        type: Date,
+        required: true
+    },
+    timeSlot: {
+        type: String,
+        required: true
+    },
+    numberOfPeople: {
+        type: Number,
+        required: true,
+        min: 1,
+        max: 10
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'confirmed', 'cancelled'],
+        default: 'pending'
+    },
+    specialRequests: String
+}, {
+    timestamps: true
 });
 
-module.exports = mongoose.model("Reservation", ReservationSchema);
+module.exports = mongoose.model('Reservation', reservationSchema);
