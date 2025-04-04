@@ -1,19 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const {
-    createReservation,
-    getMyReservations,
-    updateReservation,
-    cancelReservation
-} = require('../controllers/reservationcontroller');
-const { protect } = require('../middleware/authMiddleware');
+const reservationController = require('../controllers/reservationcontroller');
 
-router.route('/')
-    .post(protect, createReservation)
-    .get(protect, getMyReservations);
-
-router.route('/:id')
-    .put(protect, updateReservation)
-    .delete(protect, cancelReservation);
+router.get('/availability', reservationController.getAvailability);
+router.post('/verify-contact', reservationController.verifyContact);
+router.post('/create', reservationController.createReservation);
 
 module.exports = router;
