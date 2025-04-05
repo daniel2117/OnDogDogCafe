@@ -6,7 +6,7 @@ const Home = ({ lang, toggleLang }) => {
     const texts = {
         en: {
             explore: "Explore Now",
-            // cafe: "Cafe",
+            cafe: "Cafe",
             adoption: "Adoption",
             heroTitle: "One More Friend",
             heroSubtitle: "Thousands More Fun!",
@@ -17,11 +17,25 @@ const Home = ({ lang, toggleLang }) => {
             viewMore: "View more →",
             location: "Location",
             bookNow: "Book Now",
-            footer: "1F, 3 Soares Avenue\nTel: 6613 2128\n©2025 by On Dog Dog Cafe."
+            footer: "1F, 3 Soares Avenue\nTel: 6613 2128\n©2025 by On Dog Dog Cafe.",
+            cafeServices: [
+                {
+                    title: "Pet Cafe",
+                    desc: "A cozy haven where animal lovers can unwind and enjoy the company of adorable furry friends."
+                },
+                {
+                    title: "Dog Swimming Pool",
+                    desc: "A safe and climate-controlled environment where your furry friends can enjoy swimming year-round."
+                },
+                {
+                    title: "Day Care Service",
+                    desc: "A safe and stimulating environment for your furry companions to socialize and play while you're away."
+                }
+            ]
         },
         zh: {
             explore: "立即探索",
-            // cafe: "咖啡廳",
+            cafe: "咖啡廳",
             adoption: "領養狗狗",
             heroTitle: "多一位朋友",
             heroSubtitle: "多千倍歡樂！",
@@ -32,7 +46,21 @@ const Home = ({ lang, toggleLang }) => {
             viewMore: "查看更多 →",
             location: "地點",
             bookNow: "立即預約",
-            footer: "香港蘇沙道3號1樓\n電話: 6613 2128\n©2025 On Dog Dog Cafe."
+            footer: "香港蘇沙道3號1樓\n電話: 6613 2128\n©2025 On Dog Dog Cafe.",
+            cafeServices: [
+                {
+                    title: "寵物咖啡廳",
+                    desc: "一個讓愛動物的人可以放鬆並享受毛孩陪伴的溫馨天地。"
+                },
+                {
+                    title: "狗狗游泳池",
+                    desc: "安全並全年恆溫的游泳空間，讓毛孩盡情享受戲水樂趣。"
+                },
+                {
+                    title: "日間托管服務",
+                    desc: "提供安全又充滿刺激的環境，讓毛孩在你外出時也能玩得開心。"
+                }
+            ]
         },
     };
 
@@ -40,9 +68,6 @@ const Home = ({ lang, toggleLang }) => {
 
     return (
         <div className="min-h-screen font-sans bg-white text-gray-800">
-            <div className="cursor-pointer" onClick={() => navigate(`/?lang=${lang}`)}>
-                <img src="/logo.png" alt="logo" className="h-16" />
-            </div>
             {/* Hero Section */}
             <div className="relative bg-[#fff7ed] px-6 pt-10 pb-16 overflow-hidden">
                 {/* Language toggle */}
@@ -72,12 +97,12 @@ const Home = ({ lang, toggleLang }) => {
                             >
                                 {t.explore}
                             </button>
-                            {/* <button
+                            <button
                                 onClick={() => navigate(`/booking?lang=${lang}`)}
                                 className="border border-[#457b9d] text-[#457b9d] px-6 py-2 rounded hover:bg-[#f1faee]"
                             >
                                 {t.cafe}
-                            </button> */}
+                            </button>
                         </div>
                     </div>
 
@@ -96,21 +121,13 @@ const Home = ({ lang, toggleLang }) => {
             <div className="max-w-7xl mx-auto py-12 px-6">
                 <h2 className="text-2xl font-bold mb-6">{t.ourCafe}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="border rounded p-4 shadow">
-                        <img src="/images/cafe1.png" className="rounded mb-2" alt="Cafe" />
-                        <h3 className="font-semibold">Pet Cafe</h3>
-                        <p className="text-sm text-gray-600">A cozy haven where animal lovers can unwind and enjoy the company of adorable furry friends.</p>
-                    </div>
-                    <div className="border rounded p-4 shadow">
-                        <img src="/images/cafe2.png" className="rounded mb-2" alt="Swimming" />
-                        <h3 className="font-semibold">Dog Swimming Pool</h3>
-                        <p className="text-sm text-gray-600">A safe and climate-controlled environment where your furry friends can enjoy swimming year-round.</p>
-                    </div>
-                    <div className="border rounded p-4 shadow">
-                        <img src="/images/cafe2.png" className="rounded mb-2" alt="Day Care" />
-                        <h3 className="font-semibold">Day Care Service</h3>
-                        <p className="text-sm text-gray-600">A safe and stimulating environment for your furry companions to socialize and play while you're away.</p>
-                    </div>
+                    {t.cafeServices.map((service, idx) => (
+                        <div key={idx} className="border rounded p-4 shadow">
+                            <img src={`/images/cafe${idx + 1}.png`} className="rounded mb-2" alt={service.title} />
+                            <h3 className="font-semibold">{service.title}</h3>
+                            <p className="text-sm text-gray-600">{service.desc}</p>
+                        </div>
+                    ))}
                 </div>
             </div>
 
