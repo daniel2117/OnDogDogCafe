@@ -1,25 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const { 
-    getAllDogs,
-    getDogById,
-    createAdoptionApplication,
-    getMyApplications,
-    updateApplication,
-    withdrawApplication
-} = require('../controllers/adoptionController');
-const auth = require('../middleware/auth');
-const { validateAdoptionApplication } = require('../middleware/validate');
+const adoptionController = require('../controllers/adoptioncontroller');
 
-// Public routes
-router.get('/dogs', getAllDogs);
-router.get('/dogs/:id', getDogById);
+// Get all available dogs for adoption
+router.get('/dogs', adoptionController.getAllDogs);
 
-// Protected routes
-router.use(auth); // Apply auth middleware to all routes below
-router.post('/apply', validateAdoptionApplication, createAdoptionApplication);
-router.get('/my-applications', getMyApplications);
-router.put('/applications/:id', validateAdoptionApplication, updateApplication);
-router.delete('/applications/:id', withdrawApplication);
+// Get specific dog details
+router.get('/dogs/:id', adoptionController.getDogById);
+
+// Create adoption application
+router.post('/apply', adoptionController.createAdoptionApplication);
+
+// Get similar dogs
+router.get('/dogs/:id/similar', adoptionController.getSimilarDogs);
 
 module.exports = router;

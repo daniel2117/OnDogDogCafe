@@ -8,16 +8,23 @@ const authRoutes = require('./routes/authRoutes');
 const dogRoutes = require('./routes/dogRoutes');
 const reservationRoutes = require('./routes/reservationRoutes');
 const adoptionRoutes = require('./routes/adoptionRoutes');
+const contentRoutes = require('./routes/contentRoutes');
 
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use('/api', contentRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
     res.json({ status: 'healthy' });
+});
+
+app.use((req, res, next) => {
+    req.language = req.headers['accept-language']?.includes('zh') ? 'zh' : 'en';
+    next();
 });
 
 // Connect to MongoDB

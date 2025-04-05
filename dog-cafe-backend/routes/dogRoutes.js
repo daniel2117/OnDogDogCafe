@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { 
+const dogController = require('../controllers/dogcontroller');
+const auth = require('../middleware/auth');
+
+// Destructure all required controller methods
+const {
     getAllDogs,
     getDogById,
     createDog,
@@ -8,32 +12,21 @@ const {
     deleteDog,
     uploadDogImage,
     getDogBreeds,
-    getDogStats
-} = require('../controllers/dogController');
-const auth = require('../middleware/auth');
-
-// Middleware for checking admin role
-const checkAdminRole = (req, res, next) => {
-    if (!req.user) {
-        return res.status(401).json({ message: 'Authentication required' });
-    }
-    if (req.user.role !== 'admin') {
-        return res.status(403).json({ message: 'Admin access required' });
-    }
-    next();
-};
+    getDogStats,
+    getSimilarDogs
+} = dogController;
 
 // Public routes (no authentication required)
 router.get('/', getAllDogs);
 router.get('/breeds', getDogBreeds);
 router.get('/stats', getDogStats);
 router.get('/:id', getDogById);
+router.get('/:id/similar', getSimilarDogs);
 
-// Protected routes
-// Apply auth middleware to specific routes instead of using router.use()
-router.post('/', auth, checkAdminRole, createDog);
-router.put('/:id', auth, checkAdminRole, updateDog);
-router.delete('/:id', auth, checkAdminRole, deleteDog);
-router.post('/:id/image', auth, checkAdminRole, uploadDogImage);
+// Protected routes (admin only)
+router.post('/', auth, createDog);
+router.put('/:id', auth, updateDog);
+router.delete('/:id', auth, deleteDog);
+router.post('/:id/image', auth, uploadDogImage);
 
 module.exports = router;
