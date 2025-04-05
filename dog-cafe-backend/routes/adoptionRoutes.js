@@ -1,35 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const { protect, authorize } = require('../middleware/auth');
-const {
-    submitInitialInterest,
-    scheduleMeetGreet,
-    updateMeetGreet,
-    scheduleHomeVisit,
-    updateHomeVisit,
-    startTrialPeriod,
-    addTrialLog,
-    requestSupport,
-    completeFinalAdoption
-} = require('../controllers/adoptionProcessController');
+const adoptionController = require('../controllers/adoptioncontroller');
 
-// Initial Interest
-router.post('/applications', protect, submitInitialInterest);
+// Get all available dogs for adoption
+router.get('/dogs', adoptionController.getAllDogs);
 
-// Meet & Greet
-router.post('/meet-greet', protect, scheduleMeetGreet);
-router.put('/meet-greet/:id', protect, authorize('staff', 'admin'), updateMeetGreet);
+// Get specific dog details
+router.get('/dogs/:id', adoptionController.getDogById);
 
-// Home Visit
-router.post('/home-visit', protect, authorize('staff', 'admin'), scheduleHomeVisit);
-router.put('/home-visit/:id', protect, authorize('staff', 'admin'), updateHomeVisit);
+// Create adoption application
+router.post('/apply', adoptionController.createAdoptionApplication);
 
-// Trial Period
-router.post('/trial', protect, authorize('staff', 'admin'), startTrialPeriod);
-router.put('/trial/:id/log', protect, addTrialLog);
-router.post('/trial/:id/support', protect, requestSupport);
-
-// Final Adoption
-router.post('/finalize', protect, authorize('staff', 'admin'), completeFinalAdoption);
+// Get similar dogs
+router.get('/dogs/:id/similar', adoptionController.getSimilarDogs);
 
 module.exports = router;

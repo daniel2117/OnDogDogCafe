@@ -1,25 +1,11 @@
-const express = require("express");
-const {
-    requestReservation,
-    verifyReservation,
-    getReservations,
-    getAvailableSlots,
-    updateReservationStatus,
-    cancelReservation
-} = require("../controllers/reservationController");
-const { protect } = require("../middleware/authMiddleware");
-const { validateReservation } = require("../middleware/validationMiddleware");
-
+const express = require('express');
 const router = express.Router();
+const reservationController = require('../controllers/reservationcontroller');
 
-// Public routes
-router.get("/availability", getAvailableSlots);
-router.get("/verify/:token", verifyReservation);
-
-// Protected routes
-router.post("/request", protect, validateReservation, requestReservation);
-router.get("/", protect, getReservations);
-router.patch("/:reservationId/status", protect, updateReservationStatus);
-router.delete("/:reservationId", protect, cancelReservation);
+router.get('/availability', reservationController.getAvailability);
+router.post('/verify-contact', reservationController.verifyContact);
+router.post('/create', reservationController.createReservation);
+router.get('/history', reservationController.getUserReservations);
+router.post('/:id/cancel', reservationController.cancelReservation);
 
 module.exports = router;

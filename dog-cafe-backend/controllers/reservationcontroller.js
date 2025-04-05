@@ -1,313 +1,203 @@
-const Reservation = require("../models/Reservation");
-const VerificationToken = require("../models/VerificationToken");
-const asyncHandler = require("express-async-handler");
-const crypto = require("crypto");
-const { sendEmail } = require("../middleware/emailService");
+const asyncHandler = require('express-async-handler');
+const { Reservation, TIME_SLOTS, SERVICES } = require('../models/Reservation');
+const { sendEmail, sendSMS } = require('../utils/notifications');
 
-// Available time slots
-const timeSlots = ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00"];
-const validServices = ["Tourist Area", "Dog Play Area", "Pet Grooming", "Indoor Dog Pool", "Dog Hotel"];
-
-// Request reservation and send verification email
-const requestReservation = asyncHandler(async (req, res) => {
-    try {
-        const { service, date, time, visitors, dogs } = req.body;
-        const user = req.user; // From auth middleware
-
-        // Check if the time slot is available
-        const existingReservations = await Reservation.find({ date, time, service });
-        if (existingReservations.length >= 5) {
-            return res.status(400).json({ 
-                message: "Selected time slot is fully booked for this service!" 
-            });
-        }
-
-        // Check for existing pending reservation
-        const existingPending = await Reservation.findOne({
-            user: user._id,
-            date,
-            status: "Pending"
-        });
-
-        if (existingPending) {
-            return res.status(400).json({ 
-                message: "You already have a pending reservation for this date!" 
-            });
-        }
-
-        // Generate verification token
-        const token = crypto.randomBytes(32).toString("hex");
-
-        // Save temporary reservation request
-        const verification = new VerificationToken({
-            email: user.email,
-            token,
-            reservationData: { 
-                user: user._id, 
-                service, 
-                date, 
-                time, 
-                visitors, 
-                dogs 
-            },
-            expiresAt: Date.now() + 30 * 60 * 1000 // 30 minutes
-        });
-
-        await verification.save();
-
-        // Send verification email
-        const verificationLink = `${process.env.FRONTEND_URL}/verify-reservation?token=${token}`;
+const reservationController = {
+    // Get available time slots and services
+    getAvailability: asyncHandler(async (req, res) => {
+        const { date } = req.headers;
         
-        await sendEmail(
-            user.email,
-            "Verify Your Dog Café Reservation",
-            `Please confirm your reservation for ${service} on ${date} at ${time}.\n\n` +
-            `Click here to confirm: ${verificationLink}\n\n` +
-            `This link will expire in 30 minutes.\n\n` +
-            `If you didn't request this reservation, please ignore this email.`
-        );
+        if (!date) {
+            return res.status(400).json({ message: 'Date is required' });
+        }
 
-        res.status(200).json({ 
-            message: "Verification email sent! Please check your inbox to confirm the reservation." 
+        const queryDate = new Date(date);
+        if (isNaN(queryDate)) {
+            return res.status(400).json({ message: 'Invalid date format' });
+        }
+
+        // Get existing reservations for the date
+        const reservations = await Reservation.find({
+            date: queryDate,
+            status: { $ne: 'cancelled' }
+        }).select('timeSlot selectedServices');
+
+        // Calculate available slots for each service
+        const availableSlots = {};
+        Object.values(SERVICES).forEach(service => {
+            availableSlots[service] = TIME_SLOTS.filter(slot => {
+                const conflictingReservation = reservations.find(r => 
+                    r.timeSlot === slot && r.selectedServices.includes(service)
+                );
+                return !conflictingReservation;
+            });
         });
 
-    } catch (error) {
-        console.error("Reservation Request Error:", error);
-        res.status(500).json({ 
-            message: "Error processing reservation request", 
-            error: error.message 
+        res.json({
+            date: queryDate,
+            availableSlots,
+            services: Object.values(SERVICES)
         });
-    }
-});
+    }),
 
-// Verify and confirm reservation
-const verifyReservation = asyncHandler(async (req, res) => {
-    try {
-        const { token } = req.params;
+    // Verify contact information
+    verifyContact: asyncHandler(async (req, res) => {
+        const { email, phone } = req.headers;
 
-        // Find verification token
-        const verification = await VerificationToken.findOne({ 
-            token,
-            expiresAt: { $gt: Date.now() }
-        });
-
-        if (!verification) {
-            return res.status(400).json({ 
-                message: "Invalid or expired verification token" 
+        if (!email && !phone) {
+            return res.status(400).json({
+                message: 'Either email or phone is required'
             });
         }
 
-        // Check if the time slot is still available
-        const { service, date, time } = verification.reservationData;
-        const existingReservations = await Reservation.find({ date, time, service });
+        // Add verification logic here
+        // For demo, just validate format
+        const isEmailValid = email ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) : true;
+        const isPhoneValid = phone ? /^\d{8,}$/.test(phone.replace(/[- ]/g, '')) : true;
+
+        if (!isEmailValid || !isPhoneValid) {
+            return res.status(400).json({
+                message: 'Invalid contact information format'
+            });
+        }
+
+        res.json({
+            message: 'Contact information is valid',
+            verified: true
+        });
+    }),
+
+    // Create reservation with multiple services
+    createReservation: asyncHandler(async (req, res) => {
+        const { customerInfo, date, timeSlot, selectedServices } = req.body;
+
+        // Validate required fields
+        if (!customerInfo?.name || !customerInfo?.email || !customerInfo?.phone || 
+            !date || !timeSlot || !selectedServices?.length) {
+            return res.status(400).json({
+                message: 'All required fields must be provided'
+            });
+        }
+
+        // Validate date is not in past
+        const reservationDate = new Date(date);
+        if (reservationDate < new Date().setHours(0, 0, 0, 0)) {
+            return res.status(400).json({
+                message: 'Cannot book for past dates'
+            });
+        }
+
+        // Check availability for all selected services
+        const existingReservations = await Reservation.find({
+            date: reservationDate,
+            timeSlot,
+            selectedServices: { $in: selectedServices },
+            status: { $ne: 'cancelled' }
+        });
+
+        if (existingReservations.length > 0) {
+            return res.status(400).json({
+                message: 'One or more selected services are not available for this time slot'
+            });
+        }
+
+        // Create reservation
+        const reservation = await Reservation.create({
+            customerInfo,
+            date: reservationDate,
+            timeSlot,
+            selectedServices,
+            status: 'pending'
+        });
+
+        // Send notifications
+        try {
+            const servicesList = selectedServices.join(', ');
+            await sendEmail(
+                customerInfo.email,
+                'Reservation Confirmation',
+                `Your reservation for ${servicesList} on ${date} at ${timeSlot} is pending confirmation.`
+            );
+            
+            await sendSMS(
+                customerInfo.phone,
+                `Your reservation for ${servicesList} on ${date} at ${timeSlot} is pending confirmation.`
+            );
+        } catch (error) {
+            console.error('Notification error:', error);
+        }
+
+        res.status(201).json({
+            message: 'Reservation created successfully',
+            reservation
+        });
+    }),
+
+    // Get user's reservations history
+    getUserReservations: asyncHandler(async (req, res) => {
+        const { email, phone } = req.query;
         
-        if (existingReservations.length >= 5) {
-            await VerificationToken.deleteOne({ token });
-            return res.status(400).json({ 
-                message: "Sorry, this time slot is no longer available!" 
+        if (!email && !phone) {
+            return res.status(400).json({
+                message: 'Email or phone is required'
             });
         }
 
-        // Create the confirmed reservation
-        const newReservation = new Reservation({
-            ...verification.reservationData,
-            status: "Confirmed"
+        const filter = {
+            $or: [
+                { 'customerInfo.email': email },
+                { 'customerInfo.phone': phone }
+            ]
+        };
+
+        const reservations = await Reservation.find(filter)
+            .sort({ date: -1 })
+            .select('-__v');
+
+        res.json(reservations);
+    }),
+
+    // Cancel reservation
+    cancelReservation: asyncHandler(async (req, res) => {
+        const { id } = req.params;
+        const { email, phone } = req.body;
+
+        const reservation = await Reservation.findOne({
+            _id: id,
+            'customerInfo.email': email,
+            'customerInfo.phone': phone
         });
-        
-        await newReservation.save();
-
-        // Delete the verification token
-        await VerificationToken.deleteOne({ token });
-
-        // Send confirmation email
-        await sendEmail(
-            verification.email,
-            "Reservation Confirmed - Dog Café",
-            `Your reservation has been confirmed!\n\n` +
-            `Service: ${service}\n` +
-            `Date: ${date}\n` +
-            `Time: ${time}\n` +
-            `Number of Visitors: ${verification.reservationData.visitors}\n` +
-            `Number of Dogs: ${verification.reservationData.dogs}\n\n` +
-            `We look forward to seeing you!`
-        );
-
-        res.status(200).json({ 
-            message: "Reservation confirmed successfully!", 
-            reservation: newReservation 
-        });
-
-    } catch (error) {
-        console.error("Verification Error:", error);
-        res.status(500).json({ 
-            message: "Error verifying reservation", 
-            error: error.message 
-        });
-    }
-});
-
-// Get available time slots
-const getAvailableSlots = asyncHandler(async (req, res) => {
-    try {
-        const { date, service } = req.query;
-
-        if (!date || !service) {
-            return res.status(400).json({ 
-                message: "Date and service type are required!" 
-            });
-        }
-
-        if (!validServices.includes(service)) {
-            return res.status(400).json({ 
-                message: "Invalid service type!" 
-            });
-        }
-
-        // Get all reservations for the date
-        const reservations = await Reservation.find({ 
-            date, 
-            service,
-            status: { $ne: "Cancelled" }
-        });
-
-        // Calculate available slots
-        const availableSlots = timeSlots.map(time => {
-            const slotReservations = reservations.filter(r => r.time === time);
-            return {
-                time,
-                available: 5 - slotReservations.length,
-                isAvailable: slotReservations.length < 5
-            };
-        });
-
-        res.status(200).json({ availableSlots });
-    } catch (error) {
-        console.error("Get Available Slots Error:", error);
-        res.status(500).json({ 
-            message: "Error fetching available slots", 
-            error: error.message 
-        });
-    }
-});
-
-// Get user's reservations
-const getReservations = asyncHandler(async (req, res) => {
-    try {
-        const reservations = await Reservation.find({ 
-            user: req.user._id 
-        }).sort({ date: 1, time: 1 });
-
-        res.status(200).json(reservations);
-    } catch (error) {
-        console.error("Get Reservations Error:", error);
-        res.status(500).json({ 
-            message: "Error fetching reservations", 
-            error: error.message 
-        });
-    }
-});
-
-// Update reservation status
-const updateReservationStatus = asyncHandler(async (req, res) => {
-    try {
-        const { reservationId } = req.params;
-        const { status } = req.body;
-
-        if (!["Confirmed", "Cancelled"].includes(status)) {
-            return res.status(400).json({ 
-                message: "Invalid status!" 
-            });
-        }
-
-        const reservation = await Reservation.findById(reservationId);
 
         if (!reservation) {
-            return res.status(404).json({ 
-                message: "Reservation not found!" 
+            return res.status(404).json({
+                message: 'Reservation not found'
             });
         }
 
-        // Check if user owns this reservation
-        if (reservation.user.toString() !== req.user._id.toString()) {
-            return res.status(403).json({ 
-                message: "Not authorized to update this reservation" 
+        if (reservation.status === 'cancelled') {
+            return res.status(400).json({
+                message: 'Reservation is already cancelled'
             });
         }
 
-        reservation.status = status;
+        reservation.status = 'cancelled';
         await reservation.save();
 
-        // Send status update email
-        await sendEmail(
-            req.user.email,
-            `Reservation ${status} - Dog Café`,
-            `Your reservation for ${reservation.service} on ${reservation.date} ` +
-            `at ${reservation.time} has been ${status.toLowerCase()}.`
-        );
-
-        res.status(200).json({ 
-            message: `Reservation ${status.toLowerCase()} successfully!`, 
-            reservation 
-        });
-
-    } catch (error) {
-        console.error("Update Status Error:", error);
-        res.status(500).json({ 
-            message: "Error updating reservation status", 
-            error: error.message 
-        });
-    }
-});
-
-// Cancel reservation
-const cancelReservation = asyncHandler(async (req, res) => {
-    try {
-        const { reservationId } = req.params;
-        const reservation = await Reservation.findById(reservationId);
-
-        if (!reservation) {
-            return res.status(404).json({ 
-                message: "Reservation not found!" 
-            });
+        // Send cancellation notification
+        try {
+            await sendEmail(
+                reservation.customerInfo.email,
+                'Reservation Cancelled',
+                `Your reservation for ${reservation.selectedServices.join(', ')} on ${reservation.date} has been cancelled.`
+            );
+        } catch (error) {
+            console.error('Notification error:', error);
         }
 
-        // Check if user owns this reservation
-        if (reservation.user.toString() !== req.user._id.toString()) {
-            return res.status(403).json({ 
-                message: "Not authorized to cancel this reservation" 
-            });
-        }
-
-        reservation.status = "Cancelled";
-        await reservation.save();
-
-        // Send cancellation email
-        await sendEmail(
-            req.user.email,
-            "Reservation Cancelled - Dog Café",
-            `Your reservation for ${reservation.service} on ${reservation.date} ` +
-            `at ${reservation.time} has been cancelled.`
-        );
-
-        res.status(200).json({ 
-            message: "Reservation cancelled successfully!", 
-            reservation 
+        res.json({
+            message: 'Reservation cancelled successfully'
         });
-
-    } catch (error) {
-        console.error("Cancel Reservation Error:", error);
-        res.status(500).json({ 
-            message: "Error cancelling reservation", 
-            error: error.message 
-        });
-    }
-});
-
-module.exports = {
-    requestReservation,
-    verifyReservation,
-    getReservations,
-    getAvailableSlots,
-    updateReservationStatus,
-    cancelReservation
+    })
 };
+
+module.exports = reservationController;
