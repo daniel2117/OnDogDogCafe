@@ -13,15 +13,14 @@ const SERVICES = {
 };
 
 const reservationSchema = new mongoose.Schema({
-    email: {
-        type: String,
-        required: true,
-        trim: true
-    },
-    phone: {
-        type: String,
-        required: true,
-        trim: true
+    customerInfo: {
+        name: { type: String, required: true },
+        phone: { type: String, required: true },
+        email: { type: String, required: true },
+        petName: String,
+        petType: String,
+        location: String,
+        message: String
     },
     date: {
         type: Date,
@@ -32,21 +31,17 @@ const reservationSchema = new mongoose.Schema({
         required: true,
         enum: TIME_SLOTS
     },
-    service: {
+    selectedServices: [{
         type: String,
-        required: true,
-        enum: Object.values(SERVICES)
-    },
+        enum: Object.values(SERVICES),
+        required: true
+    }],
     status: {
         type: String,
         enum: ['pending', 'confirmed', 'cancelled'],
         default: 'pending'
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
     }
-});
+}, { timestamps: true });
 
 module.exports = {
     Reservation: mongoose.model('Reservation', reservationSchema),

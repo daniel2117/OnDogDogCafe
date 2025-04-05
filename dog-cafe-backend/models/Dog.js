@@ -65,6 +65,22 @@ const dogSchema = new mongoose.Schema({
     updatedAt: {
         type: Date,
         default: null
+    },
+    healthRecords: [{
+        type: String,
+        description: String,
+        date: Date
+    }],
+    vaccinations: [{
+        name: String,
+        date: Date,
+        nextDue: Date
+    }],
+    translations: {
+        zh: {
+            name: String,
+            description: String
+        }
     }
 });
 
