@@ -30,10 +30,11 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Home lang={lang} toggleLang={toggleLang} />} />
-        <Route path="/booking" element={<Booking lang={lang} />} />
-        <Route path="/bookingDetail" element={<BookingDetail lang={lang} />} />
-        <Route path="/adoption" element={<Adoption lang={lang} />} />
-        <Route path="/dog/:id" element={<DogDetail />} />
+        <Route path="/home" element={<Home lang={lang} toggleLang={toggleLang} />} />
+        <Route path="/booking" element={<Booking lang={lang} toggleLang={toggleLang} />} />
+        <Route path="/bookingDetail" element={<BookingDetail lang={lang} toggleLang={toggleLang} />} />
+        <Route path="/adoption" element={<Adoption lang={lang} toggleLang={toggleLang} />} />
+        <Route path="/dog/:id" element={<DogDetail lang={lang} toggleLang={toggleLang} />} />
 
         {/* Rehome 플로우 */}
         <Route path="/rehome/start" element={<RehomeStart />} />

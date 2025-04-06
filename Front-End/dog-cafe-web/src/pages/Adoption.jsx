@@ -1,11 +1,18 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
+
+
 
 const Adoption = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const lang = queryParams.get("lang") || "en";
+
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "instant" });
+    }, []);
 
     const texts = {
         en: {
@@ -118,7 +125,10 @@ const Adoption = () => {
             <div className="flex justify-center items-center gap-2 mt-10">
                 <button
                     disabled={page === 1}
-                    onClick={() => setPage((p) => p - 1)}
+                    onClick={() => {
+                        setPage((p) => p - 1);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
                     className="px-3 py-1 border rounded disabled:opacity-30"
                 >
                     Prev
@@ -126,7 +136,10 @@ const Adoption = () => {
                 {[...Array(totalPages)].map((_, i) => (
                     <button
                         key={i}
-                        onClick={() => setPage(i + 1)}
+                        onClick={() => {
+                            setPage(i + 1);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
                         className={`px-3 py-1 border rounded ${page === i + 1 ? "bg-purple-500 text-white" : ""}`}
                     >
                         {i + 1}
@@ -134,7 +147,10 @@ const Adoption = () => {
                 ))}
                 <button
                     disabled={page === totalPages}
-                    onClick={() => setPage((p) => p + 1)}
+                    onClick={() => {
+                        setPage((p) => p + 1);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
                     className="px-3 py-1 border rounded disabled:opacity-30"
                 >
                     Next
