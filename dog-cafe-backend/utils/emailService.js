@@ -1,107 +1,56 @@
 const nodemailer = require('nodemailer');
-const config = require('../config/config');
-const path = require('path');
-const fs = require('fs').promises;
-const Handlebars = require('handlebars');
+const emailConfig = require('../config/emailConfig');
 
-class EmailService {
-    constructor() {
-        this.transporter = nodemailer.createTransport(config.email.smtp);
-        this.templates = {};
-    }
+const transporter = nodemailer.createTransport(emailConfig.smtp);
 
-    async loadTemplate(templateName) {
-        const templatePath = path.join(__dirname, '../templates/emails', `${templateName}.hbs`);
-        const template = await fs.readFile(templatePath, 'utf-8');
-        this.templates[templateName] = Handlebars.compile(template);
-    }
+const emailService = {
+    async sendVerificationEmail(email, verificationCode) {
+        const mailOptions = {
+            from: emailConfig.from,
+            to: email,
+            subject: 'Verify Your Email for Dog Cafe Reservation',
+            html: `
+                <h2>Welcome to Dog Cafe!</h2>
+                <p>Your verification code is: <strong>${verificationCode}</strong></p>
+                <p>This code will expire in 10 minutes.</p>
+            `
+        };
 
-    async sendEmail(to, subject, templateName, data) {
         try {
-            if (!this.templates[templateName]) {
-                await this.loadTemplate(templateName);
-            }
-
-            const html = this.templates[templateName](data);
-
-            const mailOptions = {
-                from: config.email.from,
-                to,
-                subject,
-                html
-            };
-
-            const info = await this.transporter.sendMail(mailOptions);
-            console.log('Email sent: %s', info.messageId);
-            return info;
+            await transporter.sendMail(mailOptions);
+            return true;
         } catch (error) {
             console.error('Email sending failed:', error);
-            throw new Error('Failed to send email');
+            return false;
+        }
+    },
+
+    async sendReservationConfirmation(email, reservation) {
+        const mailOptions = {
+            from: emailConfig.from,
+            to: email,
+            subject: 'Dog Cafe Reservation Confirmation',
+            html: `
+                <h2>Reservation Confirmation</h2>
+                <p>Dear ${reservation.customerInfo.name},</p>
+                <p>Your reservation has been confirmed for:</p>
+                <ul>
+                    <li>Date: ${new Date(reservation.date).toLocaleDateString()}</li>
+                    <li>Time: ${reservation.timeSlot}</li>
+                    <li>Services: ${reservation.selectedServices.join(', ')}</li>
+                </ul>
+                <p>Thank you for choosing Dog Cafe!</p>
+            `
+        };
+
+        try {
+            await transporter.sendMail(mailOptions);
+            return true;
+        } catch (error) {
+            console.error('Email sending failed:', error);
+            return false;
         }
     }
+};
 
-    async sendWelcomeEmail(user) {
-        return this.sendEmail(
-            user.email,
-            'Welcome to Dog Cafe!',
-            'welcome',
-            { name: user.name }
-        );
-    }
-
-    async sendReservationConfirmation(reservation, user) {
-        return this.sendEmail(
-            user.email,
-            'Reservation Confirmation',
-            'reservationConfirmation',
-            {
-                name: user.name,
-                date: reservation.date,
-                timeSlot: reservation.timeSlot,
-                numberOfPeople: reservation.numberOfPeople,
-                dogName: reservation.dog.name
-            }
-        );
-    }
-
-    async sendAdoptionApplicationConfirmation(application, user) {
-        return this.sendEmail(
-            user.email,
-            'Adoption Application Received',
-            'adoptionConfirmation',
-            {
-                name: user.name,
-                dogName: application.dog.name,
-                applicationId: application._id
-            }
-        );
-    }
-
-    async sendPasswordReset(user, resetToken) {
-        return this.sendEmail(
-            user.email,
-            'Password Reset Request',
-            'passwordReset',
-            {
-                name: user.name,
-                resetLink: `${config.frontendUrl}/reset-password?token=${resetToken}`
-            }
-        );
-    }
-
-    async sendReservationReminder(reservation, user) {
-        return this.sendEmail(
-            user.email,
-            'Upcoming Reservation Reminder',
-            'reservationReminder',
-            {
-                name: user.name,
-                date: reservation.date,
-                timeSlot: reservation.timeSlot,
-                dogName: reservation.dog.name
-            }
-        );
-    }
-}
-
-module.exports = new EmailService();
+module.exports = emailService;
