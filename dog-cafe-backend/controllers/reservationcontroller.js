@@ -1,6 +1,7 @@
 const asyncHandler = require('express-async-handler');
 const { Reservation, TIME_SLOTS, SERVICES } = require('../models/Reservation');
-const { sendEmail, sendSMS } = require('../utils/notifications');
+const emailService = require('../utils/emailService');
+const cache = require('../utils/cache');
 
 const reservationController = {
     // Get available time slots and services
@@ -40,29 +41,47 @@ const reservationController = {
         });
     }),
 
-    // Verify contact information
     verifyContact: asyncHandler(async (req, res) => {
-        const { email, phone } = req.headers;
+        const { email } = req.headers;
 
-        if (!email && !phone) {
+        if (!email) {
             return res.status(400).json({
-                message: 'Either email or phone is required'
+                message: 'Email is required'
             });
         }
 
-        // Add verification logic here
-        // For demo, just validate format
-        const isEmailValid = email ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) : true;
-        const isPhoneValid = phone ? /^\d{8,}$/.test(phone.replace(/[- ]/g, '')) : true;
+        // Generate and send verification code
+        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        await cache.set(`verification:${email}`, verificationCode, 600); // 10 minutes expiry
 
-        if (!isEmailValid || !isPhoneValid) {
-            return res.status(400).json({
-                message: 'Invalid contact information format'
+        const emailSent = await emailService.sendVerificationEmail(email, verificationCode);
+
+        if (!emailSent) {
+            return res.status(500).json({
+                message: 'Failed to send verification email'
             });
         }
 
         res.json({
-            message: 'Contact information is valid',
+            message: 'Verification code sent to email',
+            verified: false
+        });
+    }),
+
+    // Add new verification code check endpoint
+    verifyCode: asyncHandler(async (req, res) => {
+        const { email, code } = req.body;
+
+        const storedCode = await cache.get(`verification:${email}`);
+        if (!storedCode || storedCode !== code) {
+            return res.status(400).json({
+                message: 'Invalid or expired verification code'
+            });
+        }
+
+        await cache.del(`verification:${email}`);
+        res.json({
+            message: 'Email verified successfully',
             verified: true
         });
     }),
