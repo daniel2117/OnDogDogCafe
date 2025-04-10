@@ -1,12 +1,29 @@
+require('dotenv').config();
+
 module.exports = {
-    uploads: {
-        maxSize: 5 * 1024 * 1024 // 5MB
+    port: process.env.PORT || 10000,
+    database: {
+        url: process.env.MONGODB_URI || 'mongodb://localhost:27017/dogcafe',
+        options: {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        }
     },
-    reservation: {
-        maxPeoplePerSlot: 10,
-        timeSlots: [
-            '10:00', '11:00', '12:00', '13:00', '14:00',
-            '15:00', '16:00', '17:00', '18:00', '19:00'
-        ]
-    }
+    jwt: {
+        secret: process.env.JWT_SECRET || 'your-jwt-secret-key',
+        expiresIn: process.env.JWT_EXPIRES_IN || '30d'
+    },
+    admin: {
+        secret: process.env.ADMIN_SECRET || 'admin123secretkey'
+    },
+    smtp: {
+        host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.EMAIL_PORT) || 587,
+        secure: process.env.EMAIL_SECURE === 'true',
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASSWORD
+        }
+    },
+    from: process.env.EMAIL_FROM || '"Dog Cafe" <noreply@dogcafe.com>'
 };

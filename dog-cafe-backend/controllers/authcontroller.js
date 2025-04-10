@@ -1,43 +1,105 @@
-const asyncHandler = require('express-async-handler');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const config = require('../config/config');
+const bcrypt = require('bcryptjs');
 
+// Generate JWT Token
 const generateToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET, {
-        expiresIn: '30d'
+    return jwt.sign({ id }, config.jwt.secret, {
+        expiresIn: config.jwt.expiresIn
     });
 };
 
 const authController = {
-    register: asyncHandler(async (req, res) => {
-        const { name, email, password } = req.body;
+    register: async (req, res) => {
+        try {
+            const { name, email, password } = req.body;
 
-        const userExists = await User.findOne({ email });
-        if (userExists) {
-            res.status(400);
-            throw new Error('User already exists');
+            // Check if user exists
+            const userExists = await User.findOne({ email });
+            if (userExists) {
+                return res.status(400).json({ message: 'User already exists' });
+            }
+
+            // Create user
+            const user = await User.create({
+                name,
+                email,
+                password,
+                role: 'user'
+            });
+
+            res.status(201).json({
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                token: generateToken(user._id)
+            });
+        } catch (error) {
+            console.error('Registration error:', error);
+            res.status(500).json({
+                message: 'Registration failed',
+                error: error.message
+            });
         }
+    },
 
-        const user = await User.create({
-            name,
-            email,
-            password
-        });
+    registerAdmin: async (req, res) => {
+        try {
+            const { name, email, password, adminSecret } = req.body;
 
-        res.status(201).json({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            token: generateToken(user._id)
-        });
-    }),
+            // Verify admin secret
+            if (adminSecret !== config.admin.secret) {
+                return res.status(403).json({ message: 'Invalid admin secret' });
+            }
 
-    login: asyncHandler(async (req, res) => {
-        const { email, password } = req.body;
+            // Check if user exists
+            const userExists = await User.findOne({ email });
+            if (userExists) {
+                return res.status(400).json({ message: 'User already exists' });
+            }
 
-        const user = await User.findOne({ email });
-        if (user && (await user.matchPassword(password))) {
+            // Create admin user
+            const user = await User.create({
+                name,
+                email,
+                password,
+                role: 'admin'
+            });
+
+            res.status(201).json({
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                token: generateToken(user._id)
+            });
+        } catch (error) {
+            console.error('Admin registration error:', error);
+            res.status(500).json({
+                message: 'Admin registration failed',
+                error: error.message
+            });
+        }
+    },
+
+    login: async (req, res) => {
+        try {
+            const { email, password } = req.body;
+
+            // Check for user
+            const user = await User.findOne({ email });
+            if (!user) {
+                return res.status(401).json({ message: 'Invalid credentials' });
+            }
+
+            // Check password
+            const isMatch = await user.matchPassword(password);
+            if (!isMatch) {
+                return res.status(401).json({ message: 'Invalid credentials' });
+            }
+
             res.json({
                 _id: user._id,
                 name: user.name,
@@ -45,31 +107,46 @@ const authController = {
                 role: user.role,
                 token: generateToken(user._id)
             });
-        } else {
-            res.status(401);
-            throw new Error('Invalid email or password');
+        } catch (error) {
+            console.error('Login error:', error);
+            res.status(500).json({
+                message: 'Login failed',
+                error: error.message
+            });
         }
-    }),
+    },
 
-    getProfile: asyncHandler(async (req, res) => {
-        const user = await User.findById(req.user._id);
-        res.json({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            role: user.role
-        });
-    }),
+    getProfile: async (req, res) => {
+        try {
+            const user = await User.findById(req.user._id).select('-password');
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+            res.json(user);
+        } catch (error) {
+            console.error('Get profile error:', error);
+            res.status(500).json({
+                message: 'Failed to get profile',
+                error: error.message
+            });
+        }
+    },
 
-    updateProfile: asyncHandler(async (req, res) => {
-        const user = await User.findById(req.user._id);
+    updateProfile: async (req, res) => {
+        try {
+            const user = await User.findById(req.user._id);
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
 
-        if (user) {
-            user.name = req.body.name || user.name;
-            user.email = req.body.email || user.email;
-            
-            if (req.body.password) {
-                user.password = req.body.password;
+            const { name, email, password } = req.body;
+
+            // Update fields if provided
+            if (name) user.name = name;
+            if (email) user.email = email;
+            if (password) {
+                const salt = await bcrypt.genSalt(10);
+                user.password = await bcrypt.hash(password, salt);
             }
 
             const updatedUser = await user.save();
@@ -78,14 +155,16 @@ const authController = {
                 _id: updatedUser._id,
                 name: updatedUser.name,
                 email: updatedUser.email,
-                role: updatedUser.role,
-                token: generateToken(updatedUser._id)
+                role: updatedUser.role
             });
-        } else {
-            res.status(404);
-            throw new Error('User not found');
+        } catch (error) {
+            console.error('Update profile error:', error);
+            res.status(500).json({
+                message: 'Failed to update profile',
+                error: error.message
+            });
         }
-    })
+    }
 };
 
 module.exports = authController;
