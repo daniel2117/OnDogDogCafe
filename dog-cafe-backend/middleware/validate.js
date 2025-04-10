@@ -1,4 +1,7 @@
-const { VALID_TIME_SLOTS } = require('../models/Reservation');
+
+const { TIME_SLOTS } = require('../models/Reservation');
+=======
+
 
 const validateRegistration = (req, res, next) => {
     const { name, email, password } = req.body;
@@ -62,7 +65,9 @@ const validateLogin = (req, res, next) => {
 };
 
 const validateReservation = (req, res, next) => {
-    const { date, timeSlot, numberOfPeople, dogId } = req.body;
+
+    const { date, timeSlot, numberOfPeople } = req.body;
+
 
     // Check required fields
     if (!date || !timeSlot || !numberOfPeople || !dogId) {
@@ -98,9 +103,11 @@ const validateReservation = (req, res, next) => {
     }
 
     // Validate time slot
-    if (!VALID_TIME_SLOTS.includes(timeSlot)) {
+
+    if (!TIME_SLOTS.includes(timeSlot)) {
         return res.status(400).json({
-            message: `Invalid time slot. Must be one of: ${VALID_TIME_SLOTS.join(', ')}`
+            message: `Invalid time slot. Must be one of: ${TIME_SLOTS.join(', ')}`
+
         });
     }
 
@@ -110,21 +117,15 @@ const validateReservation = (req, res, next) => {
             message: 'Number of people must be between 1 and 10'
         });
     }
-
-    // Validate dogId format
-    if (!dogId.match(/^[0-9a-fA-F]{24}$/)) {
-        return res.status(400).json({
-            message: 'Invalid dog ID format'
-        });
-    }
-
     next();
 };
 
 const validateAdoptionApplication = (req, res, next) => {
     const { dogId, livingArrangement, experience, reason, income } = req.body;
 
-    if (!dogId || !livingArrangement || !experience || !reason || !income) {
+
+    if (!dogId || !livingArrangement || !experience || !reason ) {
+
         return res.status(400).json({
             message: 'Please provide all required fields: dogId, livingArrangement, experience, reason, income'
         });
@@ -153,13 +154,6 @@ const validateAdoptionApplication = (req, res, next) => {
     if (reason.length < 10 || reason.length > 1000) {
         return res.status(400).json({
             message: 'Reason for adoption must be between 10 and 1000 characters'
-        });
-    }
-
-    // Validate income
-    if (!Number.isInteger(income) || income < 0) {
-        return res.status(400).json({
-            message: 'Please provide a valid income amount'
         });
     }
 
