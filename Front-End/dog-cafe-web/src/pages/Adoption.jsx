@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react';
+import apiClient from '../services/api'; // Adjust path if needed
 import { useNavigate, useLocation } from "react-router-dom";
+
 
 const Adoption = () => {
     const navigate = useNavigate();
