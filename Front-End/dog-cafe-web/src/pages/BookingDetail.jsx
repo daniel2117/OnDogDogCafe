@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { reservationApi } from "../services/api";
 
 const BookingDetail = () => {
     const navigate = useNavigate();
@@ -27,8 +28,13 @@ const BookingDetail = () => {
             help: "How can we help?",
             makeReservation: "Make a Reservation",
             alert: "Please fill out all required fields.",
-            success: "Reservation submitted!",
-            services: ["Cafe Visit", "Dog Cake", "Swimming Pool", "Dog Day Care"]
+            success: "Reservation submitted successfully!",
+            services: ["Cafe Visit", "Dog Cake", "Swimming Pool", "Dog Day Care"],
+            verifyEmail: "Email Verification",
+            enterCode: "Enter verification code",
+            verify: "Verify",
+            error: "An error occurred",
+            loading: "Processing..."
         },
         zh: {
             numberOfPeople: "人數",
@@ -47,8 +53,13 @@ const BookingDetail = () => {
             help: "我們可以怎麼幫助您？",
             makeReservation: "提交預約",
             alert: "請填寫所有必填欄位。",
-            success: "預約已提交！",
-            services: ["到店服務", "狗狗蛋糕", "游泳池", "狗狗日托"]
+            success: "預約成功提交！",
+            services: ["到店服務", "狗狗蛋糕", "游泳池", "狗狗日托"],
+            verifyEmail: "電郵驗證",
+            enterCode: "請輸入驗證碼",
+            verify: "驗證",
+            error: "發生錯誤",
+            loading: "處理中..."
         }
     };
 
@@ -58,7 +69,10 @@ const BookingDetail = () => {
     const [people, setPeople] = useState(1);
     const [date, setDate] = useState(new Date());
     const [time, setTime] = useState("");
-
+    const [loading, setLoading] = useState(false);
+    const [availableSlots, setAvailableSlots] = useState([]);
+    const [verificationStep, setVerificationStep] = useState(false);
+    const [verificationCode, setVerificationCode] = useState("");
     const [formData, setFormData] = useState({
         name: "",
         phone: "",
@@ -67,30 +81,51 @@ const BookingDetail = () => {
         petType: "",
         location: "",
         message: "",
-        services: [],
+        services: []
     });
 
-    const times = [
-        "13:00", "13:30", "14:00", "14:30", "15:00", "15:30",
-        "16:00", "17:00", "17:30"
-    ];
-
-    const toggleService = (service) => {
-        setFormData((prev) => {
-            const exists = prev.services.includes(service);
-            return {
-                ...prev,
-                services: exists ? prev.services.filter(s => s !== service) : [...prev.services, service]
-            };
-        });
-    };
+    useEffect(() => {
+        const fetchAvailableSlots = async () => {
+            try {
+                setLoading(true);
+                // Add validation for past dates
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                if (date < today) {
+                    throw new Error('Cannot book for past dates');
+                }
+                const response = await reservationApi.getAvailability(date);
+                const slots = response.availableSlots['Cafe Visit'] || [];
+                setAvailableSlots(slots);
+            } catch (error) {
+                console.error("Failed to fetch time slots:", error);
+                alert(error.message || t.error);
+                setAvailableSlots([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+    
+        if (date) {
+            fetchAvailableSlots();
+        }
+    }, [date, t]);
 
     const handleInput = (e) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleReservation = () => {
+    const toggleService = (service) => {
+        setFormData(prev => {
+            const services = prev.services.includes(service) 
+                ? prev.services.filter(s => s !== service)
+                : [...prev.services, service];
+            return { ...prev, services };
+        });
+    };
+
+    const handleReservation = async () => {
         const requiredFields = ["name", "phone", "email", "petName", "petType", "location"];
         for (let field of requiredFields) {
             if (!formData[field]) {
@@ -98,7 +133,55 @@ const BookingDetail = () => {
                 return;
             }
         }
-        alert(t.success);
+
+        if (!time) {
+            alert("Please select a time slot");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            // First verify email
+            const verifyResponse = await reservationApi.verifyEmail(formData.email);
+            if (!verifyResponse.error) {
+                setVerificationStep(true);
+            } else {
+                alert(verifyResponse.message || t.error);
+            }
+        } catch (error) {
+            alert(error.message || t.error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleVerificationSubmit = async () => {
+        if (!verificationCode) {
+            alert("Please enter verification code");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            // First verify the code
+            await reservationApi.verifyCode(formData.email, verificationCode);
+
+            // Then create the reservation
+            const reservationData = {
+                ...formData,
+                date: date.toISOString().split('T')[0],
+                timeSlot: time,
+                selectedServices: formData.services.length ? formData.services : ['Cafe Visit']
+            };
+
+            const response = await reservationApi.createReservation(reservationData);
+            alert(t.success);
+            navigate(`/?lang=${lang}`);
+        } catch (error) {
+            alert(error.message || t.error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -107,88 +190,123 @@ const BookingDetail = () => {
                 <img src="/logo.png" alt="logo" className="h-16" />
             </div>
 
-            {step === 1 && (
-                <div className="w-full max-w-md">
-                    <h2 className="text-xl font-bold mb-4">{t.numberOfPeople}</h2>
-                    <select
-                        className="w-full mb-6 p-2 border rounded"
-                        value={people}
-                        onChange={(e) => setPeople(e.target.value)}
-                    >
-                        {[...Array(10)].map((_, i) => (
-                            <option key={i + 1} value={i + 1}>{i + 1}</option>
-                        ))}
-                    </select>
-
-                    <h2 className="text-xl font-bold mb-4">{t.chooseDate}</h2>
-                    <DatePicker
-                        selected={date}
-                        onChange={(date) => setDate(date)}
-                        className="w-full mb-6 p-2 border rounded"
-                    />
-
-                    <h2 className="text-xl font-bold mb-4">{t.pickTime}</h2>
-                    <div className="grid grid-cols-3 gap-2 mb-6">
-                        {times.map((tVal) => (
-                            <button
-                                key={tVal}
-                                onClick={() => setTime(tVal)}
-                                className={`py-2 rounded border ${time === tVal ? "bg-purple-500 text-white" : "bg-white"}`}
-                            >
-                                {tVal}
-                            </button>
-                        ))}
-                    </div>
-
-                    <div className="flex justify-between">
-                        <button onClick={() => navigate(`/booking?lang=${lang}`)} className="bg-gray-300 px-4 py-2 rounded">{t.back}</button>
-                        <button onClick={() => setStep(2)} className="bg-purple-500 text-white px-4 py-2 rounded">{t.continue}</button>
-                    </div>
+            {loading && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-purple-500"></div>
                 </div>
             )}
 
-            {step === 2 && (
-                <div className="w-full max-w-2xl">
-                    <h2 className="text-xl font-bold mb-4">{t.requestServices}</h2>
-
-                    <p className="mb-2">{t.selectServices}</p>
-                    <div className="grid grid-cols-2 gap-3 mb-6">
-                        {t.services.map((label, i) => {
-                            const serviceKey = texts.en.services[i];
-                            return (
-                                <button
-                                    key={serviceKey}
-                                    onClick={() => toggleService(serviceKey)}
-                                    className={`flex flex-col items-center justify-center p-2 border rounded gap-2 ${formData.services.includes(serviceKey) ? "bg-purple-500 text-white" : "bg-white"}`}
-                                >
-                                    <img src={`/icons/${serviceKey.replace(/ /g, "_").toLowerCase()}.png`} alt={serviceKey} className="h-8 w-8" />
-                                    <span>{label}</span>
-                                </button>
-                            );
-                        })}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                        <input name="name" placeholder={t.yourName} onChange={handleInput} className="p-2 border rounded" />
-                        <input name="petName" placeholder={t.petName} onChange={handleInput} className="p-2 border rounded" />
-                        <input name="email" placeholder={t.email} onChange={handleInput} className="p-2 border rounded" />
-                        <input name="phone" placeholder={t.phone} onChange={handleInput} className="p-2 border rounded" />
-                        <input name="petType" placeholder={t.petType} onChange={handleInput} className="p-2 border rounded" />
-                        <input name="location" placeholder={t.location} onChange={handleInput} className="p-2 border rounded" />
-                    </div>
-
-                    <textarea
-                        name="message"
-                        placeholder={t.help}
-                        onChange={handleInput}
-                        className="w-full h-24 p-2 border rounded mb-4"
+            {verificationStep ? (
+                <div className="w-full max-w-md">
+                    <h2 className="text-xl font-bold mb-4">{t.verifyEmail}</h2>
+                    <input
+                        type="text"
+                        value={verificationCode}
+                        onChange={(e) => setVerificationCode(e.target.value)}
+                        placeholder={t.enterCode}
+                        className="w-full p-2 border rounded mb-4"
                     />
-
                     <div className="flex justify-between">
-                        <button onClick={() => setStep(1)} className="bg-gray-300 px-4 py-2 rounded">{t.back}</button>
-                        <button onClick={handleReservation} className="bg-purple-500 text-white px-4 py-2 rounded">{t.makeReservation}</button>
+                        <button
+                            onClick={() => setVerificationStep(false)}
+                            className="bg-gray-300 px-4 py-2 rounded"
+                        >
+                            {t.back}
+                        </button>
+                        <button
+                            onClick={handleVerificationSubmit}
+                            className="bg-purple-500 text-white px-4 py-2 rounded"
+                        >
+                            {t.verify}
+                        </button>
                     </div>
                 </div>
+            ) : (
+                <>
+                    {step === 1 && (
+                        <div className="w-full max-w-md">
+                            <h2 className="text-xl font-bold mb-4">{t.numberOfPeople}</h2>
+                            <select
+                                className="w-full mb-6 p-2 border rounded"
+                                value={people}
+                                onChange={(e) => setPeople(e.target.value)}
+                            >
+                                {[...Array(10)].map((_, i) => (
+                                    <option key={i + 1} value={i + 1}>{i + 1}</option>
+                                ))}
+                            </select>
+
+                            <h2 className="text-xl font-bold mb-4">{t.chooseDate}</h2>
+                            <DatePicker
+                                selected={date}
+                                onChange={(date) => setDate(date)}
+                                className="w-full mb-6 p-2 border rounded"
+                            />
+
+                            <h2 className="text-xl font-bold mb-4">{t.pickTime}</h2>
+                            <div className="grid grid-cols-3 gap-2 mb-6">
+                                {availableSlots.map((tVal) => (
+                                    <button
+                                        key={tVal}
+                                        onClick={() => setTime(tVal)}
+                                        className={`py-2 rounded border ${time === tVal ? "bg-purple-500 text-white" : "bg-white"}`}
+                                    >
+                                        {tVal}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="flex justify-between">
+                                <button onClick={() => navigate(`/booking?lang=${lang}`)} className="bg-gray-300 px-4 py-2 rounded">{t.back}</button>
+                                <button onClick={() => setStep(2)} className="bg-purple-500 text-white px-4 py-2 rounded">{t.continue}</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 2 && (
+                        <div className="w-full max-w-2xl">
+                            <h2 className="text-xl font-bold mb-4">{t.requestServices}</h2>
+
+                            <p className="mb-2">{t.selectServices}</p>
+                            <div className="grid grid-cols-2 gap-3 mb-6">
+                                {t.services.map((label, i) => {
+                                    const serviceKey = texts.en.services[i];
+                                    return (
+                                        <button
+                                            key={serviceKey}
+                                            onClick={() => toggleService(serviceKey)}
+                                            className={`flex flex-col items-center justify-center p-2 border rounded gap-2 ${formData.services.includes(serviceKey) ? "bg-purple-500 text-white" : "bg-white"}`}
+                                        >
+                                            <img src={`/icons/${serviceKey.replace(/ /g, "_").toLowerCase()}.png`} alt={serviceKey} className="h-8 w-8" />
+                                            <span>{label}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                <input name="name" placeholder={t.yourName} onChange={handleInput} className="p-2 border rounded" />
+                                <input name="petName" placeholder={t.petName} onChange={handleInput} className="p-2 border rounded" />
+                                <input name="email" placeholder={t.email} onChange={handleInput} className="p-2 border rounded" />
+                                <input name="phone" placeholder={t.phone} onChange={handleInput} className="p-2 border rounded" />
+                                <input name="petType" placeholder={t.petType} onChange={handleInput} className="p-2 border rounded" />
+                                <input name="location" placeholder={t.location} onChange={handleInput} className="p-2 border rounded" />
+                            </div>
+
+                            <textarea
+                                name="message"
+                                placeholder={t.help}
+                                onChange={handleInput}
+                                className="w-full h-24 p-2 border rounded mb-4"
+                            />
+
+                            <div className="flex justify-between">
+                                <button onClick={() => setStep(1)} className="bg-gray-300 px-4 py-2 rounded">{t.back}</button>
+                                <button onClick={handleReservation} className="bg-purple-500 text-white px-4 py-2 rounded">{t.makeReservation}</button>
+                            </div>
+                        </div>
+                    )}
+                </>
             )}
 
             <footer className="mt-10 text-xs text-gray-500">powered by Sangchul</footer>

@@ -46,7 +46,8 @@ const reservationController = {
 
         if (!email) {
             return res.status(400).json({
-                message: 'Email is required'
+                message: 'Email is required',
+                error: true
             });
         }
 
@@ -58,13 +59,14 @@ const reservationController = {
 
         if (!emailSent) {
             return res.status(500).json({
-                message: 'Failed to send verification email'
+                message: 'Failed to send verification email',
+                error: true
             });
         }
 
         res.json({
             message: 'Verification code sent to email',
-            verified: false
+            error: false
         });
     }),
 
