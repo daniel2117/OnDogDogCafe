@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import apiClient from '../services/api'; // Adjust path if needed
 import { useNavigate, useLocation } from "react-router-dom";
-
+import adoptionApi from '../services/adoptionApi';
 
 const Adoption = () => {
     const navigate = useNavigate();
@@ -40,22 +39,38 @@ const Adoption = () => {
 
     const t = texts[lang];
 
-    const allDogs = Array.from({ length: 40 }, (_, i) => ({
-        id: i + 1,
-        name: `Doggo ${i + 1}`,
-        gender: i % 2 === 0 ? "Male" : "Female",
-        breed: ["Shiba", "Retriever", "Poodle"][i % 3],
-        age: `${1 + (i % 10)} years`,
-        size: ["Small", "Medium", "Large"][i % 3],
-        img: "/images/pug.png",
-        desc: "This is a friendly, playful, smart dog looking for a home."
-    }));
-
     const [page, setPage] = useState(1);
+    const [dogs, setDogs] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [filters, setFilters] = useState({});
     const dogsPerPage = 9;
-    const start = (page - 1) * dogsPerPage;
-    const currentDogs = allDogs.slice(start, start + dogsPerPage);
-    const totalPages = Math.ceil(allDogs.length / dogsPerPage);
+
+    useEffect(() => {
+        fetchDogs();
+    }, [page, filters]);
+
+    const fetchDogs = async () => {
+        try {
+            setLoading(true);
+            const response = await adoptionApi.getAllDogs(page, filters);
+            setDogs(response.dogs);
+            // Update total pages if needed
+        } catch (err) {
+            setError(err.message);
+            console.error('Error fetching dogs:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleFilterChange = (filterType, value) => {
+        setFilters(prev => ({
+            ...prev,
+            [filterType]: value
+        }));
+        setPage(1); // Reset to first page when filters change
+    };
 
     return (
         <div className="min-h-screen bg-white px-6 py-4 text-gray-700">
@@ -76,45 +91,82 @@ const Adoption = () => {
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-lg font-semibold">{t.filter}</h2>
                 <div className="flex gap-2">
-                    <select className="border px-3 py-1 rounded">
-                        <option>{t.breed}</option>
+                    <select
+                        className="border px-3 py-1 rounded"
+                        onChange={(e) => handleFilterChange('breed', e.target.value)}
+                    >
+                        <option value="">{t.breed}</option>
+                        <option value="Shiba">Shiba</option>
+                        <option value="Retriever">Retriever</option>
+                        <option value="Poodle">Poodle</option>
                     </select>
-                    <select className="border px-3 py-1 rounded">
-                        <option>{t.color}</option>
+                    <select
+                        className="border px-3 py-1 rounded"
+                        onChange={(e) => handleFilterChange('color', e.target.value)}
+                    >
+                        <option value="">{t.color}</option>
+                        <option value="Black">Black</option>
+                        <option value="White">White</option>
+                        <option value="Brown">Brown</option>
                     </select>
-                    <select className="border px-3 py-1 rounded">
-                        <option>{t.gender}</option>
+                    <select
+                        className="border px-3 py-1 rounded"
+                        onChange={(e) => handleFilterChange('gender', e.target.value)}
+                    >
+                        <option value="">{t.gender}</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
                     </select>
-                    <select className="border px-3 py-1 rounded">
-                        <option>{t.age}</option>
+                    <select
+                        className="border px-3 py-1 rounded"
+                        onChange={(e) => handleFilterChange('age', e.target.value)}
+                    >
+                        <option value="">{t.age}</option>
+                        <option value="1-3">1-3 years</option>
+                        <option value="4-6">4-6 years</option>
+                        <option value="7+">7+ years</option>
                     </select>
-                    <select className="border px-3 py-1 rounded">
-                        <option>{t.size}</option>
+                    <select
+                        className="border px-3 py-1 rounded"
+                        onChange={(e) => handleFilterChange('size', e.target.value)}
+                    >
+                        <option value="">{t.size}</option>
+                        <option value="Small">Small</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Large">Large</option>
                     </select>
                     <button className="ml-2 border px-3 py-1 rounded bg-purple-500 text-white">{t.apply}</button>
                 </div>
             </div>
 
             {/* Dog Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                {currentDogs.map((dog) => (
-                    <div key={dog.id} className="border rounded-lg p-4 shadow hover:shadow-md">
-                        <img src={dog.img} alt={dog.name} className="w-full h-48 object-cover rounded mb-4" />
-                        <div className="mb-2 text-lg font-bold">{dog.name}</div>
-                        <div className="text-sm mb-1">Gender: {dog.gender}</div>
-                        <div className="text-sm mb-1">Breed: {dog.breed}</div>
-                        <div className="text-sm mb-1">Age: {dog.age}</div>
-                        <div className="text-sm mb-1">Size: {dog.size}</div>
-                        <p className="text-sm text-gray-500 mb-2">{dog.desc}</p>
-                        <button
-                            className="w-full border border-purple-500 text-purple-500 rounded px-4 py-2 text-sm hover:bg-purple-50"
-                            onClick={() => navigate(`/dog/${dog.id}?lang=${lang}`)}
-                        >
-                            {t.moreInfo}
-                        </button>
-                    </div>
-                ))}
-            </div>
+            {loading ? (
+                <div className="flex justify-center items-center h-64">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+                </div>
+            ) : error ? (
+                <div className="text-red-500 text-center py-4">{error}</div>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                    {dogs.map((dog) => (
+                        <div key={dog.id} className="border rounded-lg p-4 shadow hover:shadow-md">
+                            <img src={dog.img} alt={dog.name} className="w-full h-48 object-cover rounded mb-4" />
+                            <div className="mb-2 text-lg font-bold">{dog.name}</div>
+                            <div className="text-sm mb-1">Gender: {dog.gender}</div>
+                            <div className="text-sm mb-1">Breed: {dog.breed}</div>
+                            <div className="text-sm mb-1">Age: {dog.age}</div>
+                            <div className="text-sm mb-1">Size: {dog.size}</div>
+                            <p className="text-sm text-gray-500 mb-2">{dog.desc}</p>
+                            <button
+                                className="w-full border border-purple-500 text-purple-500 rounded px-4 py-2 text-sm hover:bg-purple-50"
+                                onClick={() => navigate(`/dog/${dog.id}?lang=${lang}`)}
+                            >
+                                {t.moreInfo}
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             {/* Pagination */}
             <div className="flex justify-center items-center gap-2 mt-10">
@@ -125,7 +177,8 @@ const Adoption = () => {
                 >
                     Prev
                 </button>
-                {[...Array(totalPages)].map((_, i) => (
+                {/* Assuming totalPages is updated dynamically */}
+                {[...Array(Math.ceil(dogs.length / dogsPerPage))].map((_, i) => (
                     <button
                         key={i}
                         onClick={() => setPage(i + 1)}
@@ -135,7 +188,7 @@ const Adoption = () => {
                     </button>
                 ))}
                 <button
-                    disabled={page === totalPages}
+                    disabled={page === Math.ceil(dogs.length / dogsPerPage)}
                     onClick={() => setPage((p) => p + 1)}
                     className="px-3 py-1 border rounded disabled:opacity-30"
                 >
