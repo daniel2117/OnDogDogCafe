@@ -67,7 +67,7 @@ const BookingDetail = () => {
 
     const [step, setStep] = useState(1);
     const [people, setPeople] = useState(1);
-    const [date, setDate] = useState(new Date());
+    const [date, setDate] = useState(null);
     const [time, setTime] = useState("");
     const [loading, setLoading] = useState(false);
     const [availableSlots, setAvailableSlots] = useState([]);
@@ -86,30 +86,35 @@ const BookingDetail = () => {
 
     useEffect(() => {
         const fetchAvailableSlots = async () => {
+            if (!date) {
+                setAvailableSlots([]);
+                return;
+            }
+            
             try {
                 setLoading(true);
-                // Add validation for past dates
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                if (date < today) {
-                    throw new Error('Cannot book for past dates');
-                }
+                console.log('Fetching slots for date:', date); // Add debug log
                 const response = await reservationApi.getAvailability(date);
-                const slots = response.availableSlots['Cafe Visit'] || [];
-                setAvailableSlots(slots);
+                console.log('Response:', response); // Add debug log
+                
+                if (response && response.availableSlots) {
+                    const slots = response.availableSlots['Cafe Visit'] || [];
+                    console.log('Available slots:', slots); // Add debug log
+                    setAvailableSlots(slots);
+                } else {
+                    console.log('No slots in response'); // Add debug log
+                    setAvailableSlots([]);
+                }
             } catch (error) {
                 console.error("Failed to fetch time slots:", error);
-                alert(error.message || t.error);
                 setAvailableSlots([]);
             } finally {
                 setLoading(false);
             }
         };
     
-        if (date) {
-            fetchAvailableSlots();
-        }
-    }, [date, t]);
+        fetchAvailableSlots();
+    }, [date]);
 
     const handleInput = (e) => {
         const { name, value } = e.target;
@@ -239,8 +244,17 @@ const BookingDetail = () => {
                             <h2 className="text-xl font-bold mb-4">{t.chooseDate}</h2>
                             <DatePicker
                                 selected={date}
-                                onChange={(date) => setDate(date)}
+                                onChange={(date) => {
+                                    setDate(date);
+                                    setTime(""); // Reset time when date changes
+                                    setAvailableSlots([]); // Reset available slots
+                                }}
                                 className="w-full mb-6 p-2 border rounded"
+                                placeholderText={t.chooseDate}
+                                minDate={new Date()}
+                                dateFormat="yyyy-MM-dd"
+                                isClearable={false}
+                                required
                             />
 
                             <h2 className="text-xl font-bold mb-4">{t.pickTime}</h2>
@@ -313,5 +327,16 @@ const BookingDetail = () => {
         </div>
     );
 };
+// Add this to BookingDetail.jsx, at the bottom of the component
+{process.env.NODE_ENV === 'development' && (
+    <button 
+        onClick={() => import('../tests/reservation.test').then(m => m.default())}
+        className="mt-4 bg-gray-200 px-4 py-2 rounded"
+    >
+        Run API Tests
+    </button>
+)}
+
+
 
 export default BookingDetail;
