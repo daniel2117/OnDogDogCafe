@@ -7,7 +7,7 @@ const testEmails = async () => {
         // Test verification email
         console.log('1. Testing verification email...');
         const verificationResult = await emailService.sendVerificationEmail(
-            'test@example.com',
+            'jeffreyjp02@gmail.com',
             '123456'
         );
         console.log('Verification email sent:', verificationResult);
@@ -15,10 +15,10 @@ const testEmails = async () => {
         // Test reservation confirmation
         console.log('\n2. Testing reservation confirmation...');
         const reservationResult = await emailService.sendReservationConfirmation(
-            'test@example.com',
+            'jeffreyjp02@gmail.com',
             {
                 customerInfo: {
-                    name: 'Test User'
+                    name: 'Jeffrey test'
                 },
                 date: new Date(),
                 timeSlot: '14:00',
@@ -30,10 +30,10 @@ const testEmails = async () => {
         // Test adoption application confirmation
         console.log('\n3. Testing adoption application confirmation...');
         const adoptionResult = await emailService.sendAdoptionApplicationConfirmation(
-            'test@example.com',
+            'jeffreyjp02@gmail.com',
             {
                 customerInfo: {
-                    name: 'Test User'
+                    name: 'Jeffreytest'
                 },
                 dog: {
                     name: 'Max'
