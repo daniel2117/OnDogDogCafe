@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
+import adoptionApi from '../services/adoptionApi';
 
 const DogDetail = () => {
     const { id } = useParams();
@@ -19,7 +20,8 @@ const DogDetail = () => {
             interested: "If you are interested to adopt",
             getStarted: "Get started",
             similar: "Similar Pets",
-            footer: "1F, 3 Soares Avenue, Hong Kong\nTel: 6613 2128\n©2025 by On Dog Dog Cafe."
+            footer: "1F, 3 Soares Avenue, Hong Kong\nTel: 6613 2128\n©2025 by On Dog Dog Cafe.",
+            moreInfo: "More Info"
         },
         zh: {
             gender: "性別",
@@ -32,29 +34,48 @@ const DogDetail = () => {
             interested: "若您有興趣領養",
             getStarted: "開始預約",
             similar: "類似狗狗",
-            footer: "香港蘇沙道3號1樓\n電話: 6613 2128\n©2025 On Dog Dog Cafe."
+            footer: "香港蘇沙道3號1樓\n電話: 6613 2128\n©2025 On Dog Dog Cafe.",
+            moreInfo: "更多信息"
         },
     };
 
     const t = texts[lang];
 
-    // Dummy data for the dog
-    const dog = {
-        name: "Magie",
-        petId: "80638810",
-        profile: "/images/3.jpeg",
-        images: ["1.jpeg", "2.jpeg", "3.jpeg", "4.jpeg", "5.jpeg"],
-        gender: "Female",
-        breed: "Shiba Inu",
-        age: "14 month",
-        color: "Red",
-        weight: "12 lb",
-        height: "91 cm",
-        story: `We have had Magie since she was able to leave her mum as a puppy so at 8 weeks old.\nMagie currently lives with two children age 7 and 13 and has many visitors to the house which are children she is great with kids.\nThere's lots of cats, birds etc around the area and in the garden on most days as she's not fussed by these.`,
-        health: ["Can live with other children of any age", "Vaccinated", "House-Trained", "Neutered", "Shots up to date", "Microchipped"]
+    const [dog, setDog] = useState(null);
+    const [similarDogs, setSimilarDogs] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        fetchDogDetails();
+    }, [id]);
+
+    const fetchDogDetails = async () => {
+        try {
+            setLoading(true);
+            const [dogData, similarDogsData] = await Promise.all([
+                adoptionApi.getDogById(id),
+                adoptionApi.getSimilarDogs(id)
+            ]);
+            setDog(dogData);
+            setSimilarDogs(similarDogsData);
+        } catch (err) {
+            setError(err.message);
+            console.error('Error fetching dog details:', err);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const similarPets = ["Lisa", "Bella", "Lucy", "Stella"];
+    if (loading) {
+        return <div className="flex justify-center items-center h-screen">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+        </div>;
+    }
+
+    if (error) {
+        return <div className="text-red-500 text-center py-4">{error}</div>;
+    }
 
     return (
         <div className="px-6 py-6 text-gray-700">
@@ -164,13 +185,13 @@ const DogDetail = () => {
             {/* Similar Pets */}
             <h3 className="text-center text-lg font-semibold mb-6">{t.similar}</h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-10">
-                {similarPets.map((name, i) => (
+                {similarDogs.map((dog, i) => (
                     <div key={i} className="text-center">
-                        <img src={`/images/${name.toLowerCase()}.jpeg`} alt={name} className="w-24 h-24 object-cover rounded-full mx-auto mb-2" />
-                        <div className="font-semibold text-sm">{name}</div>
-                        <div className="text-xs text-gray-500">Shiba Inu</div>
+                        <img src={dog.profile} alt={dog.name} className="w-24 h-24 object-cover rounded-full mx-auto mb-2" />
+                        <div className="font-semibold text-sm">{dog.name}</div>
+                        <div className="text-xs text-gray-500">{dog.breed}</div>
                         <button
-                            onClick={() => navigate(`/dog/${id}?lang=${lang}`)}
+                            onClick={() => navigate(`/dog/${dog.id}?lang=${lang}`)}
                             className="mt-2 text-purple-500 border border-purple-500 text-xs px-3 py-1 rounded hover:bg-purple-50"
                         >
                             {t.moreInfo}

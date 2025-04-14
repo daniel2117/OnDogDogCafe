@@ -15,8 +15,10 @@ export const reservationApi = {
     // Get available time slots
     getAvailability: async (date) => {
         try {
+            // Ensure date is properly formatted
+            const formattedDate = date instanceof Date ? date.toISOString() : date;
             const response = await axiosInstance.get('/reservations/availability', {
-                headers: { date: date.toISOString() }
+                params: { date: formattedDate }  // Change from headers to params
             });
             return response.data;
         } catch (error) {

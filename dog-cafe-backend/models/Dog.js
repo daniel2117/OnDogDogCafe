@@ -1,5 +1,20 @@
 const mongoose = require('mongoose');
 
+const healthRecordSchema = new mongoose.Schema({
+    type: {
+        type: String,
+        required: true
+    },
+    description: {
+        type: String,
+        required: true
+    },
+    date: {
+        type: Date,
+        default: Date.now
+    }
+});
+
 const dogSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -66,11 +81,7 @@ const dogSchema = new mongoose.Schema({
         type: Date,
         default: null
     },
-    healthRecords: [{
-        type: String,
-        description: String,
-        date: Date
-    }],
+    healthRecords: [healthRecordSchema],
     vaccinations: [{
         name: String,
         date: Date,

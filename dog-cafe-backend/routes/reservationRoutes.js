@@ -11,30 +11,45 @@ router.post('/:id/cancel', reservationController.cancelReservation);
 
 router.post('/test-email', async (req, res) => {
     try {
-        const emailService = require('../utils/emailService');
-        const testCode = '123456';
-        
-        const result = await emailService.sendVerificationEmail(
-            req.body.email,
-            testCode
-        );
+        const { email, type } = req.body;
+        let result;
 
-        if (result) {
-            res.json({ 
-                success: true, 
-                message: `Test email sent with code: ${testCode}` 
-            });
-        } else {
-            res.status(500).json({ 
-                success: false, 
-                message: 'Failed to send email' 
-            });
+        switch(type) {
+            case 'verification':
+                result = await emailService.sendVerificationEmail(
+                    email,
+                    '123456'
+                );
+                break;
+            case 'reservation':
+                result = await emailService.sendReservationConfirmation(
+                    email,
+                    {
+                        customerInfo: { name: 'Test User' },
+                        date: new Date(),
+                        timeSlot: '14:00',
+                        selectedServices: ['Cafe Visit']
+                    }
+                );
+                break;
+            case 'adoption':
+                result = await emailService.sendAdoptionApplicationConfirmation(
+                    email,
+                    {
+                        customerInfo: { name: 'Test User' },
+                        dog: { name: 'Max' },
+                        _id: '12345',
+                        status: 'pending'
+                    }
+                );
+                break;
+            default:
+                throw new Error('Invalid email type');
         }
+
+        res.json({ success: true, result });
     } catch (error) {
-        res.status(500).json({ 
-            success: false, 
-            error: error.message 
-        });
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 
