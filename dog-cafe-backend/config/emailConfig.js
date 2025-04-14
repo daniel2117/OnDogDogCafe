@@ -8,7 +8,9 @@ module.exports = {
         auth: {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASSWORD
-        }
+        },
+        debug: true, // Enable debug logging
+        logger: true  // Log to console
     },
     from: process.env.EMAIL_FROM || '"Dog Cafe" <noreply@dogcafe.com>'
 };

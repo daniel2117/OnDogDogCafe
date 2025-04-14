@@ -5,6 +5,7 @@ const transporter = nodemailer.createTransport(emailConfig.smtp);
 
 const emailService = {
     async sendVerificationEmail(email, verificationCode) {
+        console.log(`[Email Service] Attempting to send verification email to: ${email}`);
         const mailOptions = {
             from: emailConfig.from,
             to: email,
@@ -17,15 +18,24 @@ const emailService = {
         };
 
         try {
-            await transporter.sendMail(mailOptions);
+            console.log('[Email Service] Sending verification email with options:', {
+                to: email,
+                subject: mailOptions.subject
+            });
+            const info = await transporter.sendMail(mailOptions);
+            console.log('[Email Service] Verification email sent successfully:', {
+                messageId: info.messageId,
+                response: info.response
+            });
             return true;
         } catch (error) {
-            console.error('Email sending failed:', error);
+            console.error('[Email Service] Failed to send verification email:', error);
             return false;
         }
     },
 
     async sendReservationConfirmation(email, reservation) {
+        console.log(`[Email Service] Attempting to send reservation confirmation to: ${email}`);
         const mailOptions = {
             from: emailConfig.from,
             to: email,
@@ -44,14 +54,26 @@ const emailService = {
         };
 
         try {
-            await transporter.sendMail(mailOptions);
+            console.log('[Email Service] Sending reservation confirmation with options:', {
+                to: email,
+                subject: mailOptions.subject,
+                reservationDate: new Date(reservation.date).toLocaleDateString(),
+                timeSlot: reservation.timeSlot
+            });
+            const info = await transporter.sendMail(mailOptions);
+            console.log('[Email Service] Reservation confirmation sent successfully:', {
+                messageId: info.messageId,
+                response: info.response
+            });
             return true;
         } catch (error) {
-            console.error('Email sending failed:', error);
+            console.error('[Email Service] Failed to send reservation confirmation:', error);
             return false;
         }
     },
+
     async sendAdoptionApplicationConfirmation(email, application) {
+        console.log(`[Email Service] Attempting to send adoption application confirmation to: ${email}`);
         const mailOptions = {
             from: emailConfig.from,
             to: email,
@@ -70,10 +92,20 @@ const emailService = {
         };
 
         try {
-            await transporter.sendMail(mailOptions);
+            console.log('[Email Service] Sending adoption confirmation with options:', {
+                to: email,
+                subject: mailOptions.subject,
+                applicationId: application._id,
+                dogName: application.dog.name
+            });
+            const info = await transporter.sendMail(mailOptions);
+            console.log('[Email Service] Adoption confirmation sent successfully:', {
+                messageId: info.messageId,
+                response: info.response
+            });
             return true;
         } catch (error) {
-            console.error('Email sending failed:', error);
+            console.error('[Email Service] Failed to send adoption confirmation:', error);
             return false;
         }
     }
