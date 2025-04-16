@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import dogCafeApi from "../../services/api";
 
 const BookingDetail = () => {
     const navigate = useNavigate();
@@ -70,7 +69,7 @@ const BookingDetail = () => {
     const [date, setDate] = useState(new Date());
     const [time, setTime] = useState("");
     const [loading, setLoading] = useState(false);
-    const [availableSlots, setAvailableSlots] = useState([]);
+    const [availableSlots, setAvailableSlots] = useState(["10:00", "11:00", "14:00", "15:00"]);
     const [verificationStep, setVerificationStep] = useState(false);
     const [verificationCode, setVerificationCode] = useState("");
     const [formData, setFormData] = useState({
@@ -83,33 +82,6 @@ const BookingDetail = () => {
         message: "",
         services: []
     });
-
-    useEffect(() => {
-        const fetchAvailableSlots = async () => {
-            try {
-                setLoading(true);
-                // Add validation for past dates
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                if (date < today) {
-                    throw new Error('Cannot book for past dates');
-                }
-                const response = await dogCafeApi.getAvailability(date);
-                const slots = response.availableSlots['Cafe Visit'] || [];
-                setAvailableSlots(slots);
-            } catch (error) {
-                console.error("Failed to fetch time slots:", error);
-                alert(error.message || t.error);
-                setAvailableSlots([]);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (date) {
-            fetchAvailableSlots();
-        }
-    }, [date, t]);
 
     const handleInput = (e) => {
         const { name, value } = e.target;
@@ -139,49 +111,12 @@ const BookingDetail = () => {
             return;
         }
 
-        setLoading(true);
-        try {
-            // First verify email
-            const verifyResponse = await dogCafeApi.verifyEmail(formData.email);
-            if (!verifyResponse.error) {
-                setVerificationStep(true);
-            } else {
-                alert(verifyResponse.message || t.error);
-            }
-        } catch (error) {
-            alert(error.message || t.error);
-        } finally {
-            setLoading(false);
-        }
+        setVerificationStep(true); // simulate email step
     };
 
     const handleVerificationSubmit = async () => {
-        if (!verificationCode) {
-            alert("Please enter verification code");
-            return;
-        }
-
-        setLoading(true);
-        try {
-            // First verify the code
-            await dogCafeApi.verifyCode(formData.email, verificationCode);
-
-            // Then create the reservation
-            const reservationData = {
-                ...formData,
-                date: date.toISOString().split('T')[0],
-                timeSlot: time,
-                selectedServices: formData.services.length ? formData.services : ['Cafe Visit']
-            };
-
-            //const response = await dogCafeApi.createReservation(reservationData);
-            alert(t.success);
-            navigate(`/?lang=${lang}`);
-        } catch (error) {
-            alert(error.message || t.error);
-        } finally {
-            setLoading(false);
-        }
+        alert(t.success);
+        navigate(`/?lang=${lang}`);
     };
 
     return (

@@ -114,7 +114,7 @@ const Home = ({ lang, toggleLang }) => {
                                 {t.explore}
                             </button>
                             <button
-                                onClick={() => navigate(`/booking?lang=${lang}`)}
+                                onClick={() => navigate(`/bookingDetail?lang=${lang}`)}
                                 className="border border-[#457b9d] text-[#457b9d] px-6 py-2 rounded hover:bg-[#f1faee]"
                             >
                                 {t.cafe}

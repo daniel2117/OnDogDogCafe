@@ -23,7 +23,7 @@ import PetStory from './pages/Rehome/PetStory';
 import Documents from './pages/Rehome/Documents';
 import Confirm from './pages/Rehome/Confirm';
 import AdoptionApplication from './pages/AdoptionApplication/AdoptionApplication';
-
+import ContactUs from "./pages/ContactUs";
 
 function App() {
   const [lang, setLang] = useState("en"); // "en" or "zh"
@@ -37,8 +37,11 @@ function App() {
       <Routes>
         <Route path="/" element={<Home lang={lang} toggleLang={toggleLang} />} />
         <Route path="/home" element={<Home lang={lang} toggleLang={toggleLang} />} />
+        <Route path="/contactus" element={<ContactUs lang={lang} toggleLang={toggleLang} />} />
+        {/* Cafe */}
         <Route path="/booking" element={<Booking lang={lang} toggleLang={toggleLang} />} />
         <Route path="/bookingDetail" element={<BookingDetail lang={lang} toggleLang={toggleLang} />} />
+        {/* Adoption */}
         <Route path="/adoption" element={<Adoption lang={lang} toggleLang={toggleLang} />} />
         <Route path="/dog/:id" element={<DogDetail lang={lang} toggleLang={toggleLang} />} />
         {/* Adoption Application */}
