@@ -276,7 +276,7 @@ const DogDetail = () => {
                 <img src={dog.imageUrl || "/images/pug.png"} alt="dog profile" className="w-16 h-16 rounded-full object-cover" />
                 <div>
                     <div className="text-xl font-bold">{dog.name}</div>
-                    <div className="text-sm text-blue-600">Pet ID: {dog._id}</div>
+
                 </div>
             </div>
 
