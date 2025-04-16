@@ -50,6 +50,32 @@ const emailService = {
             console.error('Email sending failed:', error);
             return false;
         }
+    },
+    async sendAdoptionApplicationConfirmation(email, application) {
+        const mailOptions = {
+            from: emailConfig.from,
+            to: email,
+            subject: 'Dog Cafe - Adoption Application Received',
+            html: `
+                <h2>Adoption Application Confirmation</h2>
+                <p>Dear ${application.customerInfo.name},</p>
+                <p>We have received your adoption application for:</p>
+                <ul>
+                    <li>Dog: ${application.dog.name}</li>
+                    <li>Application ID: ${application._id}</li>
+                    <li>Status: ${application.status}</li>
+                </ul>
+                <p>We will review your application and contact you soon.</p>
+            `
+        };
+
+        try {
+            await transporter.sendMail(mailOptions);
+            return true;
+        } catch (error) {
+            console.error('Email sending failed:', error);
+            return false;
+        }
     }
 };
 

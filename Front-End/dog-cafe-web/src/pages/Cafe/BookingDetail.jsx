@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import DatePicker from "react-datepicker";
@@ -86,10 +87,12 @@ const BookingDetail = ({ lang, toggleLang }) => {
             alert("Verification code sent.");
         } catch (err) {
             alert(err.message || "Failed to send code");
+
         } finally {
             setLoading(false);
         }
     };
+
 
     const verifyCode = async () => {
         setLoading(true);
@@ -99,6 +102,7 @@ const BookingDetail = ({ lang, toggleLang }) => {
             alert("Email verified");
         } catch (err) {
             alert(err.message || "Verification failed");
+
         } finally {
             setLoading(false);
         }
@@ -166,11 +170,13 @@ const BookingDetail = ({ lang, toggleLang }) => {
                                         key={tVal}
                                         onClick={() => setTime(tVal)}
                                         className={`border px-2 py-1 rounded ${time === tVal ? "bg-purple-500 text-white" : "bg-white"}`}
+
                                     >
                                         {tVal}
                                     </button>
                                 ))}
                             </div>
+
                         </div>
                     )}
 
@@ -247,3 +253,4 @@ const BookingDetail = ({ lang, toggleLang }) => {
 };
 
 export default BookingDetail;
+

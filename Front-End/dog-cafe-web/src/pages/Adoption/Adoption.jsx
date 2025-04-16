@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from "react-router-dom";
 import dogCafeApi from "../../services/api";
 
+
 const Adoption = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -73,6 +74,7 @@ const Adoption = () => {
 
     const t = texts[lang];
 
+
     return (
         <div className="min-h-screen bg-white px-6 py-4 text-gray-700">
             {/* Header */}
@@ -92,6 +94,7 @@ const Adoption = () => {
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-lg font-semibold">{t.filter}</h2>
                 <div className="flex gap-2">
+
                     <select name="breed" value={filters.breed} onChange={handleFilterChange} className="border px-3 py-1 rounded">
                         <option value="">{t.breed}</option>
                         <option value="Shiba">Shiba</option>
@@ -131,10 +134,12 @@ const Adoption = () => {
                     >
                         {t.apply}
                     </button>
+
                 </div>
             </div>
 
             {/* Dog Cards */}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 {dogs.map((dog) => (
                     <div key={dog._id} className="border rounded-lg p-4 shadow hover:shadow-md">
@@ -155,18 +160,22 @@ const Adoption = () => {
                 ))}
             </div>
 
+
             {/* Pagination */}
             <div className="flex justify-center items-center gap-2 mt-10">
                 <button
                     disabled={page === 1}
+
                     onClick={() => {
                         setPage((p) => p - 1);
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
+
                     className="px-3 py-1 border rounded disabled:opacity-30"
                 >
                     Prev
                 </button>
+
                 {[...Array(totalPages)].map((_, i) => (
                     <button
                         key={i}
@@ -174,17 +183,20 @@ const Adoption = () => {
                             setPage(i + 1);
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                         }}
+
                         className={`px-3 py-1 border rounded ${page === i + 1 ? "bg-purple-500 text-white" : ""}`}
                     >
                         {i + 1}
                     </button>
                 ))}
                 <button
+
                     disabled={page === totalPages}
                     onClick={() => {
                         setPage((p) => p + 1);
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
+
                     className="px-3 py-1 border rounded disabled:opacity-30"
                 >
                     Next
@@ -194,7 +206,9 @@ const Adoption = () => {
             {/* Book Now Button */}
             <div className="flex justify-center mt-10">
                 <button
+
                     onClick={() => navigate(`/adoption/apply?lang=${lang}`)}
+
                     className="w-full max-w-md bg-purple-500 text-white px-6 py-3 rounded text-lg hover:bg-purple-600"
                 >
                     {t.bookNow}
@@ -210,3 +224,4 @@ const Adoption = () => {
 };
 
 export default Adoption;
+

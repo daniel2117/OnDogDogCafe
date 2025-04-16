@@ -6,23 +6,23 @@ const cache = require('../utils/cache');
 const reservationController = {
     // Get available time slots and services
     getAvailability: asyncHandler(async (req, res) => {
-        const { date } = req.headers;
+        const date = req.query.date; // Change this line to get date from query params
         
         if (!date) {
             return res.status(400).json({ message: 'Date is required' });
         }
-
+    
         const queryDate = new Date(date);
         if (isNaN(queryDate)) {
             return res.status(400).json({ message: 'Invalid date format' });
         }
-
+    
         // Get existing reservations for the date
         const reservations = await Reservation.find({
             date: queryDate,
             status: { $ne: 'cancelled' }
         }).select('timeSlot selectedServices');
-
+    
         // Calculate available slots for each service
         const availableSlots = {};
         Object.values(SERVICES).forEach(service => {
@@ -33,7 +33,7 @@ const reservationController = {
                 return !conflictingReservation;
             });
         });
-
+    
         res.json({
             date: queryDate,
             availableSlots,
