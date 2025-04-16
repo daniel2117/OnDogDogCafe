@@ -1,26 +1,26 @@
 import { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
-
+import ContactUs from "./pages/ContactUs";
 import Booking from "./pages/Cafe/Booking";
 import BookingDetail from "./pages/Cafe/BookingDetail";
 
 //Adoption
 import Adoption from "./pages/Adoption/Adoption";
 import DogDetail from "./pages/Adoption/DogDetail";
-
+import AdoptionApplication from './pages/AdoptionApplication/AdoptionApplication';
 
 //RehomeApplication
-import RehomeStart from './pages/Rehome/RehomeStartPage';
-import PrimaryQuestions from './pages/Rehome/PrimaryQuestions';
-import PetImage from './pages/Rehome/PetImage';
-import Characteristics from './pages/Rehome/Characteristics';
-import KeyFacts from './pages/Rehome/KeyFacts';
-import PetStory from './pages/Rehome/PetStory';
-import Documents from './pages/Rehome/Documents';
-import Confirm from './pages/Rehome/Confirm';
-import AdoptionApplication from './pages/AdoptionApplication/AdoptionApplication';
-import ContactUs from "./pages/ContactUs";
+// import RehomeStart from './pages/Rehome/RehomeStartPage';
+// import PrimaryQuestions from './pages/Rehome/PrimaryQuestions';
+// import PetImage from './pages/Rehome/PetImage';
+// import Characteristics from './pages/Rehome/Characteristics';
+// import KeyFacts from './pages/Rehome/KeyFacts';
+// import PetStory from './pages/Rehome/PetStory';
+// import Documents from './pages/Rehome/Documents';
+// import Confirm from './pages/Rehome/Confirm';
+
+
 
 function App() {
   const [lang, setLang] = useState("en"); // "en" or "zh"
@@ -44,6 +44,7 @@ function App() {
         {/* Adoption Application */}
         <Route path="/adoption/apply" element={<AdoptionApplication />} />
         {/* Rehome Application */}
+        {/* 
         <Route path="/rehome/start" element={<RehomeStart />} />
         <Route path="/rehome/primary" element={<PrimaryQuestions />} />
         <Route path="/rehome/images" element={<PetImage />} />
@@ -51,7 +52,8 @@ function App() {
         <Route path="/rehome/keyfacts" element={<KeyFacts />} />
         <Route path="/rehome/story" element={<PetStory />} />
         <Route path="/rehome/documents" element={<Documents />} />
-        <Route path="/rehome/confirm" element={<Confirm />} />
+        <Route path="/rehome/confirm" element={<Confirm />} /> 
+        */}
       </Routes>
     </Router>
   );
