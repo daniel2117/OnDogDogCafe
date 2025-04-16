@@ -9,9 +9,6 @@ import BookingDetail from "./pages/Cafe/BookingDetail";
 import Adoption from "./pages/Adoption/Adoption";
 import DogDetail from "./pages/Adoption/DogDetail";
 
-//AdoptionApplication 
-import Step1BasicInfo from "./pages/AdoptionApplication/Step1BasicInfo";
-
 
 //RehomeApplication
 import RehomeStart from './pages/Rehome/RehomeStartPage';
