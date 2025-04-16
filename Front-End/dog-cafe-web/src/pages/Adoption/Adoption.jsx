@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from "react-router-dom";
-import adoptionApi from '../services/adoptionApi';
+import adoptionApi from '../../services/adoptionApi';
 
 const Adoption = () => {
     const navigate = useNavigate();
