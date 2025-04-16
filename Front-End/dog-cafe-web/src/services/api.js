@@ -11,8 +11,11 @@ const axiosInstance = axios.create({
     }
 });
 
-export const reservationApi = {
-    // Get available time slots
+const dogCafeApi = {
+    // =====================
+    // Reservation Endpoints
+    // =====================
+
     getAvailability: async (date) => {
         try {
             const response = await axiosInstance.get('/reservations/availability', {
@@ -24,10 +27,9 @@ export const reservationApi = {
         }
     },
 
-    // Verify email
     verifyEmail: async (email) => {
         try {
-            const response = await axiosInstance.post('/reservations/verify-contact', 
+            const response = await axiosInstance.post('/reservations/verify-contact',
                 {},
                 { headers: { email } }
             );
@@ -37,7 +39,6 @@ export const reservationApi = {
         }
     },
 
-    // Verify verification code
     verifyCode: async (email, code) => {
         try {
             const response = await axiosInstance.post('/reservations/verify-code', {
@@ -50,7 +51,6 @@ export const reservationApi = {
         }
     },
 
-    // Create reservation
     createReservation: async (reservationData) => {
         try {
             const payload = {
@@ -67,7 +67,7 @@ export const reservationApi = {
                 timeSlot: reservationData.timeSlot,
                 selectedServices: reservationData.selectedServices
             };
-            
+
             const response = await axiosInstance.post('/reservations/create', payload);
             return response.data;
         } catch (error) {
@@ -78,7 +78,6 @@ export const reservationApi = {
         }
     },
 
-    // Get user's reservations history
     getUserReservations: async (email, phone) => {
         try {
             const response = await axiosInstance.get('/reservations/history', {
@@ -90,7 +89,6 @@ export const reservationApi = {
         }
     },
 
-    // Cancel reservation
     cancelReservation: async (id, email, phone) => {
         try {
             const response = await axiosInstance.post(`/reservations/${id}/cancel`, {
@@ -101,7 +99,63 @@ export const reservationApi = {
         } catch (error) {
             throw error.response?.data || { message: 'Failed to cancel reservation' };
         }
+    },
+
+    // =====================
+    // Adoption Endpoints
+    // =====================
+
+    getAdoptableDogs: async (filters = {}) => {
+        try {
+            const response = await axiosInstance.get('/adoption/dogs', {
+                params: filters
+            });
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || { message: 'Failed to fetch adoptable dogs' };
+        }
+    },
+
+    getDogDetails: async (id) => {
+        try {
+            const response = await axiosInstance.get(`/adoption/dogs/${id}`);
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || { message: 'Failed to fetch dog details' };
+        }
+    },
+
+    getSimilarDogs: async (id) => {
+        try {
+            const response = await axiosInstance.get(`/adoption/dogs/${id}/similar`);
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || { message: 'Failed to fetch similar dogs' };
+        }
+    },
+
+    applyForAdoption: async (applicationData) => {
+        try {
+            const response = await axiosInstance.post('/adoption/apply', {
+                dogId: applicationData.dogId,
+                customerInfo: {
+                    name: applicationData.name,
+                    email: applicationData.email,
+                    phone: applicationData.phone,
+                    address: applicationData.address
+                },
+                applicationDetails: {
+                    livingArrangement: applicationData.livingArrangement,
+                    hasOtherPets: applicationData.hasOtherPets,
+                    experience: applicationData.experience,
+                    reason: applicationData.reason
+                }
+            });
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || { message: 'Failed to submit adoption application' };
+        }
     }
 };
 
-export default reservationApi;
+export default dogCafeApi;

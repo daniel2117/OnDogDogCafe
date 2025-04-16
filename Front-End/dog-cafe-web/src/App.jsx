@@ -2,22 +2,22 @@ import { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 
-import Booking from "./pages/Booking";
-import BookingDetail from "./pages/BookingDetail";
+import Booking from "./pages/Cafe/Booking";
+import BookingDetail from "./pages/Cafe/BookingDetail";
 
 //Adoption
-import Adoption from "./pages/Adoption";
-import DogDetail from "./pages/DogDetail";
+import Adoption from "./pages/Adoption/Adoption";
+import DogDetail from "./pages/Adoption/DogDetail";
 
 //Rehome
-import RehomeStart from './pages/rehome/RehomeStartPage';
-import PrimaryQuestions from './pages/rehome/PrimaryQuestions';
-import PetImage from './pages/rehome/PetImage';
-import Characteristics from './pages/rehome/Characteristics';
-import KeyFacts from './pages/rehome/KeyFacts';
-import PetStory from './pages/rehome/PetStory';
-import Documents from './pages/rehome/Documents';
-import Confirm from './pages/rehome/Confirm';
+import RehomeStart from './pages/Rehome/RehomeStartPage';
+import PrimaryQuestions from './pages/Rehome/PrimaryQuestions';
+import PetImage from './pages/Rehome/PetImage';
+import Characteristics from './pages/Rehome/Characteristics';
+import KeyFacts from './pages/Rehome/KeyFacts';
+import PetStory from './pages/Rehome/PetStory';
+import Documents from './pages/Rehome/Documents';
+import Confirm from './pages/Rehome/Confirm';
 
 function App() {
   const [lang, setLang] = useState("en"); // "en" or "zh"

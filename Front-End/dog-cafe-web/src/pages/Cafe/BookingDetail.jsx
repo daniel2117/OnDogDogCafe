@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { reservationApi } from "../services/api";
+import dogCafeApi from "../../services/api";
 
 const BookingDetail = () => {
     const navigate = useNavigate();
@@ -94,7 +94,7 @@ const BookingDetail = () => {
                 if (date < today) {
                     throw new Error('Cannot book for past dates');
                 }
-                const response = await reservationApi.getAvailability(date);
+                const response = await dogCafeApi.getAvailability(date);
                 const slots = response.availableSlots['Cafe Visit'] || [];
                 setAvailableSlots(slots);
             } catch (error) {
@@ -105,7 +105,7 @@ const BookingDetail = () => {
                 setLoading(false);
             }
         };
-    
+
         if (date) {
             fetchAvailableSlots();
         }
@@ -118,7 +118,7 @@ const BookingDetail = () => {
 
     const toggleService = (service) => {
         setFormData(prev => {
-            const services = prev.services.includes(service) 
+            const services = prev.services.includes(service)
                 ? prev.services.filter(s => s !== service)
                 : [...prev.services, service];
             return { ...prev, services };
@@ -142,7 +142,7 @@ const BookingDetail = () => {
         setLoading(true);
         try {
             // First verify email
-            const verifyResponse = await reservationApi.verifyEmail(formData.email);
+            const verifyResponse = await dogCafeApi.verifyEmail(formData.email);
             if (!verifyResponse.error) {
                 setVerificationStep(true);
             } else {
@@ -164,7 +164,7 @@ const BookingDetail = () => {
         setLoading(true);
         try {
             // First verify the code
-            await reservationApi.verifyCode(formData.email, verificationCode);
+            await dogCafeApi.verifyCode(formData.email, verificationCode);
 
             // Then create the reservation
             const reservationData = {
@@ -174,7 +174,7 @@ const BookingDetail = () => {
                 selectedServices: formData.services.length ? formData.services : ['Cafe Visit']
             };
 
-            const response = await reservationApi.createReservation(reservationData);
+            //const response = await dogCafeApi.createReservation(reservationData);
             alert(t.success);
             navigate(`/?lang=${lang}`);
         } catch (error) {
