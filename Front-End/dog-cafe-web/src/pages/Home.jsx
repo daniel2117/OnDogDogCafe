@@ -1,7 +1,23 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import api from "../services/api";
 
 const Home = ({ lang, toggleLang }) => {
     const navigate = useNavigate();
+    const [dogs, setDogs] = useState([]);
+
+    useEffect(() => {
+        const fetchDogs = async () => {
+            try {
+                const response = await api.getAdoptableDogs({ page: 1, limit: 8 });
+                setDogs(response.dogs || []);
+            } catch (err) {
+                console.error("Failed to fetch dogs", err);
+            }
+        };
+        fetchDogs();
+    }, []);
+
 
     const texts = {
         en: {
@@ -140,11 +156,15 @@ const Home = ({ lang, toggleLang }) => {
                     </button>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {[...Array(8)].map((_, i) => (
-                        <div key={i} className="border p-2 rounded text-center shadow">
-                            <img src="/images/1.jpeg" alt="dog" className="rounded mb-2 w-full h-32 object-cover" />
-                            <div className="font-semibold text-sm">MO50{i + 1} - Corgi</div>
-                            <div className="text-xs text-gray-600">Male · 02 months</div>
+                    {dogs.map((dog) => (
+                        <div key={dog._id} className="border p-2 rounded text-center shadow">
+                            <img
+                                src={dog.imageUrl || "/images/default-dog.png"}
+                                alt={dog.name}
+                                className="rounded mb-2 w-full h-32 object-cover"
+                            />
+                            <div className="font-semibold text-sm">{dog.name} - {dog.breed}</div>
+                            <div className="text-xs text-gray-600">{dog.gender} · {dog.age} years</div>
                         </div>
                     ))}
                 </div>
