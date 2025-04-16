@@ -29,7 +29,7 @@ const dogCafeApi = {
 
     verifyEmail: async (email) => {
         try {
-            const response = await axiosInstance.post('/reservations/verify-contact',
+            const response = await axiosInstance.post('/reservations/verify-email',
                 {},
                 { headers: { email } }
             );

@@ -314,7 +314,7 @@ const DogDetail = () => {
             <div className="text-center mb-10">
                 <div className="mb-2 font-semibold">{t.interested}</div>
                 <button
-                    onClick={() => navigate(`/booking?lang=${lang}`)}
+                    onClick={() => navigate(`/adoption/apply?lang=${lang}`)}
                     className="bg-purple-500 text-white px-6 py-2 rounded hover:bg-purple-600"
                 >
                     {t.getStarted}

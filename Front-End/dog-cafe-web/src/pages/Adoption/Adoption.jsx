@@ -194,7 +194,7 @@ const Adoption = () => {
             {/* Book Now Button */}
             <div className="flex justify-center mt-10">
                 <button
-                    onClick={() => navigate(`/booking?lang=${lang}`)}
+                    onClick={() => navigate(`/adoption/apply?lang=${lang}`)}
                     className="w-full max-w-md bg-purple-500 text-white px-6 py-3 rounded text-lg hover:bg-purple-600"
                 >
                     {t.bookNow}
