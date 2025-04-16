@@ -18,9 +18,7 @@ const dogCafeApi = {
 
     getAvailability: async (date) => {
         try {
-            const response = await axiosInstance.get('/reservations/availability', {
-                headers: { date: date.toISOString() }
-            });
+            const response = await axiosInstance.get('/reservations/availability', { params: { date } });
             return response.data;
         } catch (error) {
             throw error.response?.data || { message: 'Failed to fetch availability' };
