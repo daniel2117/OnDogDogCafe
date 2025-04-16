@@ -1,12 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from "react-router-dom";
-import adoptionApi from '../../services/adoptionApi';
+import dogCafeApi from "../../services/api";
+
 
 const Adoption = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const lang = queryParams.get("lang") || "en";
+
+    const [dogs, setDogs] = useState([]);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const dogsPerPage = 9;
+
+    const [filters, setFilters] = useState({ breed: '', color: '', gender: '', age: '', size: '' });
+
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "instant" });
+        const fetchDogs = async () => {
+            try {
+                const response = await dogCafeApi.getAdoptableDogs({
+                    page,
+                    limit: dogsPerPage,
+                    ...filters
+                });
+                setDogs(response.dogs);
+                setTotalPages(response.totalPages);
+            } catch (error) {
+                console.error("Failed to load adoption dogs:", error);
+            }
+        };
+        fetchDogs();
+    }, [page, filters]);
+
+    const handleFilterChange = (e) => {
+        const { name, value } = e.target;
+        setFilters(prev => ({ ...prev, [name]: value }));
+    };
+
+    const applyFilters = () => {
+        setPage(1); // 필터 적용 시 첫 페이지부터
+    };
 
     const texts = {
         en: {
@@ -39,38 +74,6 @@ const Adoption = () => {
 
     const t = texts[lang];
 
-    const [page, setPage] = useState(1);
-    const [dogs, setDogs] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [filters, setFilters] = useState({});
-    const dogsPerPage = 9;
-
-    useEffect(() => {
-        fetchDogs();
-    }, [page, filters]);
-
-    const fetchDogs = async () => {
-        try {
-            setLoading(true);
-            const response = await adoptionApi.getAllDogs(page, filters);
-            setDogs(response.dogs);
-            // Update total pages if needed
-        } catch (err) {
-            setError(err.message);
-            console.error('Error fetching dogs:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleFilterChange = (filterType, value) => {
-        setFilters(prev => ({
-            ...prev,
-            [filterType]: value
-        }));
-        setPage(1); // Reset to first page when filters change
-    };
 
     return (
         <div className="min-h-screen bg-white px-6 py-4 text-gray-700">
@@ -91,105 +94,109 @@ const Adoption = () => {
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-lg font-semibold">{t.filter}</h2>
                 <div className="flex gap-2">
-                    <select
-                        className="border px-3 py-1 rounded"
-                        onChange={(e) => handleFilterChange('breed', e.target.value)}
-                    >
+
+                    <select name="breed" value={filters.breed} onChange={handleFilterChange} className="border px-3 py-1 rounded">
                         <option value="">{t.breed}</option>
                         <option value="Shiba">Shiba</option>
-                        <option value="Retriever">Retriever</option>
-                        <option value="Poodle">Poodle</option>
+                        <option value="Labrador">Labrador</option>
+                        <option value="Husky">Husky</option>
+                        <option value="Bulldog">Bulldog</option>
+                        <option value="Pomeranian">Pomeranian</option>
                     </select>
-                    <select
-                        className="border px-3 py-1 rounded"
-                        onChange={(e) => handleFilterChange('color', e.target.value)}
-                    >
+                    <select name="color" value={filters.color} onChange={handleFilterChange} className="border px-3 py-1 rounded">
                         <option value="">{t.color}</option>
-                        <option value="Black">Black</option>
-                        <option value="White">White</option>
-                        <option value="Brown">Brown</option>
+                        <option value="white">White</option>
+                        <option value="black">Black</option>
+                        <option value="brown">Brown</option>
                     </select>
-                    <select
-                        className="border px-3 py-1 rounded"
-                        onChange={(e) => handleFilterChange('gender', e.target.value)}
-                    >
+                    <select name="gender" value={filters.gender} onChange={handleFilterChange} className="border px-3 py-1 rounded">
                         <option value="">{t.gender}</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
                     </select>
-                    <select
-                        className="border px-3 py-1 rounded"
-                        onChange={(e) => handleFilterChange('age', e.target.value)}
-                    >
+                    <select name="age" value={filters.age} onChange={handleFilterChange} className="border px-3 py-1 rounded">
                         <option value="">{t.age}</option>
-                        <option value="1-3">1-3 years</option>
-                        <option value="4-6">4-6 years</option>
-                        <option value="7+">7+ years</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
                     </select>
-                    <select
-                        className="border px-3 py-1 rounded"
-                        onChange={(e) => handleFilterChange('size', e.target.value)}
-                    >
+                    <select name="size" value={filters.size} onChange={handleFilterChange} className="border px-3 py-1 rounded">
                         <option value="">{t.size}</option>
-                        <option value="Small">Small</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Large">Large</option>
+                        <option value="small">Small</option>
+                        <option value="medium">Medium</option>
+                        <option value="large">Large</option>
                     </select>
-                    <button className="ml-2 border px-3 py-1 rounded bg-purple-500 text-white">{t.apply}</button>
+                    <button
+                        onClick={applyFilters}
+                        className="ml-2 border px-3 py-1 rounded bg-purple-500 text-white"
+                    >
+                        {t.apply}
+                    </button>
+
                 </div>
             </div>
 
             {/* Dog Cards */}
-            {loading ? (
-                <div className="flex justify-center items-center h-64">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
-                </div>
-            ) : error ? (
-                <div className="text-red-500 text-center py-4">{error}</div>
-            ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                    {dogs.map((dog) => (
-                        <div key={dog.id} className="border rounded-lg p-4 shadow hover:shadow-md">
-                            <img src={dog.img} alt={dog.name} className="w-full h-48 object-cover rounded mb-4" />
-                            <div className="mb-2 text-lg font-bold">{dog.name}</div>
-                            <div className="text-sm mb-1">Gender: {dog.gender}</div>
-                            <div className="text-sm mb-1">Breed: {dog.breed}</div>
-                            <div className="text-sm mb-1">Age: {dog.age}</div>
-                            <div className="text-sm mb-1">Size: {dog.size}</div>
-                            <p className="text-sm text-gray-500 mb-2">{dog.desc}</p>
-                            <button
-                                className="w-full border border-purple-500 text-purple-500 rounded px-4 py-2 text-sm hover:bg-purple-50"
-                                onClick={() => navigate(`/dog/${dog.id}?lang=${lang}`)}
-                            >
-                                {t.moreInfo}
-                            </button>
-                        </div>
-                    ))}
-                </div>
-            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {dogs.map((dog) => (
+                    <div key={dog._id} className="border rounded-lg p-4 shadow hover:shadow-md">
+                        <img src={dog.imageUrl || "/images/pug.png"} alt={dog.name} className="w-full h-48 object-cover rounded mb-4" />
+                        <div className="mb-2 text-lg font-bold">{dog.name}</div>
+                        <div className="text-sm mb-1">Gender: {dog.gender}</div>
+                        <div className="text-sm mb-1">Breed: {dog.breed}</div>
+                        <div className="text-sm mb-1">Age: {dog.age}</div>
+                        <div className="text-sm mb-1">Size: {dog.size}</div>
+                        <p className="text-sm text-gray-500 mb-2">{dog.description}</p>
+                        <button
+                            className="w-full border border-purple-500 text-purple-500 rounded px-4 py-2 text-sm hover:bg-purple-50"
+                            onClick={() => navigate(`/dog/${dog._id}?lang=${lang}`)}
+                        >
+                            {t.moreInfo}
+                        </button>
+                    </div>
+                ))}
+            </div>
+
 
             {/* Pagination */}
             <div className="flex justify-center items-center gap-2 mt-10">
                 <button
                     disabled={page === 1}
-                    onClick={() => setPage((p) => p - 1)}
+
+                    onClick={() => {
+                        setPage((p) => p - 1);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+
                     className="px-3 py-1 border rounded disabled:opacity-30"
                 >
                     Prev
                 </button>
-                {/* Assuming totalPages is updated dynamically */}
-                {[...Array(Math.ceil(dogs.length / dogsPerPage))].map((_, i) => (
+
+                {[...Array(totalPages)].map((_, i) => (
                     <button
                         key={i}
-                        onClick={() => setPage(i + 1)}
+                        onClick={() => {
+                            setPage(i + 1);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+
                         className={`px-3 py-1 border rounded ${page === i + 1 ? "bg-purple-500 text-white" : ""}`}
                     >
                         {i + 1}
                     </button>
                 ))}
                 <button
-                    disabled={page === Math.ceil(dogs.length / dogsPerPage)}
-                    onClick={() => setPage((p) => p + 1)}
+
+                    disabled={page === totalPages}
+                    onClick={() => {
+                        setPage((p) => p + 1);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+
                     className="px-3 py-1 border rounded disabled:opacity-30"
                 >
                     Next
@@ -199,7 +206,9 @@ const Adoption = () => {
             {/* Book Now Button */}
             <div className="flex justify-center mt-10">
                 <button
-                    onClick={() => navigate(`/booking?lang=${lang}`)}
+
+                    onClick={() => navigate(`/adoption/apply?lang=${lang}`)}
+
                     className="w-full max-w-md bg-purple-500 text-white px-6 py-3 rounded text-lg hover:bg-purple-600"
                 >
                     {t.bookNow}
@@ -215,3 +224,4 @@ const Adoption = () => {
 };
 
 export default Adoption;
+

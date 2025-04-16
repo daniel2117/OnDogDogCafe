@@ -1,0 +1,141 @@
+import React, { useState } from "react";
+import { useLocation } from "react-router-dom";
+
+const ContactUs = () => {
+    const location = useLocation();
+    const queryParams = new URLSearchParams(location.search);
+    const lang = queryParams.get("lang") || "en";
+
+    const texts = {
+        en: {
+            contact: "Contact us",
+            title: "Get in touch",
+            subtitle: "Do you have any inquiry? Please fill out this form\nWe will get back to you as soon as possible",
+            firstName: "First name",
+            lastName: "Last name",
+            email: "Email",
+            phone: "Phone number",
+            message: "Message",
+            agree: "You agree to our friendly",
+            policy: "privacy policy",
+            send: "Send message"
+        },
+        zh: {
+            contact: "聯絡我們",
+            title: "與我們聯絡",
+            subtitle: "有任何查詢嗎？請填寫此表格\n我們將盡快與您聯絡",
+            firstName: "名字",
+            lastName: "姓氏",
+            email: "電子郵件",
+            phone: "電話號碼",
+            message: "留言內容",
+            agree: "你同意我們的",
+            policy: "私隱政策",
+            send: "發送訊息"
+        }
+    };
+
+    const t = texts[lang];
+
+    const [form, setForm] = useState({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        message: "",
+        agreed: false
+    });
+
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setForm({ ...form, [name]: type === "checkbox" ? checked : value });
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!form.agreed) return alert("Please agree to the privacy policy.");
+        alert("Message sent! (mock)");
+    };
+
+    return (
+        <div className="min-h-screen flex flex-col items-center justify-center px-4 py-10">
+            <div className="w-full max-w-xl">
+                <h4 className="text-purple-600 text-sm font-semibold text-center mb-1">{t.contact}</h4>
+                <h2 className="text-3xl font-bold text-center mb-2">{t.title}</h2>
+                <p className="text-gray-500 text-center mb-8 whitespace-pre-line">{t.subtitle}</p>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input
+                            type="text"
+                            name="firstName"
+                            placeholder={t.firstName}
+                            className="border p-2 rounded w-full"
+                            value={form.firstName}
+                            onChange={handleChange}
+                            required
+                        />
+                        <input
+                            type="text"
+                            name="lastName"
+                            placeholder={t.lastName}
+                            className="border p-2 rounded w-full"
+                            value={form.lastName}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
+
+                    <input
+                        type="email"
+                        name="email"
+                        placeholder="you@gmail.com"
+                        className="border p-2 rounded w-full"
+                        value={form.email}
+                        onChange={handleChange}
+                        required
+                    />
+
+                    <input
+                        type="tel"
+                        name="phone"
+                        placeholder="+852 0000-0000"
+                        className="border p-2 rounded w-full"
+                        value={form.phone}
+                        onChange={handleChange}
+                        required
+                    />
+
+                    <textarea
+                        name="message"
+                        placeholder={t.message}
+                        rows="4"
+                        className="border p-2 rounded w-full"
+                        value={form.message}
+                        onChange={handleChange}
+                        required
+                    />
+
+                    <label className="text-sm flex items-start gap-2">
+                        <input
+                            type="checkbox"
+                            name="agreed"
+                            checked={form.agreed}
+                            onChange={handleChange}
+                        />
+                        {t.agree} <a href="/privacy" className="text-blue-600 underline ml-1">{t.policy}</a>.
+                    </label>
+
+                    <button
+                        type="submit"
+                        className="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700"
+                    >
+                        {t.send}
+                    </button>
+                </form>
+            </div>
+        </div>
+    );
+};
+
+export default ContactUs;

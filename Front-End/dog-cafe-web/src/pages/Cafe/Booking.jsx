@@ -34,7 +34,11 @@ Tuesday–Sunday: 1–7 pm`,
         <div className="min-h-screen bg-white flex flex-col items-center px-4 py-6 text-[#333] font-sans">
             {/* Header */}
             <div className="w-full flex justify-between items-center max-w-4xl mb-4">
-                <img src="/logo.png" alt="Dog Dog Cafe" className="h-14" />
+
+                <Link to={`/home?lang=${lang}`}>
+                    <img src="/logo.png" alt="Dog Dog Cafe" className="h-14 cursor-pointer" />
+                </Link>
+
                 <button
                     onClick={toggleLang}
                     className="border border-gray-400 rounded-md px-3 py-1 text-sm"
@@ -42,6 +46,7 @@ Tuesday–Sunday: 1–7 pm`,
                     {t.language}
                 </button>
             </div>
+
 
             <h1 className="text-2xl font-bold mb-6">{t.title}</h1>
 
@@ -63,7 +68,9 @@ Tuesday–Sunday: 1–7 pm`,
                 <Link to={`/adoption?lang=${lang}`} className="block">
                     <div className="bg-white rounded-xl overflow-hidden shadow-md cursor-pointer hover:shadow-lg transition">
                         <img
-                            src="/images/cafe2.png"
+
+                            src="/images/cafe3.png"
+
                             alt="Adoption Reservation"
                             className="w-full h-48 object-cover"
                         />
