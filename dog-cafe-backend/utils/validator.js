@@ -1,9 +1,33 @@
 const validator = require('validator');
 
 const validators = {
+    // Add request throttling check
+    isThrottled: async (key, limit, window) => {
+        const count = await cache.get(key) || 0;
+        if (count >= limit) return true;
+        await cache.set(key, count + 1, window);
+        return false;
+    },
+
+    // Add sanitization for MongoDB queries
+    sanitizeMongoQuery: (query) => {
+        const sanitized = {};
+        Object.keys(query).forEach(key => {
+            if (typeof query[key] === 'string') {
+                sanitized[key] = validator.escape(query[key]);
+            } else {
+                sanitized[key] = query[key];
+            }
+        });
+        return sanitized;
+    },
+
     // User validation
     isValidEmail: (email) => {
-        return validator.isEmail(email);
+        return email && 
+               validator.isEmail(email) && 
+               email.length <= 254 && // RFC 5321
+               !email.includes('..'); // No consecutive dots
     },
 
     isStrongPassword: (password) => {
@@ -144,6 +168,38 @@ const validators = {
             isValid: errors.length === 0,
             errors
         };
+    },
+
+    // Add new validations
+    isValidUrl: (url) => {
+        return validator.isURL(url, {
+            protocols: ['http', 'https'],
+            require_protocol: true
+        });
+    },
+
+    sanitizeHtml: (html) => {
+        return validator.escape(html);
+    },
+
+    validateImageDimensions: (dimensions) => {
+        return dimensions.width <= 2048 && dimensions.height <= 2048;
+    },
+
+    // Add reservation time validation
+    isValidReservationTime: (time, businessHours) => {
+        const [hours, minutes] = time.split(':').map(Number);
+        const reservationTime = hours * 60 + minutes;
+        return reservationTime >= businessHours.open && 
+               reservationTime <= businessHours.close;
+    },
+
+    // Add new validation for business hours
+    isWithinBusinessHours: (time, businessHours) => {
+        const [hours, minutes] = time.split(':').map(Number);
+        const timeInMinutes = hours * 60 + minutes;
+        return timeInMinutes >= businessHours.open && 
+               timeInMinutes <= businessHours.close;
     }
 };
 

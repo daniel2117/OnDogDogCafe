@@ -1,7 +1,4 @@
-
 const { TIME_SLOTS } = require('../models/Reservation');
-=======
-
 
 const validateRegistration = (req, res, next) => {
     const { name, email, password } = req.body;
@@ -65,14 +62,12 @@ const validateLogin = (req, res, next) => {
 };
 
 const validateReservation = (req, res, next) => {
-
     const { date, timeSlot, numberOfPeople } = req.body;
 
-
     // Check required fields
-    if (!date || !timeSlot || !numberOfPeople || !dogId) {
+    if (!date || !timeSlot || !numberOfPeople) {
         return res.status(400).json({
-            message: 'Please provide all required fields: date, timeSlot, numberOfPeople, dogId'
+            message: 'Please provide all required fields: date, timeSlot, numberOfPeople'
         });
     }
 
@@ -103,11 +98,9 @@ const validateReservation = (req, res, next) => {
     }
 
     // Validate time slot
-
     if (!TIME_SLOTS.includes(timeSlot)) {
         return res.status(400).json({
             message: `Invalid time slot. Must be one of: ${TIME_SLOTS.join(', ')}`
-
         });
     }
 
@@ -117,15 +110,14 @@ const validateReservation = (req, res, next) => {
             message: 'Number of people must be between 1 and 10'
         });
     }
+
     next();
 };
 
 const validateAdoptionApplication = (req, res, next) => {
     const { dogId, livingArrangement, experience, reason, income } = req.body;
 
-
     if (!dogId || !livingArrangement || !experience || !reason ) {
-
         return res.status(400).json({
             message: 'Please provide all required fields: dogId, livingArrangement, experience, reason, income'
         });

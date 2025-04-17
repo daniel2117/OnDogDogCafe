@@ -2,19 +2,27 @@ const asyncHandler = require('express-async-handler');
 const { Reservation, TIME_SLOTS, SERVICES } = require('../models/Reservation');
 const emailService = require('../utils/emailService');
 const cache = require('../utils/cache');
+const { sendEmail, sendSMS } = require('../utils/notifications');
+const validators = require('../utils/validator');
 
 const reservationController = {
     // Get available time slots and services
     getAvailability: asyncHandler(async (req, res) => {
-        const date = req.query.date; // Change this line to get date from query params
-        
-        if (!date) {
-            return res.status(400).json({ message: 'Date is required' });
+        const { date } = req.query;
+
+        if (!date || !validators.isValidDate(date)) {
+            return res.status(400).json({ 
+                message: 'Valid date is required (YYYY-MM-DD format)' 
+            });
         }
-    
+
         const queryDate = new Date(date);
-        if (isNaN(queryDate)) {
-            return res.status(400).json({ message: 'Invalid date format' });
+        const cacheKey = `availability:${queryDate.toISOString().split('T')[0]}`;
+        
+        // Try to get from cache first
+        const cached = await cache.get(cacheKey);
+        if (cached) {
+            return res.json(cached);
         }
     
         // Get existing reservations for the date
@@ -34,6 +42,13 @@ const reservationController = {
             });
         });
     
+        // Cache the result for 5 minutes
+        await cache.set(cacheKey, {
+            date: queryDate,
+            availableSlots,
+            services: Object.values(SERVICES)
+        }, 300);
+
         res.json({
             date: queryDate,
             availableSlots,
@@ -92,66 +107,103 @@ const reservationController = {
     createReservation: asyncHandler(async (req, res) => {
         const { customerInfo, date, timeSlot, selectedServices } = req.body;
 
-        // Validate required fields
-        if (!customerInfo?.name || !customerInfo?.email || !customerInfo?.phone || 
-            !date || !timeSlot || !selectedServices?.length) {
-            return res.status(400).json({
-                message: 'All required fields must be provided'
-            });
-        }
-
-        // Validate date is not in past
-        const reservationDate = new Date(date);
-        if (reservationDate < new Date().setHours(0, 0, 0, 0)) {
-            return res.status(400).json({
-                message: 'Cannot book for past dates'
-            });
-        }
-
-        // Check availability for all selected services
-        const existingReservations = await Reservation.find({
-            date: reservationDate,
-            timeSlot,
-            selectedServices: { $in: selectedServices },
-            status: { $ne: 'cancelled' }
-        });
-
-        if (existingReservations.length > 0) {
-            return res.status(400).json({
-                message: 'One or more selected services are not available for this time slot'
-            });
-        }
-
-        // Create reservation
-        const reservation = await Reservation.create({
-            customerInfo,
-            date: reservationDate,
-            timeSlot,
-            selectedServices,
-            status: 'pending'
-        });
-
-        // Send notifications
         try {
-            const servicesList = selectedServices.join(', ');
-            await sendEmail(
-                customerInfo.email,
-                'Reservation Confirmation',
-                `Your reservation for ${servicesList} on ${date} at ${timeSlot} is pending confirmation.`
-            );
-            
-            await sendSMS(
-                customerInfo.phone,
-                `Your reservation for ${servicesList} on ${date} at ${timeSlot} is pending confirmation.`
-            );
-        } catch (error) {
-            console.error('Notification error:', error);
-        }
+            // Validate required fields
+            if (!customerInfo?.name || !customerInfo?.email || !customerInfo?.phone || 
+                !date || !timeSlot || !selectedServices?.length) {
+                return res.status(400).json({
+                    message: 'All required fields must be provided'
+                });
+            }
 
-        res.status(201).json({
-            message: 'Reservation created successfully',
-            reservation
-        });
+            // Additional validation
+            if (!validators.isValidEmail(customerInfo?.email)) {
+                return res.status(400).json({
+                    message: 'Invalid email format'
+                });
+            }
+
+            if (!validators.isValidPhone(customerInfo?.phone)) {
+                return res.status(400).json({
+                    message: 'Invalid phone number format'
+                });
+            }
+
+            // Validate date is not in past
+            const reservationDate = new Date(date);
+            if (reservationDate < new Date().setHours(0, 0, 0, 0)) {
+                return res.status(400).json({
+                    message: 'Cannot book for past dates'
+                });
+            }
+
+            // Additional validation for business hours
+            const businessHours = {
+                open: 13 * 60, // 13:00
+                close: 19 * 60  // 19:00
+            };
+
+            if (!validators.isValidReservationTime(timeSlot, businessHours)) {
+                return res.status(400).json({
+                    message: 'Reservation time must be within business hours (13:00-19:00)'
+                });
+            }
+
+            // Check availability for all selected services
+            const existingReservations = await Reservation.find({
+                date: reservationDate,
+                timeSlot,
+                selectedServices: { $in: selectedServices },
+                status: { $ne: 'cancelled' }
+            });
+
+            if (existingReservations.length > 0) {
+                return res.status(400).json({
+                    message: 'One or more selected services are not available for this time slot'
+                });
+            }
+
+            // Create reservation
+            const reservation = await Reservation.create({
+                customerInfo,
+                date: reservationDate,
+                timeSlot,
+                selectedServices,
+                status: 'pending'
+            });
+
+            // Clear availability cache after successful reservation
+            const cacheKey = `availability:${new Date(date).toISOString().split('T')[0]}`;
+            await cache.del(cacheKey);
+
+            // Send notifications
+            try {
+                const servicesList = selectedServices.join(', ');
+                await sendEmail(
+                    customerInfo.email,
+                    'Reservation Confirmation',
+                    `Your reservation for ${servicesList} on ${date} at ${timeSlot} is pending confirmation.`
+                );
+                
+                await sendSMS(
+                    customerInfo.phone,
+                    `Your reservation for ${servicesList} on ${date} at ${timeSlot} is pending confirmation.`
+                );
+            } catch (error) {
+                console.error('Notification error:', error);
+            }
+
+            res.status(201).json({
+                message: 'Reservation created successfully',
+                reservation
+            });
+        } catch (error) {
+            console.error('Reservation creation error:', error);
+            res.status(500).json({
+                message: 'Failed to create reservation',
+                error: error.message
+            });
+        }
     }),
 
     // Get user's reservations history

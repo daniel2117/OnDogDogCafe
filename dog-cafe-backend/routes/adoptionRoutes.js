@@ -14,4 +14,13 @@ router.post('/apply', adoptionController.createAdoptionApplication);
 // Get similar dogs
 router.get('/dogs/:id/similar', adoptionController.getSimilarDogs);
 
+// Get filters
+router.get('/filters', adoptionController.getFilters);
+
+// Get terms
+router.get('/terms', adoptionController.getTerms);
+
+// Get privacy policy
+router.get('/privacy', adoptionController.getPrivacyPolicy);
+
 module.exports = router;

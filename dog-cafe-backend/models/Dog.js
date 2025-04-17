@@ -71,8 +71,34 @@ const dogSchema = new mongoose.Schema({
     },
     imageUrl: {
         type: String,
-        default: null
+        required: [true, 'Please provide a main image URL'],
+        validate: {
+            validator: function(v) {
+                return /^(\/images\/|https?:\/\/).*\.(jpg|jpeg|png|webp)$/i.test(v);
+            },
+            message: 'Invalid image URL format'
+        }
     },
+    images: [{
+        type: String,
+        validate: {
+            validator: function(v) {
+                return /^(\/images\/|https?:\/\/).*\.(jpg|jpeg|png|webp)$/i.test(v);
+            },
+            message: 'Invalid image URL format'
+        }
+    }],
+    checklist: {
+        canLiveWithChildren: Boolean,
+        isVaccinated: Boolean,
+        isHouseTrained: Boolean,
+        isNeutered: Boolean,
+        hasUpToDateShots: Boolean,
+        isMicrochipped: Boolean
+    },
+    color: String,
+    weight: String,
+    height: String,
     createdAt: {
         type: Date,
         default: Date.now
@@ -83,14 +109,50 @@ const dogSchema = new mongoose.Schema({
     },
     healthRecords: [healthRecordSchema],
     vaccinations: [{
-        name: String,
-        date: Date,
-        nextDue: Date
+        age: String,
+        vaccinated: String,
+        match: String
     }],
     translations: {
         zh: {
             name: String,
             description: String
+        }
+    },
+    petId: {
+        type: String,
+        default: function() {
+            return `PET${this._id.toString().slice(-6)}`;
+        },
+        unique: true
+    },
+    profile: {
+        type: String,
+        default: function() {
+            return this.imageUrl;
+        }
+    },
+    story: {
+        type: String,
+        default: function() {
+            return this.description;
+        }
+    },
+    health: [{
+        type: String,
+        default: ["General Health Check", "Vaccinations Up-to-date", "Deworming Treatment"]
+    }],
+    stats: {
+        type: Object,
+        default: function() {
+            return {
+                gender: this.gender,
+                breed: this.breed,
+                age: `${this.age} months`,
+                color: this.color || 'Not specified',
+                weight: this.weight ? `${this.weight} kg` : 'Not specified',
+                height: this.height ? `${this.height} cm` : 'Not specified'
+            };
         }
     }
 });
