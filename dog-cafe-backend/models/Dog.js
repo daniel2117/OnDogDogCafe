@@ -121,28 +121,39 @@ const dogSchema = new mongoose.Schema({
     },
     petId: {
         type: String,
-        required: true,
+        default: function() {
+            return `PET${this._id.toString().slice(-6)}`;
+        },
         unique: true
     },
     profile: {
         type: String,
-        required: true
+        default: function() {
+            return this.imageUrl;
+        }
     },
     story: {
         type: String,
-        required: true
+        default: function() {
+            return this.description;
+        }
     },
     health: [{
         type: String,
-        required: true
+        default: ["General Health Check", "Vaccinations Up-to-date", "Deworming Treatment"]
     }],
     stats: {
-        gender: String,
-        breed: String,
-        age: String,
-        color: String,
-        weight: String,
-        height: String
+        type: Object,
+        default: function() {
+            return {
+                gender: this.gender,
+                breed: this.breed,
+                age: `${this.age} months`,
+                color: this.color || 'Not specified',
+                weight: this.weight ? `${this.weight} kg` : 'Not specified',
+                height: this.height ? `${this.height} cm` : 'Not specified'
+            };
+        }
     }
 });
 

@@ -1,10 +1,19 @@
 const asyncHandler = require('express-async-handler');
 const Dog = require('../models/Dog');
+const cache = require('../utils/cache');
 
 const dogController = {
     getAllDogs: asyncHandler(async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
+        const cacheKey = `dogs:${page}:${limit}:${JSON.stringify(req.query)}`;
+
+        // Try to get from cache
+        const cached = await cache.get(cacheKey);
+        if (cached) {
+            return res.json(cached);
+        }
+
         const filter = {};
 
         // Enhanced filtering options
@@ -20,51 +29,70 @@ const dogController = {
             if (req.query.maxAge) filter.age.$lte = parseInt(req.query.maxAge);
         }
 
-        const dogs = await Dog.find(filter)
-            .sort({ createdAt: -1 })
-            .skip((page - 1) * limit)
-            .limit(limit);
+        const [dogs, total] = await Promise.all([
+            Dog.find(filter)
+                .select('name breed age size gender imageUrl status petId') // Select only needed fields
+                .sort({ createdAt: -1 })
+                .skip((page - 1) * limit)
+                .limit(limit),
+            Dog.countDocuments(filter)
+        ]);
 
-        const total = await Dog.countDocuments(filter);
-
-        res.json({
+        const result = {
             dogs,
             currentPage: page,
             totalPages: Math.ceil(total / limit),
             total
-        });
+        };
+
+        // Cache for 5 minutes
+        await cache.set(cacheKey, result, 300);
+
+        res.json(result);
     }),
 
     getDogById: asyncHandler(async (req, res) => {
+        const cacheKey = `dog:${req.params.id}`;
+        
+        // Try to get from cache
+        const cached = await cache.get(cacheKey);
+        if (cached) {
+            return res.json(cached);
+        }
+
         const dog = await Dog.findById(req.params.id);
         if (!dog) {
             res.status(404);
             throw new Error('Dog not found');
         }
 
-        // Format response according to frontend requirements
+        // Format response according to design requirements
         const response = {
             name: dog.name,
-            petId: dog.petId,
-            profile: dog.profile,
-            images: dog.images || [],
-            story: dog.story,
-            health: dog.health || [],
+            petId: dog.petId || `PET${dog._id.toString().slice(-6)}`,
+            profile: dog.imageUrl, // Use main image as profile
+            images: dog.images || [dog.imageUrl], // Fallback to main image if no additional images
+            story: dog.story || dog.description,
+            health: dog.health || [
+                "General Health Check",
+                "Vaccinations Up-to-date",
+                "Deworming Treatment"
+            ],
             checklist: {
                 canLiveWithChildren: dog.checklist?.canLiveWithChildren || false,
-                isVaccinated: dog.checklist?.isVaccinated || false,
+                isVaccinated: dog.vaccinated || false,
                 isHouseTrained: dog.checklist?.isHouseTrained || false,
-                isNeutered: dog.checklist?.isNeutered || false,
+                isNeutered: dog.neutered || false,
                 hasUpToDateShots: dog.checklist?.hasUpToDateShots || false,
                 isMicrochipped: dog.checklist?.isMicrochipped || false
             },
             stats: {
-                gender: dog.stats?.gender || dog.gender,
-                breed: dog.stats?.breed || dog.breed,
-                age: dog.stats?.age || `${dog.age} month`,
-                color: dog.stats?.color || dog.color,
-                weight: dog.stats?.weight || `${dog.weight} lb`,
-                height: dog.stats?.height || `${dog.height} cm`
+                gender: dog.gender,
+                breed: dog.breed,
+                age: `${dog.age} months`,
+                color: dog.color || 'Not specified',
+                weight: dog.weight ? `${dog.weight} kg` : 'Not specified',
+                height: dog.height ? `${dog.height} cm` : 'Not specified'
             },
             vaccinations: dog.vaccinations || [
                 { age: '8th Week', vaccinated: 'Bordetella', match: 'Leptospirosis' },
@@ -73,6 +101,7 @@ const dogController = {
             ]
         };
 
+        await cache.set(cacheKey, response, 300);
         res.json(response);
     }),
 
@@ -140,6 +169,11 @@ const dogController = {
         }).limit(4);
 
         res.json(similarDogs);
+    }),
+
+    clearCache: asyncHandler(async (req, res) => {
+        await cache.flush();
+        res.json({ message: 'Cache cleared successfully' });
     })
 };
 

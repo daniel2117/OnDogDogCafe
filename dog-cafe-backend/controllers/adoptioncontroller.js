@@ -2,31 +2,67 @@ const asyncHandler = require('express-async-handler');
 const Dog = require('../models/Dog');
 const Adoption = require('../models/Adoption');
 const Content = require('../models/Content');
+const cache = require('../utils/cache');
 
 const adoptionController = {
     getAllDogs: asyncHandler(async (req, res) => {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-        const filter = { status: 'available' };
-        
-        // Enhanced filtering
-        if (req.query.breed) filter.breed = req.query.breed;
-        if (req.query.age) filter.age = parseInt(req.query.age);
-        if (req.query.size) filter.size = req.query.size;
-        if (req.query.gender) filter.gender = req.query.gender;
+        try {
+            const page = Math.max(1, parseInt(req.query.page) || 1);
+            const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 9));
+            
+            // Build filter object
+            const filter = { status: 'available' };
+            if (req.query.breed) filter.breed = req.query.breed;
+            if (req.query.size) filter.size = req.query.size;
+            if (req.query.gender) filter.gender = req.query.gender;
+            
+            // Handle age range filter
+            if (req.query.age) {
+                const [minAge, maxAge] = req.query.age.split('-').map(Number);
+                if (!isNaN(minAge) && !isNaN(maxAge)) {
+                    filter.age = { $gte: minAge, $lte: maxAge };
+                }
+            }
 
-        const dogs = await Dog.find(filter)
-            .skip((page - 1) * limit)
-            .limit(limit);
+            // Create cache key based on query parameters
+            const cacheKey = `dogs:${page}:${limit}:${JSON.stringify(filter)}`;
+            
+            // Try to get from cache
+            const cached = await cache.get(cacheKey);
+            if (cached) {
+                return res.json(cached);
+            }
 
-        const total = await Dog.countDocuments(filter);
+            // Execute queries in parallel
+            const [dogs, total] = await Promise.all([
+                Dog.find(filter)
+                    .select('name breed age size gender imageUrl status petId profile description')
+                    .sort({ createdAt: -1 })
+                    .skip((page - 1) * limit)
+                    .limit(limit)
+                    .lean(),
+                Dog.countDocuments(filter)
+            ]);
 
-        res.json({
-            dogs,
-            currentPage: page,
-            totalPages: Math.ceil(total / limit),
-            total
-        });
+            const response = {
+                dogs,
+                currentPage: page,
+                totalPages: Math.ceil(total / limit),
+                total,
+                hasMore: page * limit < total
+            };
+
+            // Cache for 5 minutes
+            await cache.set(cacheKey, response, 300);
+
+            res.json(response);
+        } catch (error) {
+            console.error('Error in getAllDogs:', error);
+            res.status(500).json({
+                message: 'Failed to fetch dogs',
+                error: error.message
+            });
+        }
     }),
 
     getDogById: asyncHandler(async (req, res) => {
