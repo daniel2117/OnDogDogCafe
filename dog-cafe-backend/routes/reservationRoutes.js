@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const reservationController = require('../controllers/reservationcontroller');
+const emailService = require('../utils/emailService');
 
 router.get('/availability', reservationController.getAvailability);
 router.post('/verify-email', reservationController.verifyContact);

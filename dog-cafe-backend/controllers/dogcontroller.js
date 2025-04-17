@@ -41,7 +41,39 @@ const dogController = {
             res.status(404);
             throw new Error('Dog not found');
         }
-        res.json(dog);
+
+        // Format response according to frontend requirements
+        const response = {
+            name: dog.name,
+            petId: dog.petId,
+            profile: dog.profile,
+            images: dog.images || [],
+            story: dog.story,
+            health: dog.health || [],
+            checklist: {
+                canLiveWithChildren: dog.checklist?.canLiveWithChildren || false,
+                isVaccinated: dog.checklist?.isVaccinated || false,
+                isHouseTrained: dog.checklist?.isHouseTrained || false,
+                isNeutered: dog.checklist?.isNeutered || false,
+                hasUpToDateShots: dog.checklist?.hasUpToDateShots || false,
+                isMicrochipped: dog.checklist?.isMicrochipped || false
+            },
+            stats: {
+                gender: dog.stats?.gender || dog.gender,
+                breed: dog.stats?.breed || dog.breed,
+                age: dog.stats?.age || `${dog.age} month`,
+                color: dog.stats?.color || dog.color,
+                weight: dog.stats?.weight || `${dog.weight} lb`,
+                height: dog.stats?.height || `${dog.height} cm`
+            },
+            vaccinations: dog.vaccinations || [
+                { age: '8th Week', vaccinated: 'Bordetella', match: 'Leptospirosis' },
+                { age: '14th Week', vaccinated: 'Bordetella, Canine Anfluanza', match: 'Leptospirosis' },
+                { age: '22th Week', vaccinated: 'Bordetella, Canine Anfluanza', match: 'Leptospirosis' }
+            ]
+        };
+
+        res.json(response);
     }),
 
     createDog: asyncHandler(async (req, res) => {

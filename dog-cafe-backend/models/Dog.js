@@ -71,8 +71,34 @@ const dogSchema = new mongoose.Schema({
     },
     imageUrl: {
         type: String,
-        default: null
+        required: [true, 'Please provide a main image URL'],
+        validate: {
+            validator: function(v) {
+                return /^(\/images\/|https?:\/\/).*\.(jpg|jpeg|png|webp)$/i.test(v);
+            },
+            message: 'Invalid image URL format'
+        }
     },
+    images: [{
+        type: String,
+        validate: {
+            validator: function(v) {
+                return /^(\/images\/|https?:\/\/).*\.(jpg|jpeg|png|webp)$/i.test(v);
+            },
+            message: 'Invalid image URL format'
+        }
+    }],
+    checklist: {
+        canLiveWithChildren: Boolean,
+        isVaccinated: Boolean,
+        isHouseTrained: Boolean,
+        isNeutered: Boolean,
+        hasUpToDateShots: Boolean,
+        isMicrochipped: Boolean
+    },
+    color: String,
+    weight: String,
+    height: String,
     createdAt: {
         type: Date,
         default: Date.now
@@ -83,15 +109,40 @@ const dogSchema = new mongoose.Schema({
     },
     healthRecords: [healthRecordSchema],
     vaccinations: [{
-        name: String,
-        date: Date,
-        nextDue: Date
+        age: String,
+        vaccinated: String,
+        match: String
     }],
     translations: {
         zh: {
             name: String,
             description: String
         }
+    },
+    petId: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    profile: {
+        type: String,
+        required: true
+    },
+    story: {
+        type: String,
+        required: true
+    },
+    health: [{
+        type: String,
+        required: true
+    }],
+    stats: {
+        gender: String,
+        breed: String,
+        age: String,
+        color: String,
+        weight: String,
+        height: String
     }
 });
 
