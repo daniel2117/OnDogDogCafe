@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler');
 const Service = require('../models/Service');
 const BusinessInfo = require('../models/BusinessInfo');
 const cache = require('../utils/cache');
+const Content = require('../models/Content');
 
 const contentController = {
     getServices: asyncHandler(async (req, res) => {
@@ -66,6 +67,26 @@ const contentController = {
                 error: error.message
             });
         }
+    }),
+
+    getTerms: asyncHandler(async (req, res) => {
+        const lang = req.headers['accept-language']?.includes('zh') ? 'zh' : 'en';
+        const terms = await Content.findOne({ type: 'terms' });
+        if (!terms) {
+            res.status(404);
+            throw new Error('Terms not found');
+        }
+        res.json({ content: terms.content[lang] });
+    }),
+
+    getPrivacyPolicy: asyncHandler(async (req, res) => {
+        const lang = req.headers['accept-language']?.includes('zh') ? 'zh' : 'en';
+        const privacy = await Content.findOne({ type: 'privacy' });
+        if (!privacy) {
+            res.status(404);
+            throw new Error('Privacy policy not found');
+        }
+        res.json({ content: privacy.content[lang] });
     })
 };
 
