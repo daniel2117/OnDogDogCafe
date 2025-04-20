@@ -7,6 +7,8 @@ const mongoSanitize = require('express-mongo-sanitize');
 const rateLimit = require('express-rate-limit');
 const config = require('./config/config');
 const errorHandler = require('./middleware/errorHandler');
+const imageStorage = require('./utils/imageStorage');
+const path = require('path');
 
 // Import routes
 const dogRoutes = require('./routes/dogRoutes');
@@ -84,6 +86,21 @@ const connectWithRetry = async () => {
 };
 
 connectWithRetry();
+
+// Initialize image storage
+imageStorage.init().catch(console.error);
+const localImageStorage = require('./utils/localImageStorage');
+localImageStorage.init().catch(console.error);
+
+// Serve static images from upload directory
+app.use('/images', express.static(process.env.NODE_ENV === 'production' 
+    ? '/opt/render/project/src/uploads'
+    : path.join(__dirname, 'uploads')
+));
+
+// Serve static files for uploaded photos and documents
+app.use('/uploads/photos', express.static(path.join(__dirname, 'uploads/photos')));
+app.use('/uploads/documents', express.static(path.join(__dirname, 'uploads/documents')));
 
 // Routes
 app.use('/api/dogs', dogRoutes);

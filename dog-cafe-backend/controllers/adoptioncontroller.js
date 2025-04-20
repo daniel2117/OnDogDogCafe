@@ -4,6 +4,7 @@ const Adoption = require('../models/Adoption');
 const cache = require('../utils/cache');
 const emailService = require('../utils/emailService');
 const mongoose = require('mongoose');
+const imageStorage = require('../utils/imageStorage');
 
 const adoptionController = {
     getAllDogs: asyncHandler(async (req, res) => {
@@ -92,10 +93,19 @@ const adoptionController = {
     }),
 
     createAdoptionApplication: asyncHandler(async (req, res) => {
-        const imageUrls = req.files ? req.files.map(file => ({
-            url: `/api/adoption/images/${file.filename}`,
-            filename: file.filename
-        })) : [];
+        const imageUrls = [];
+        if (req.files && req.files.length > 0) {
+            for (const file of req.files) {
+                const savedImage = await imageStorage.saveImage(file, {
+                    width: 800,  // Standardize image size
+                    height: 800
+                });
+                imageUrls.push({
+                    url: savedImage.url,
+                    filename: savedImage.fileName
+                });
+            }
+        }
 
         const applicationData = {
             ...req.body,
@@ -122,35 +132,31 @@ const adoptionController = {
     }),
 
     getImage: asyncHandler(async (req, res) => {
-        const db = mongoose.connection.db;
-        const bucket = new mongoose.mongo.GridFSBucket(db, {
-            bucketName: 'adoptionImages'
-        });
-
-        const file = await bucket.find({ filename: req.params.filename }).toArray();
-        if (!file.length) {
-            res.status(404);
-            throw new Error('Image not found');
+        try {
+            const imageBuffer = await imageStorage.getImage(req.params.filename);
+            res.set('Content-Type', 'image/webp');  // All images are converted to WebP
+            res.set('Cache-Control', 'public, max-age=31536000');  // Cache for 1 year
+            res.send(imageBuffer);
+        } catch (error) {
+            if (error.code === 'ENOENT') {
+                res.status(404);
+                throw new Error('Image not found');
+            }
+            throw error;
         }
-
-        res.set('Content-Type', file[0].contentType);
-        bucket.openDownloadStreamByName(req.params.filename).pipe(res);
     }),
 
     deleteImage: asyncHandler(async (req, res) => {
-        const db = mongoose.connection.db;
-        const bucket = new mongoose.mongo.GridFSBucket(db, {
-            bucketName: 'adoptionImages'
-        });
-
-        const file = await bucket.find({ filename: req.params.filename }).toArray();
-        if (!file.length) {
-            res.status(404);
-            throw new Error('Image not found');
+        try {
+            await imageStorage.deleteImage(req.params.filename);
+            res.json({ message: 'Image deleted successfully' });
+        } catch (error) {
+            if (error.code === 'ENOENT') {
+                res.status(404);
+                throw new Error('Image not found');
+            }
+            throw error;
         }
-
-        await bucket.delete(file[0]._id);
-        res.json({ message: 'Image deleted successfully' });
     }),
 
     getSimilarDogs: asyncHandler(async (req, res) => {

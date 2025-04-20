@@ -81,6 +81,15 @@ const dogController = {
             throw new Error('Dog not found');
         }
 
+        // Convert boolean checklist to string array
+        const checklistItems = [];
+        if (dog.checklist?.canLiveWithChildren) checklistItems.push('Can live with children');
+        if (dog.checklist?.isVaccinated || dog.vaccinated) checklistItems.push('Vaccinated');
+        if (dog.checklist?.isHouseTrained) checklistItems.push('House trained');
+        if (dog.checklist?.isNeutered || dog.neutered) checklistItems.push('Neutered');
+        if (dog.checklist?.hasUpToDateShots) checklistItems.push('Up-to-date shots');
+        if (dog.checklist?.isMicrochipped) checklistItems.push('Microchipped');
+
         // Format response according to design requirements
         const response = {
             name: dog.name,
@@ -93,14 +102,7 @@ const dogController = {
                 "Vaccinations Up-to-date",
                 "Deworming Treatment"
             ],
-            checklist: {
-                canLiveWithChildren: dog.checklist?.canLiveWithChildren || false,
-                isVaccinated: dog.vaccinated || false,
-                isHouseTrained: dog.checklist?.isHouseTrained || false,
-                isNeutered: dog.neutered || false,
-                hasUpToDateShots: dog.checklist?.hasUpToDateShots || false,
-                isMicrochipped: dog.checklist?.isMicrochipped || false
-            },
+            checklist: checklistItems,
             stats: {
                 gender: dog.gender,
                 breed: dog.breed,

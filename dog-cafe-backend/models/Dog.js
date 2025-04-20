@@ -79,23 +79,18 @@ const dogSchema = new mongoose.Schema({
             message: 'Invalid image URL format'
         }
     },
-    images: [{
+    images: [String], // Array to store image URLs
+    checklist: [{
         type: String,
-        validate: {
-            validator: function(v) {
-                return /^(\/images\/|https?:\/\/).*\.(jpg|jpeg|png|webp)$/i.test(v);
-            },
-            message: 'Invalid image URL format'
-        }
+        enum: [
+            'Can live with children',
+            'Vaccinated',
+            'House trained',
+            'Neutered',
+            'Up-to-date shots',
+            'Microchipped'
+        ]
     }],
-    checklist: {
-        canLiveWithChildren: Boolean,
-        isVaccinated: Boolean,
-        isHouseTrained: Boolean,
-        isNeutered: Boolean,
-        hasUpToDateShots: Boolean,
-        isMicrochipped: Boolean
-    },
     color: String,
     weight: String,
     height: String,
@@ -125,18 +120,6 @@ const dogSchema = new mongoose.Schema({
             return `PET${this._id.toString().slice(-6)}`;
         },
         unique: true
-    },
-    profile: {
-        type: String,
-        default: function() {
-            return this.imageUrl;
-        }
-    },
-    story: {
-        type: String,
-        default: function() {
-            return this.description;
-        }
     },
     health: [{
         type: String,

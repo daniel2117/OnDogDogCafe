@@ -92,25 +92,30 @@ const validateAdoptionApplication = (req, res, next) => {
 };
 
 const validateDog = (req, res, next) => {
-    const { name, breed, age, size, gender, description, personality, requirements } = req.body;
+    const { name, breed, age, size, gender, description } = req.body;
 
-    if (!name || !breed || !age || !size || !gender || !description) {
+    // Combined validation object
+    const validations = {
+        name: { min: 2, max: 50, message: 'Name must be between 2 and 50 characters' },
+        breed: { min: 2, max: 50, message: 'Breed must be between 2 and 50 characters' },
+        description: { min: 10, max: 1000, message: 'Description must be between 10 and 1000 characters' }
+    };
+
+    // Check required fields
+    const requiredFields = ['name', 'breed', 'age', 'size', 'gender', 'description'];
+    const missingFields = requiredFields.filter(field => !req.body[field]);
+    if (missingFields.length > 0) {
         return res.status(400).json({
-            message: 'Please provide all required fields: name, breed, age, size, gender, description'
+            message: `Please provide all required fields: ${missingFields.join(', ')}`
         });
     }
 
-    // Validate name and breed length
-    if (name.length < 2 || name.length > 50) {
-        return res.status(400).json({
-            message: 'Name must be between 2 and 50 characters'
-        });
-    }
-
-    if (breed.length < 2 || breed.length > 50) {
-        return res.status(400).json({
-            message: 'Breed must be between 2 and 50 characters'
-        });
+    // Validate string lengths
+    for (const [field, rules] of Object.entries(validations)) {
+        const value = req.body[field];
+        if (value.length < rules.min || value.length > rules.max) {
+            return res.status(400).json({ message: rules.message });
+        }
     }
 
     // Validate age
@@ -120,41 +125,43 @@ const validateDog = (req, res, next) => {
         });
     }
 
-    // Validate size
-    const validSizes = ['small', 'medium', 'large'];
-    if (!validSizes.includes(size.toLowerCase())) {
+    // Validate enums
+    if (!['small', 'medium', 'large'].includes(size.toLowerCase())) {
         return res.status(400).json({
             message: 'Size must be one of: small, medium, large'
         });
     }
 
-    // Validate gender
-    const validGenders = ['male', 'female'];
-    if (!validGenders.includes(gender.toLowerCase())) {
+    if (!['male', 'female'].includes(gender.toLowerCase())) {
         return res.status(400).json({
             message: 'Gender must be either male or female'
         });
     }
 
-    // Validate description length
-    if (description.length < 10 || description.length > 1000) {
-        return res.status(400).json({
-            message: 'Description must be between 10 and 1000 characters'
-        });
+    next();
+};
+
+const validateRehomingApplication = (req, res, next) => {
+    const { ownerInfo, petInfo, rehomingDetails, media } = req.body;
+
+    // Validate ownerInfo
+    if (!ownerInfo || !ownerInfo.email || !ownerInfo.firstName || !ownerInfo.lastName) {
+        return res.status(400).json({ message: 'Owner information is incomplete' });
     }
 
-    // Validate personality array if provided
-    if (personality && (!Array.isArray(personality) || personality.length === 0)) {
-        return res.status(400).json({
-            message: 'Personality must be an array with at least one trait'
-        });
+    // Validate petInfo
+    if (!petInfo || !petInfo.name || !petInfo.type || !petInfo.age || !petInfo.size || !petInfo.gender || !petInfo.breed || !petInfo.description) {
+        return res.status(400).json({ message: 'Pet information is incomplete' });
     }
 
-    // Validate requirements array if provided
-    if (requirements && (!Array.isArray(requirements) || requirements.length === 0)) {
-        return res.status(400).json({
-            message: 'Requirements must be an array with at least one requirement'
-        });
+    // Validate rehomingDetails
+    if (!rehomingDetails || !rehomingDetails.reason || !rehomingDetails.timeWindow) {
+        return res.status(400).json({ message: 'Rehoming details are incomplete' });
+    }
+
+    // Validate media
+    if (!media || !media.photos || media.photos.length === 0) {
+        return res.status(400).json({ message: 'At least one photo is required' });
     }
 
     next();
@@ -163,5 +170,6 @@ const validateDog = (req, res, next) => {
 module.exports = {
     validateReservation,
     validateAdoptionApplication,
-    validateDog
+    validateDog,
+    validateRehomingApplication
 };
