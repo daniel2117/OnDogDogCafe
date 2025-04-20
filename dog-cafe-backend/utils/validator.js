@@ -236,6 +236,22 @@ const validators = {
             isValid: errors.length === 0,
             errors
         };
+    },
+
+    // Add validation for MyPage queries
+    isValidMyPageQuery: (query) => {
+        const errors = [];
+
+        if (!query.email) {
+            errors.push('Email is required');
+        } else if (!validators.isValidEmail(query.email)) {
+            errors.push('Invalid email format');
+        }
+
+        return {
+            isValid: errors.length === 0,
+            errors
+        };
     }
 };
 
