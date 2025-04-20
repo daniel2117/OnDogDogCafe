@@ -6,7 +6,8 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "seed": "node utils/seedDogs.js",
-    "test:email": "node utils/emailTest.js"
+    "test:email": "node utils/emailTest.js",
+    "seed:dogs": "node utils/seedDogsEnhanced.js"
   },
   "dependencies": {
     "axios": "^1.8.4",
