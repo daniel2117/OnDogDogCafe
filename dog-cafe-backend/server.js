@@ -14,6 +14,7 @@ const dogRoutes = require('./routes/dogRoutes');
 const reservationRoutes = require('./routes/reservationRoutes');
 const adoptionRoutes = require('./routes/adoptionRoutes');
 const contentRoutes = require('./routes/contentRoutes');
+const contactRoutes = require('./routes/contactRoutes');
 
 const app = express();
 
@@ -80,6 +81,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/dogs', dogRoutes);
 app.use('/api/reservations', reservationRoutes);
 app.use('/api/adoption', adoptionRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
