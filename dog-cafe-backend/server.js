@@ -30,10 +30,16 @@ app.use(helmet({
     },
 }));
 
+// Define allowed origins
+const allowedOrigins = [
+    'http://localhost:3000',
+    'https://ondogdogcafe.onrender.com'
+];
+
 // Updated CORS configuration
 app.use(cors({
     origin: function (origin, callback) {
-        if (!origin || origin === 'https://ondogdogcafe.onrender.com') {
+        if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
             callback(new Error('Not allowed by CORS'));
