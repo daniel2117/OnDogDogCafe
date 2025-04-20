@@ -77,7 +77,7 @@ const Adoption = () => {
             size: "Size",
             color: "Color",
             bookNow: "Book for Adoption",
-            footer: "1F, 3 Soares Avenue, Hong Kong\nTel: 6613 2128\n©2025 by On Dog Dog Cafe."
+            footer: "Kwai Chung, Lai King Hill Rd, Lai Chi Kok Bay Garden Block D\n©2025 by On Dog Dog Cafe."
         },
         zh: {
             filter: "篩選",
@@ -90,7 +90,7 @@ const Adoption = () => {
             size: "體型",
             color: "顏色",
             bookNow: "預約領養狗狗",
-            footer: "香港蘇沙道3號1樓\n電話: 6613 2128\n©2025 On Dog Dog Cafe."
+            footer: "Kwai Chung, Lai King Hill Rd, Lai Chi Kok Bay Garden Block D\n©2025 by On Dog Dog Cafe."
         },
     };
 

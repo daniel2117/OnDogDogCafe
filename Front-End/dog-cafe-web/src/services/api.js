@@ -200,7 +200,7 @@ export const rehomingApi = {
 export const reservationApi = {
     getAvailability: async (date) => {
         try {
-            const res = await axiosInstance.get('/reservation/availability', { headers: { date: date.toISOString() } });
+            const res = await axiosInstance.get('/reservations/availability', { headers: { date: date.toISOString() } });
             return res.data;
         } catch (err) {
             throw err.response?.data || { message: 'Failed to fetch availability' };
@@ -208,7 +208,7 @@ export const reservationApi = {
     },
     verifyEmail: async (email) => {
         try {
-            const res = await axiosInstance.post('/reservation/verify-email', {}, { headers: { email } });
+            const res = await axiosInstance.post('/reservations/verify-email', {}, { headers: { email } });
             return res.data;
         } catch (err) {
             throw err.response?.data || { message: 'Failed to send verification email' };
@@ -216,7 +216,7 @@ export const reservationApi = {
     },
     verifyCode: async (email, code) => {
         try {
-            const res = await axiosInstance.post('/reservation/verify-code', { email, code });
+            const res = await axiosInstance.post('/reservations/verify-code', { email, code });
             return res.data;
         } catch (err) {
             throw err.response?.data || { message: 'Failed to verify code' };
@@ -224,7 +224,7 @@ export const reservationApi = {
     },
     create: async (data) => {
         try {
-            const res = await axiosInstance.post('/reservation/create', data);
+            const res = await axiosInstance.post('/reservations/create', data);
             return res.data;
         } catch (err) {
             throw err.response?.data || { message: 'Failed to create reservation' };

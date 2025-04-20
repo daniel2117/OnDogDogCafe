@@ -12,7 +12,7 @@ const Booking = ({ lang, toggleLang }) => {
             hours: `Cafe Opening Hours:
 Monday: Closed
 Tuesday–Sunday: 1–7 pm`,
-            powered: "powered by Sangchul",
+            powered: "powered by On Dog Dog Cafe",
             language: "中文",
         },
         zh: {
@@ -23,7 +23,7 @@ Tuesday–Sunday: 1–7 pm`,
             hours: `營業時間：
 星期一：休息
 星期二至星期日：下午1點至7點`,
-            powered: "由 Sangchul 提供",
+            powered: "powered by On Dog Dog Cafe",
             language: "English",
         },
     };

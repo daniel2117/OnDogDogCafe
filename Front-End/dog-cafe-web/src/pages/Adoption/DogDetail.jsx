@@ -49,7 +49,7 @@ const DogDetail = () => {
             interested: "If you are interested to adopt",
             getStarted: "Get started",
             similar: "Similar Pets",
-            footer: "1F, 3 Soares Avenue, Hong Kong\nTel: 6613 2128\n©2025 by On Dog Dog Cafe."
+            footer: "Kwai Chung, Lai King Hill Rd, Lai Chi Kok Bay Garden Block D\n©2025 by On Dog Dog Cafe."
 
         },
         zh: {
@@ -64,7 +64,7 @@ const DogDetail = () => {
             getStarted: "開始預約",
             similar: "類似狗狗",
 
-            footer: "香港蘇沙道3號1樓\n電話: 6613 2128\n©2025 On Dog Dog Cafe."
+            footer: "Kwai Chung, Lai King Hill Rd, Lai Chi Kok Bay Garden Block D\n©2025 by On Dog Dog Cafe."
 
         },
     };
