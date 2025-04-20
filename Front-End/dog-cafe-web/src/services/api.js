@@ -203,7 +203,6 @@ export const reservationApi = {
             const res = await axiosInstance.get('/reservations/availability', {
                 params: { date }
             });
-            console.log(date);
             return res.data;
         } catch (err) {
             throw err.response?.data || { message: 'Failed to fetch availability' };

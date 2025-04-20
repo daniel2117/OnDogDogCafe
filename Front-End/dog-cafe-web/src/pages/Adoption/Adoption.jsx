@@ -3,11 +3,11 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { adoptionApi } from "../../services/api";
 
 
-const Adoption = () => {
+const Adoption = ({ lang, toggleLang }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
-    const lang = queryParams.get("lang") || "en";
+    //const lang = queryParams.get("lang") || "en";
 
     const [dogs, setDogs] = useState([]);
     const [page, setPage] = useState(1);
@@ -67,6 +67,7 @@ const Adoption = () => {
 
     const texts = {
         en: {
+            language: "中文",
             filter: "Filters",
             reset: "Reset Filters",
             apply: "Apply your Filter",
@@ -80,6 +81,7 @@ const Adoption = () => {
             footer: "Kwai Chung, Lai King Hill Rd, Lai Chi Kok Bay Garden Block D\n©2025 by On Dog Dog Cafe."
         },
         zh: {
+            language: "English",
             filter: "篩選",
             reset: "重設篩選",
             apply: "套用篩選條件",
@@ -105,10 +107,10 @@ const Adoption = () => {
                     <img src="/logo.png" alt="logo" className="h-16" />
                 </div>
                 <button
-                    onClick={() => navigate(`/contactus?lang=${lang}`)}
-                    className="border border-gray-500 px-4 py-2 rounded hover:bg-gray-100"
+                    onClick={toggleLang}
+                    className="border border-gray-400 rounded-md px-3 py-1 text-sm"
                 >
-                    Contact Us
+                    {t.language}
                 </button>
             </div>
 

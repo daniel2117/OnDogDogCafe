@@ -20,7 +20,7 @@ Tuesday–Sunday: 1–7 pm`,
             title: "預約",
             bookCafe: "預約狗狗咖啡廳",
             bookAdoption: "預約領養狗狗",
-            bookRehome: "Book for the rehome",
+            bookRehome: "爲重新安置預訂",
             message: "來自我們的話",
             hours: `營業時間：
 星期一：休息

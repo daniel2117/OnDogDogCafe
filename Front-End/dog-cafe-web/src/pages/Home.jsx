@@ -154,27 +154,28 @@ const Home = ({ lang, toggleLang }) => {
             </div>
 
             {/* Pet Preview Section */}
-            <div className="max-w-7xl mx-auto px-6 pb-12">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-2xl font-bold">{t.somePets}</h2>
-                    <button onClick={() => navigate(`/adoption?lang=${lang}`)} className="text-sm text-blue-600 hover:underline">
-                        {t.viewMore}
-                    </button>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {dogs.map((dog) => (
-                        <div key={dog._id} className="border p-2 rounded text-center shadow">
-                            <img
-                                src={dog.imageUrl || "/images/default-dog.png"}
-                                alt={dog.name}
-                                className="rounded mb-2 w-full h-32 object-cover"
-                            />
-                            <div className="font-semibold text-sm">{dog.name} - {dog.breed}</div>
-                            <div className="text-xs text-gray-600">{dog.gender} · {dog.age} years</div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {dogs.map((dog) => (
+                    <div
+                        key={dog._id}
+                        onClick={() => navigate(`/dog/${dog._id}?lang=${lang}`)}
+                        className="border p-2 rounded text-center shadow cursor-pointer hover:shadow-md transition"
+                    >
+                        <img
+                            src={dog.imageUrl || "/images/default-dog.png"}
+                            alt={dog.name}
+                            className="rounded mb-2 w-full h-32 object-cover"
+                        />
+                        <div className="font-semibold text-sm">
+                            {dog.name} - {dog.breed}
                         </div>
-                    ))}
-                </div>
+                        <div className="text-xs text-gray-600">
+                            {dog.gender} · {dog.age} years
+                        </div>
+                    </div>
+                ))}
             </div>
+
 
             {/* Location Section */}
             <div className="bg-gray-100 py-12 px-6">
