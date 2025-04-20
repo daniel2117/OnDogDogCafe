@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {contentApi,reservationApi} from "../../services/api";
+import { contentApi, reservationApi } from "../../services/api";
 
 
 const Step1BasicInfo = ({ formData, setFormData, next }) => {
@@ -52,6 +52,7 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
 
     // Load terms and policy from API on mount
     useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "auto" });
         const fetchTermsAndPolicy = async () => {
             try {
                 const terms = await contentApi.getTerms("en");

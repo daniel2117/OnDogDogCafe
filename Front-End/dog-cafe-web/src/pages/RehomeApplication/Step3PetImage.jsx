@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const Step3PetImages = ({ formData, setFormData, next, back, lang }) => {
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "auto" });
+    }, []);
     const [dragIndex, setDragIndex] = useState(null);
 
     const t = {

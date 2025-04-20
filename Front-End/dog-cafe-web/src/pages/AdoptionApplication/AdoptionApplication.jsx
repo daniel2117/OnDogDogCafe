@@ -5,7 +5,7 @@ import Step4Images from "./Step4Images";
 import Step5Roommate from "./Step5Roommate";
 import Step6OtherAnimal from "./Step6OtherAnimal";
 import Step7Confirmation from "./Step7Confirmation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 
@@ -20,6 +20,9 @@ const steps = [
 ];
 
 const AdoptionApplication = () => {
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "auto" }); 
+    }, []);
     const [currentStep, setCurrentStep] = useState(0);
     const [formData, setFormData] = useState({});
     const navigate = useNavigate();

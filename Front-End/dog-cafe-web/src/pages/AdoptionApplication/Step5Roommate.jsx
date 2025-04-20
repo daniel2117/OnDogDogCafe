@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const Step5Roommate = ({ formData, setFormData, next, back }) => {
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "auto" });
+    }, []);
     const [adults, setAdults] = useState(formData.adults || "0");
     const [children, setChildren] = useState(formData.children || "0");
     const [youngestAge, setYoungestAge] = useState(formData.youngestAge || "");

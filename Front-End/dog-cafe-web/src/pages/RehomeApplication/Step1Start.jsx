@@ -49,6 +49,7 @@ const Step1Start = ({ formData, setFormData, next, lang, toggleLang }) => {
     };
 
     useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "auto" });
         const fetchTermsAndPolicy = async () => {
             console.log("Fetching terms and privacy for language:", lang);
             const languageCode = lang === 'zh' ? 'zh' : 'en';

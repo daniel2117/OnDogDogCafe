@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const Step2PrimaryQuestion = ({ formData, setFormData, next, back, lang }) => {
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "auto" });
+    }, []);
     const [petType, setPetType] = useState(formData.petType || "");
     const [neutered, setNeutered] = useState(formData.neutered || "");
     const [reason, setReason] = useState(formData.reason || "");

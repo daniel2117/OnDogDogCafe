@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import { adoptionApi } from "../../services/api";
 
 const Step4Characteristics = ({ formData, setFormData, next, back, lang }) => {
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "auto" });
+    }, []);
     const [filters, setFilters] = useState({ breed: [], color: [], gender: [], age: [], size: [] });
 
     const t = {

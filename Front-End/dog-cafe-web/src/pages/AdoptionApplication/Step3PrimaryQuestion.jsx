@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const Step3PrimaryQuestion = ({ formData, setFormData, next, back }) => {
     const [garden, setGarden] = useState(formData.garden || "");
@@ -6,6 +6,9 @@ const Step3PrimaryQuestion = ({ formData, setFormData, next, back }) => {
     const [householdSetting, setHouseholdSetting] = useState(formData.householdSetting || "");
     const [activityLevel, setActivityLevel] = useState(formData.activityLevel || "");
     const [incomeLevel, setIncomeLevel] = useState(formData.incomeLevel || "");
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "auto" });
+    }, []);
 
     const handleNext = () => {
         if (!garden || !homeSituation || !householdSetting || !activityLevel || !incomeLevel) {

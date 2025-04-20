@@ -1,6 +1,10 @@
 import React from "react";
+import { useEffect } from "react";
 
 const Step5KeyFacts = ({ formData, setFormData, next, back, lang }) => {
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "auto" });
+    }, []);
     const fields = [
         "shotsUpToDate",
         "microchipped",

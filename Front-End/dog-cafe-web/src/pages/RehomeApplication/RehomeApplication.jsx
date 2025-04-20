@@ -6,7 +6,7 @@ import Step5KeyFact from "./Step5KeyFact";
 import Step6PetStory from "./Step6PetStory";
 import Step7Document from "./Step7Document";
 import Step8Confirm from "./Step8Confirm";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const steps = [
@@ -21,12 +21,15 @@ const steps = [
 ];
 
 const RehomeApplication = ({ lang, toggleLang }) => {
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "auto" });
+    }, []);
     const [currentStep, setCurrentStep] = useState(0);
     const [formData, setFormData] = useState({});
     const navigate = useNavigate();
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
-    
+
 
     const StepComponent = steps[currentStep];
     const next = () => setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));

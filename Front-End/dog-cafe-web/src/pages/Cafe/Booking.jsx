@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 const Booking = ({ lang, toggleLang }) => {
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "auto" });
+    }, []);
     const navigate = useNavigate();
     const texts = {
         en: {
@@ -31,6 +34,7 @@ Tuesday–Sunday: 1–7 pm`,
     };
 
     const t = texts[lang];
+
 
     return (
         <div className="min-h-screen bg-white flex flex-col items-center px-4 py-6 text-[#333] font-sans">

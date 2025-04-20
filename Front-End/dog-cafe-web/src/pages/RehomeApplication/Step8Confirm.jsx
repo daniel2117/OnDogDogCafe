@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { rehomingApi } from "../../services/api";
 
 const Step8Confirm = ({ formData, back, lang }) => {
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "auto" });
+    }, []);
     const navigate = useNavigate();
     const [submitting, setSubmitting] = useState(false);
 
