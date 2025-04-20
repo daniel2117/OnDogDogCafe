@@ -9,7 +9,6 @@ const config = require('./config/config');
 const errorHandler = require('./middleware/errorHandler');
 
 // Import routes
-const authRoutes = require('./routes/authRoutes');
 const dogRoutes = require('./routes/dogRoutes');
 const reservationRoutes = require('./routes/reservationRoutes');
 const adoptionRoutes = require('./routes/adoptionRoutes');
@@ -87,7 +86,6 @@ const connectWithRetry = async () => {
 connectWithRetry();
 
 // Routes
-app.use('/api/auth', authRoutes);
 app.use('/api/dogs', dogRoutes);
 app.use('/api/reservations', reservationRoutes);
 app.use('/api/adoption', adoptionRoutes);

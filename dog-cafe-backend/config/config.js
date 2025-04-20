@@ -9,13 +9,6 @@ module.exports = {
             useUnifiedTopology: true
         }
     },
-    jwt: {
-        secret: process.env.JWT_SECRET || 'your-jwt-secret-key',
-        expiresIn: process.env.JWT_EXPIRES_IN || '30d'
-    },
-    admin: {
-        secret: process.env.ADMIN_SECRET || 'admin123secretkey'
-    },
     smtp: {
         host: process.env.EMAIL_HOST || 'smtp.gmail.com',
         port: parseInt(process.env.EMAIL_PORT) || 587,

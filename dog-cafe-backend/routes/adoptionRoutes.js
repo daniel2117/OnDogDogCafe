@@ -1,21 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const adoptionController = require('../controllers/adoptioncontroller');
-const multer = require('multer');
-const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB limit
-        files: 5 // Maximum 5 files
-    },
-    fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith('image/')) {
-            cb(null, true);
-        } else {
-            cb(new Error('Only images are allowed'), false);
-        }
-    }
-});
+const { upload } = require('../utils/gridfsStorage');
 
 // Get all available dogs for adoption
 router.get('/dogs', adoptionController.getAllDogs);
@@ -31,5 +17,9 @@ router.get('/dogs/:id/similar', adoptionController.getSimilarDogs);
 
 // Get filters
 router.get('/filters', adoptionController.getFilters);
+
+// Add new routes for image handling
+router.get('/images/:filename', adoptionController.getImage);
+router.delete('/images/:filename', adoptionController.deleteImage);
 
 module.exports = router;
