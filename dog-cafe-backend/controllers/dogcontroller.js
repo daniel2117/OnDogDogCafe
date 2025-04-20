@@ -6,7 +6,13 @@ const dogController = {
     getAllDogs: asyncHandler(async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
-        const cacheKey = `dogs:${page}:${limit}:${JSON.stringify(req.query)}`;
+        
+        // Create a clean query object by removing undefined/null values
+        const cleanQuery = Object.entries(req.query)
+            .filter(([_, value]) => value != null && value !== '')
+            .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
+            
+        const cacheKey = `dogs:${page}:${limit}:${JSON.stringify(cleanQuery)}`;
 
         // Try to get from cache
         const cached = await cache.get(cacheKey);
@@ -16,17 +22,26 @@ const dogController = {
 
         const filter = {};
 
-        // Enhanced filtering options
-        if (req.query.breed) filter.breed = req.query.breed;
-        if (req.query.gender) filter.gender = req.query.gender;
-        if (req.query.size) filter.size = req.query.size;
-        if (req.query.color) filter.color = req.query.color;
+        // Enhanced filtering options with type checking
+        if (cleanQuery.breed) filter.breed = new RegExp(cleanQuery.breed, 'i');
+        if (cleanQuery.gender) filter.gender = new RegExp(cleanQuery.gender, 'i');
+        if (cleanQuery.size) filter.size = new RegExp(cleanQuery.size, 'i');
+        if (cleanQuery.color) filter.color = new RegExp(cleanQuery.color, 'i');
         
-        // Age range filter
-        if (req.query.minAge || req.query.maxAge) {
+        // Age range filter with number validation
+        if (cleanQuery.minAge || cleanQuery.maxAge) {
             filter.age = {};
-            if (req.query.minAge) filter.age.$gte = parseInt(req.query.minAge);
-            if (req.query.maxAge) filter.age.$lte = parseInt(req.query.maxAge);
+            if (cleanQuery.minAge && !isNaN(cleanQuery.minAge)) {
+                filter.age.$gte = parseInt(cleanQuery.minAge);
+            }
+            if (cleanQuery.maxAge && !isNaN(cleanQuery.maxAge)) {
+                filter.age.$lte = parseInt(cleanQuery.maxAge);
+            }
+        }
+
+        // Single age filter
+        if (cleanQuery.age && !isNaN(cleanQuery.age)) {
+            filter.age = parseInt(cleanQuery.age);
         }
 
         const [dogs, total] = await Promise.all([
