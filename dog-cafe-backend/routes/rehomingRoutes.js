@@ -15,13 +15,13 @@ router.post(
 
 router.post(
     '/upload/photos',
-    localImageStorage.upload.array('photos', 5),
+    localImageStorage.upload.array('photos', 5), // Limit to 5 photos
     rehomingController.uploadPhotos
 );
 
 router.post(
     '/upload/documents',
-    localImageStorage.upload.array('documents', 5),
+    localImageStorage.upload.array('documents', 5), // Limit to 5 documents
     rehomingController.uploadDocuments
 );
 

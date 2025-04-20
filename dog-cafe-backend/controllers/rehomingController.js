@@ -7,18 +7,24 @@ const Dog = require('../models/Dog');
 const rehomingController = {
     uploadPhotos: asyncHandler(async (req, res) => {
         const photoUrls = req.files.map(file => ({
-            url: `/uploads/${file.filename}`,
+            url: `/uploads/photos/${file.filename}`, // Ensure URL includes the correct path
             filename: file.filename
         }));
-        res.status(201).json({ message: 'Photos uploaded successfully', photoUrls });
+        res.status(201).json({
+            message: 'Photos uploaded successfully',
+            photoUrls: photoUrls.map(photo => photo.url) // Return only the URLs
+        });
     }),
 
     uploadDocuments: asyncHandler(async (req, res) => {
         const documentUrls = req.files.map(file => ({
-            url: `/uploads/${file.filename}`,
+            url: `/uploads/documents/${file.filename}`, // Ensure URL includes the correct path
             filename: file.filename
         }));
-        res.status(201).json({ message: 'Documents uploaded successfully', documentUrls });
+        res.status(201).json({
+            message: 'Documents uploaded successfully',
+            documentUrls: documentUrls.map(doc => doc.url) // Return only the URLs
+        });
     }),
 
     getUploadedFiles: asyncHandler(async (req, res) => {
