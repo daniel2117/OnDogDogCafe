@@ -9,22 +9,38 @@ const adoptionController = {
             const page = Math.max(1, parseInt(req.query.page) || 1);
             const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 9));
             
+            // Clean query parameters
+            const cleanQuery = Object.entries(req.query)
+                .filter(([_, value]) => value != null && value !== '')
+                .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
+            
             // Build filter object
             const filter = { status: 'available' };
-            if (req.query.breed) filter.breed = req.query.breed;
-            if (req.query.size) filter.size = req.query.size;
-            if (req.query.gender) filter.gender = req.query.gender;
             
-            // Handle age range filter
-            if (req.query.age) {
-                const [minAge, maxAge] = req.query.age.split('-').map(Number);
-                if (!isNaN(minAge) && !isNaN(maxAge)) {
-                    filter.age = { $gte: minAge, $lte: maxAge };
+            // Apply case-insensitive text filters
+            if (cleanQuery.breed) filter.breed = new RegExp(cleanQuery.breed, 'i');
+            if (cleanQuery.size) filter.size = new RegExp(cleanQuery.size, 'i');
+            if (cleanQuery.gender) filter.gender = new RegExp(cleanQuery.gender, 'i');
+            
+            // Handle different age filter formats
+            if (cleanQuery.age) {
+                if (cleanQuery.age.includes('-')) {
+                    // Range format (e.g., "1-5")
+                    const [minAge, maxAge] = cleanQuery.age.split('-').map(Number);
+                    if (!isNaN(minAge) && !isNaN(maxAge)) {
+                        filter.age = { $gte: minAge, $lte: maxAge };
+                    }
+                } else {
+                    // Single age value
+                    const age = parseInt(cleanQuery.age);
+                    if (!isNaN(age)) {
+                        filter.age = age;
+                    }
                 }
             }
 
-            // Create cache key based on query parameters
-            const cacheKey = `dogs:${page}:${limit}:${JSON.stringify(filter)}`;
+            // Create cache key from cleaned query
+            const cacheKey = `dogs:${page}:${limit}:${JSON.stringify(cleanQuery)}`;
             
             // Try to get from cache
             const cached = await cache.get(cacheKey);
