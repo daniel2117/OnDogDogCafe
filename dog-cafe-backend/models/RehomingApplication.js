@@ -82,7 +82,7 @@ const rehomingApplicationSchema = new mongoose.Schema({
     },
     media: {
         photos: {
-            type: [String],
+            type: [String], // Store URLs of uploaded photos
             required: true,
             validate: [array => array.length > 0, 'At least one photo is required']
         },
@@ -91,7 +91,7 @@ const rehomingApplicationSchema = new mongoose.Schema({
                 type: String,
                 enum: ['vaccine', 'spayNeuter', 'microchip', 'other']
             },
-            url: String,
+            url: String, // Store URL of uploaded document
             name: String
         }]
     },
