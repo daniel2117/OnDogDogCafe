@@ -15,6 +15,21 @@ const Adoption = () => {
     const dogsPerPage = 9;
 
     const [filters, setFilters] = useState({ breed: '', color: '', gender: '', age: '', size: '' });
+    const [filterOptions, setFilterOptions] = useState({});
+
+    useEffect(() => {
+        const fetchFilterOptions = async () => {
+            try {
+                const response = await dogCafeApi.getAdoptionFilterList();
+                setFilterOptions(response);
+
+            } catch (error) {
+                console.error("Failed to load filter options:", error);
+            }
+        };
+        fetchFilterOptions();
+    }, []);
+
 
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: "instant" });
@@ -94,47 +109,52 @@ const Adoption = () => {
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-lg font-semibold">{t.filter}</h2>
                 <div className="flex gap-2">
-
-                    <select name="breed" value={filters.breed} onChange={handleFilterChange} className="border px-3 py-1 rounded">
-                        <option value="">{t.breed}</option>
-                        <option value="Shiba">Shiba</option>
-                        <option value="Labrador">Labrador</option>
-                        <option value="Husky">Husky</option>
-                        <option value="Bulldog">Bulldog</option>
-                        <option value="Pomeranian">Pomeranian</option>
-                    </select>
-                    <select name="color" value={filters.color} onChange={handleFilterChange} className="border px-3 py-1 rounded">
-                        <option value="">{t.color}</option>
-                        <option value="white">White</option>
-                        <option value="black">Black</option>
-                        <option value="brown">Brown</option>
-                    </select>
-                    <select name="gender" value={filters.gender} onChange={handleFilterChange} className="border px-3 py-1 rounded">
-                        <option value="">{t.gender}</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                    </select>
-                    <select name="age" value={filters.age} onChange={handleFilterChange} className="border px-3 py-1 rounded">
-                        <option value="">{t.age}</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                    </select>
-                    <select name="size" value={filters.size} onChange={handleFilterChange} className="border px-3 py-1 rounded">
-                        <option value="">{t.size}</option>
-                        <option value="small">Small</option>
-                        <option value="medium">Medium</option>
-                        <option value="large">Large</option>
-                    </select>
+                    {filterOptions.breed?.length > 0 && (
+                        <select name="breed" value={filters.breed} onChange={handleFilterChange} className="border px-3 py-1 rounded">
+                            <option value="">{t.breed}</option>
+                            {filterOptions.breed.map((option) => (
+                                <option key={option} value={option}>{option}</option>
+                            ))}
+                        </select>
+                    )}
+                    {filterOptions.color?.length > 0 && (
+                        <select name="color" value={filters.color} onChange={handleFilterChange} className="border px-3 py-1 rounded">
+                            <option value="">{t.color}</option>
+                            {filterOptions.color.map((option) => (
+                                <option key={option} value={option}>{option}</option>
+                            ))}
+                        </select>
+                    )}
+                    {filterOptions.gender?.length > 0 && (
+                        <select name="gender" value={filters.gender} onChange={handleFilterChange} className="border px-3 py-1 rounded">
+                            <option value="">{t.gender}</option>
+                            {filterOptions.gender.map((option) => (
+                                <option key={option} value={option}>{option}</option>
+                            ))}
+                        </select>
+                    )}
+                    {filterOptions.age?.length > 0 && (
+                        <select name="age" value={filters.age} onChange={handleFilterChange} className="border px-3 py-1 rounded">
+                            <option value="">{t.age}</option>
+                            {filterOptions.age.map((option) => (
+                                <option key={option} value={option}>{option}</option>
+                            ))}
+                        </select>
+                    )}
+                    {filterOptions.size?.length > 0 && (
+                        <select name="size" value={filters.size} onChange={handleFilterChange} className="border px-3 py-1 rounded">
+                            <option value="">{t.size}</option>
+                            {filterOptions.size.map((option) => (
+                                <option key={option} value={option}>{option}</option>
+                            ))}
+                        </select>
+                    )}
                     <button
                         onClick={applyFilters}
                         className="ml-2 border px-3 py-1 rounded bg-purple-500 text-white"
                     >
                         {t.apply}
                     </button>
-
                 </div>
             </div>
 

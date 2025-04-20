@@ -134,6 +134,16 @@ const dogCafeApi = {
         }
     },
 
+    getAdoptionFilterList: async () => {
+        try {
+          const response = await axiosInstance.get("/adoption/filters");
+          return response.data;
+        } catch (error) {
+          throw error.response?.data || { message: "Failed to fetch filter list" };
+        }
+      },
+      
+
     applyForAdoption: async (applicationData) => {
         try {
             const response = await axiosInstance.post('/adoption/apply', {
