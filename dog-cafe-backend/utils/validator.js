@@ -200,6 +200,42 @@ const validators = {
         const timeInMinutes = hours * 60 + minutes;
         return timeInMinutes >= businessHours.open && 
                timeInMinutes <= businessHours.close;
+    },
+
+    // Add contact form validation
+    isValidContactForm: (data) => {
+        const errors = [];
+
+        if (!data.firstName?.trim()) {
+            errors.push('First name is required');
+        }
+
+        if (!data.lastName?.trim()) {
+            errors.push('Last name is required');
+        }
+
+        if (!data.email || !validators.isValidEmail(data.email)) {
+            errors.push('Valid email is required');
+        }
+
+        if (!data.phone || !validators.isValidPhone(data.phone)) {
+            errors.push('Valid phone number is required');
+        }
+
+        if (!data.message?.trim()) {
+            errors.push('Message is required');
+        } else if (data.message.length > 1000) {
+            errors.push('Message cannot exceed 1000 characters');
+        }
+
+        if (!data.agreedToPrivacyPolicy) {
+            errors.push('You must agree to the privacy policy');
+        }
+
+        return {
+            isValid: errors.length === 0,
+            errors
+        };
     }
 };
 
