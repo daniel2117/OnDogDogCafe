@@ -1,15 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const feedbackController = require('../controllers/feedbackController');
-const auth = require('../middleware/auth');
-const { roleCheck } = require('../middleware/roleCheck');
 
 // Public routes
 router.post('/submit', feedbackController.submitFeedback);
 router.get('/:id', feedbackController.getFeedbackById);
 
-// Admin routes
-router.get('/admin/all', auth, roleCheck('admin'), feedbackController.getAllFeedback);
-router.post('/:id/respond', auth, roleCheck('admin'), feedbackController.respondToFeedback);
+// Admin routes (no auth required for now)
+router.get('/admin/all', feedbackController.getAllFeedback);
+router.post('/:id/respond', feedbackController.respondToFeedback);
 
 module.exports = router;

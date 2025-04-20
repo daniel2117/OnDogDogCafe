@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const rehomingController = require('../controllers/rehomingController');
 const localImageStorage = require('../utils/localImageStorage');
-const { roleCheck } = require('../middleware/roleCheck');
 const { validateRehomingApplication } = require('../middleware/validate');
 
 // Public routes
@@ -14,13 +13,13 @@ router.post(
 
 router.post(
     '/upload/photos',
-    localImageStorage.upload.array('photos', 5), // Limit to 5 photos
+    localImageStorage.upload.array('photos', 5), 
     rehomingController.uploadPhotos
 );
 
 router.post(
     '/upload/documents',
-    localImageStorage.upload.array('documents', 5), // Limit to 5 documents
+    localImageStorage.upload.array('documents', 5), 
     rehomingController.uploadDocuments
 );
 
@@ -30,8 +29,8 @@ router.get('/application/:id', rehomingController.getApplicationById);
 router.get('/applications', rehomingController.getApplicationsByEmail);
 router.put('/application/:id', rehomingController.updateApplication);
 
-// Admin routes
-router.get('/admin/applications', roleCheck('admin'), rehomingController.getAllApplications);
-router.patch('/admin/application/:id/status', roleCheck('admin'), rehomingController.updateApplicationStatus);
+// Admin routes (no auth required for now)
+router.get('/admin/applications', rehomingController.getAllApplications);
+router.patch('/admin/application/:id/status', rehomingController.updateApplicationStatus);
 
 module.exports = router;
