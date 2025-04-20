@@ -1,23 +1,39 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import {adoptionApi} from "../../services/api";
 
 const Step7Confirmation = ({ formData }) => {
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const submitAdoptionApplication = async () => {
+            try {
+                const response = await adoptionApi.apply(formData);
+                console.log("Adoption application submitted:", response);
+                alert("Your adoption application has been submitted successfully!");
+            } catch (error) {
+                console.error("Failed to submit adoption application:", error);
+                alert("Failed to submit adoption application. Please try again later.");
+            }
+        };
+
+        submitAdoptionApplication();
+    }, [formData]);
 
     return (
         <div className="min-h-screen bg-white flex flex-col items-center px-6 py-12">
             <div className="w-full max-w-2xl text-center">
                 <h1 className="text-2xl font-bold mb-4">Thanks For Submitting</h1>
                 <p className="text-gray-700 mb-6">
-                    The pet’s current owner will be sent a link to your profile when your application has been approved by On dog dog cafe.
+                    The pet’s current owner will be sent a link to your profile when your application has been approved by Furry Friends.
                 </p>
-                <img src="/logo.png" alt="confirmation" className="w-48 mx-auto mb-8" />
+                <img src="/images/confirm_illustration.png" alt="confirmation" className="w-48 mx-auto mb-8" />
 
                 <button
-                    onClick={() => navigate("/home")}
+                    onClick={() => navigate("/profile")}
                     className="bg-purple-500 text-white px-6 py-2 rounded hover:bg-purple-600"
                 >
-                    Go To Home
+                    Go To My Profile
                 </button>
 
                 <div className="mt-12 text-left text-sm bg-gray-50 border rounded p-4">

@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import api from "../services/api";
+import { adoptionApi } from "../services/api";
 import GoogleMapComponent from '../components/GoogleMapComponent';
 
 
@@ -11,7 +11,7 @@ const Home = ({ lang, toggleLang }) => {
     useEffect(() => {
         const fetchDogs = async () => {
             try {
-                const response = await api.getAdoptableDogs({ page: 1, limit: 8 });
+                const response = await adoptionApi.getDogs({ page: 1, limit: 8 });
                 setDogs(response.dogs || []);
             } catch (err) {
                 console.error("Failed to fetch dogs", err);
@@ -64,7 +64,7 @@ const Home = ({ lang, toggleLang }) => {
             viewMore: "查看更多 →",
             location: "地點",
             bookNow: "立即預約",
-            footer: "香港蘇沙道3號1樓\n電話: 6613 2128\n©2025 On Dog Dog Cafe.",
+            footer: "Kwai Chung, Lai King Hill Rd, Lai Chi Kok Bay Garden Block D\n©2025 On Dog Dog Cafe.",
             cafeServices: [
                 {
                     title: "寵物咖啡廳",
@@ -154,27 +154,28 @@ const Home = ({ lang, toggleLang }) => {
             </div>
 
             {/* Pet Preview Section */}
-            <div className="max-w-7xl mx-auto px-6 pb-12">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-2xl font-bold">{t.somePets}</h2>
-                    <button onClick={() => navigate(`/adoption?lang=${lang}`)} className="text-sm text-blue-600 hover:underline">
-                        {t.viewMore}
-                    </button>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {dogs.map((dog) => (
-                        <div key={dog._id} className="border p-2 rounded text-center shadow">
-                            <img
-                                src={dog.imageUrl || "/images/default-dog.png"}
-                                alt={dog.name}
-                                className="rounded mb-2 w-full h-32 object-cover"
-                            />
-                            <div className="font-semibold text-sm">{dog.name} - {dog.breed}</div>
-                            <div className="text-xs text-gray-600">{dog.gender} · {dog.age} years</div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {dogs.map((dog) => (
+                    <div
+                        key={dog._id}
+                        onClick={() => navigate(`/dog/${dog._id}?lang=${lang}`)}
+                        className="border p-2 rounded text-center shadow cursor-pointer hover:shadow-md transition"
+                    >
+                        <img
+                            src={dog.imageUrl || "/images/default-dog.png"}
+                            alt={dog.name}
+                            className="rounded mb-2 w-full h-32 object-cover"
+                        />
+                        <div className="font-semibold text-sm">
+                            {dog.name} - {dog.breed}
                         </div>
-                    ))}
-                </div>
+                        <div className="text-xs text-gray-600">
+                            {dog.gender} · {dog.age} years
+                        </div>
+                    </div>
+                ))}
             </div>
+
 
             {/* Location Section */}
             <div className="bg-gray-100 py-12 px-6">

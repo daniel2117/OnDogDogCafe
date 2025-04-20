@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from "react-router-dom";
-import dogCafeApi from "../../services/api";
+import { adoptionApi } from "../../services/api";
 
 
-const Adoption = () => {
+const Adoption = ({ lang, toggleLang }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
-    const lang = queryParams.get("lang") || "en";
+    //const lang = queryParams.get("lang") || "en";
 
     const [dogs, setDogs] = useState([]);
     const [page, setPage] = useState(1);
@@ -16,11 +16,13 @@ const Adoption = () => {
 
     const [filters, setFilters] = useState({ breed: '', color: '', gender: '', age: '', size: '' });
     const [filterOptions, setFilterOptions] = useState({});
+    const [pendingFilters, setPendingFilters] = useState({ breed: '', color: '', gender: '', age: '', size: '' });
+
 
     useEffect(() => {
         const fetchFilterOptions = async () => {
             try {
-                const response = await dogCafeApi.getAdoptionFilterList();
+                const response = await adoptionApi.getFilters();
                 setFilterOptions(response);
 
             } catch (error) {
@@ -35,7 +37,7 @@ const Adoption = () => {
         window.scrollTo({ top: 0, behavior: "instant" });
         const fetchDogs = async () => {
             try {
-                const response = await dogCafeApi.getAdoptableDogs({
+                const response = await adoptionApi.getDogs({
                     page,
                     limit: dogsPerPage,
                     ...filters
@@ -51,15 +53,21 @@ const Adoption = () => {
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
-        setFilters(prev => ({ ...prev, [name]: value }));
+        setPendingFilters(prev => ({ ...prev, [name]: value }));
     };
 
+
     const applyFilters = () => {
-        setPage(1); // 필터 적용 시 첫 페이지부터
+        setFilters({ ...pendingFilters });
+        setPage(1);
     };
+
+
+
 
     const texts = {
         en: {
+            language: "中文",
             filter: "Filters",
             reset: "Reset Filters",
             apply: "Apply your Filter",
@@ -70,9 +78,10 @@ const Adoption = () => {
             size: "Size",
             color: "Color",
             bookNow: "Book for Adoption",
-            footer: "1F, 3 Soares Avenue, Hong Kong\nTel: 6613 2128\n©2025 by On Dog Dog Cafe."
+            footer: "Kwai Chung, Lai King Hill Rd, Lai Chi Kok Bay Garden Block D\n©2025 by On Dog Dog Cafe."
         },
         zh: {
+            language: "English",
             filter: "篩選",
             reset: "重設篩選",
             apply: "套用篩選條件",
@@ -83,7 +92,7 @@ const Adoption = () => {
             size: "體型",
             color: "顏色",
             bookNow: "預約領養狗狗",
-            footer: "香港蘇沙道3號1樓\n電話: 6613 2128\n©2025 On Dog Dog Cafe."
+            footer: "Kwai Chung, Lai King Hill Rd, Lai Chi Kok Bay Garden Block D\n©2025 by On Dog Dog Cafe."
         },
     };
 
@@ -98,10 +107,10 @@ const Adoption = () => {
                     <img src="/logo.png" alt="logo" className="h-16" />
                 </div>
                 <button
-                    onClick={() => navigate(`/contactus?lang=${lang}`)}
-                    className="border border-gray-500 px-4 py-2 rounded hover:bg-gray-100"
+                    onClick={toggleLang}
+                    className="border border-gray-400 rounded-md px-3 py-1 text-sm"
                 >
-                    Contact Us
+                    {t.language}
                 </button>
             </div>
 
@@ -110,7 +119,7 @@ const Adoption = () => {
                 <h2 className="text-lg font-semibold">{t.filter}</h2>
                 <div className="flex gap-2">
                     {filterOptions.breed?.length > 0 && (
-                        <select name="breed" value={filters.breed} onChange={handleFilterChange} className="border px-3 py-1 rounded">
+                        <select name="breed" value={pendingFilters.breed} onChange={handleFilterChange} className="border px-3 py-1 rounded">
                             <option value="">{t.breed}</option>
                             {filterOptions.breed.map((option) => (
                                 <option key={option} value={option}>{option}</option>
@@ -118,7 +127,7 @@ const Adoption = () => {
                         </select>
                     )}
                     {filterOptions.color?.length > 0 && (
-                        <select name="color" value={filters.color} onChange={handleFilterChange} className="border px-3 py-1 rounded">
+                        <select name="color" value={pendingFilters.color} onChange={handleFilterChange} className="border px-3 py-1 rounded">
                             <option value="">{t.color}</option>
                             {filterOptions.color.map((option) => (
                                 <option key={option} value={option}>{option}</option>
@@ -126,7 +135,7 @@ const Adoption = () => {
                         </select>
                     )}
                     {filterOptions.gender?.length > 0 && (
-                        <select name="gender" value={filters.gender} onChange={handleFilterChange} className="border px-3 py-1 rounded">
+                        <select name="gender" value={pendingFilters.gender} onChange={handleFilterChange} className="border px-3 py-1 rounded">
                             <option value="">{t.gender}</option>
                             {filterOptions.gender.map((option) => (
                                 <option key={option} value={option}>{option}</option>
@@ -134,7 +143,7 @@ const Adoption = () => {
                         </select>
                     )}
                     {filterOptions.age?.length > 0 && (
-                        <select name="age" value={filters.age} onChange={handleFilterChange} className="border px-3 py-1 rounded">
+                        <select name="age" value={pendingFilters.age} onChange={handleFilterChange} className="border px-3 py-1 rounded">
                             <option value="">{t.age}</option>
                             {filterOptions.age.map((option) => (
                                 <option key={option} value={option}>{option}</option>
@@ -142,7 +151,7 @@ const Adoption = () => {
                         </select>
                     )}
                     {filterOptions.size?.length > 0 && (
-                        <select name="size" value={filters.size} onChange={handleFilterChange} className="border px-3 py-1 rounded">
+                        <select name="size" value={pendingFilters.size} onChange={handleFilterChange} className="border px-3 py-1 rounded">
                             <option value="">{t.size}</option>
                             {filterOptions.size.map((option) => (
                                 <option key={option} value={option}>{option}</option>

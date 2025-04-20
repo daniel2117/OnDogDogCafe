@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import {contentApi,reservationApi} from "../../services/api";
+import { contentApi, reservationApi } from "../../services/api";
 
-
-const Step1BasicInfo = ({ formData, setFormData, next }) => {
+const Step1Start = ({ formData, setFormData, next, lang, toggleLang }) => {
     const [email, setEmail] = useState(formData.email || "");
     const [firstName, setFirstName] = useState(formData.firstName || "");
     const [lastName, setLastName] = useState(formData.lastName || "");
@@ -10,24 +9,23 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
     const [emailVerified, setEmailVerified] = useState(false);
     const [agree, setAgree] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [termsText, setTermsText] = useState(""); // State for terms content
-    const [policyText, setPolicyText] = useState(""); // State for policy content
+    const [termsText, setTermsText] = useState("");
+    const [policyText, setPolicyText] = useState("");
 
-    // Send verification code to user's email
     const sendVerification = async () => {
         setLoading(true);
         try {
             await reservationApi.verifyEmail(email);
-            alert("Verification code sent to your email.");
+            alert(lang === 'zh' ? '驗證碼已發送到您的電子郵件。' : "Verification code sent to your email.");
         } catch (e) {
-            alert(e.message || "Failed to send verification code.");
+            alert(e.message || lang === 'zh' ? '未能發送驗證碼。' : "Failed to send verification code.");
         } finally {
             setLoading(false);
         }
     };
 
-    // Verify the entered code
     const verifyCode = async () => {
+        console.log("Verifying code:", code);
         setLoading(true);
         try {
             await reservationApi.verifyCode(email, code);
@@ -40,8 +38,8 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
         }
     };
 
-    // Submit and go to next step
     const handleNext = () => {
+        console.log("Next step with:", { email, firstName, lastName, emailVerified, agree });
         if (!emailVerified || !firstName || !lastName || !agree) {
             alert("Please complete all fields and verify your email.");
             return;
@@ -50,44 +48,43 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
         next();
     };
 
-    // Load terms and policy from API on mount
     useEffect(() => {
         const fetchTermsAndPolicy = async () => {
+            console.log("Fetching terms and privacy for language:", lang);
+            const languageCode = lang === 'zh' ? 'zh' : 'en';
             try {
-                const terms = await contentApi.getTerms("en");
-                const privacy = await contentApi.getPrivacy("en");
+                const terms = await contentApi.getTerms(languageCode);
+                const privacy = await contentApi.getPrivacy(languageCode);
                 setTermsText(terms?.content || "");
                 setPolicyText(privacy?.content || "");
             } catch (error) {
                 console.error("Failed to fetch terms and privacy policy:", error);
             }
-        };
+        }
         fetchTermsAndPolicy();
     }, []);
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-start px-4 py-10">
             <div className="w-full max-w-2xl border rounded-lg shadow p-6">
+
                 <div className="text-sm text-gray-700">
-                    {/* Display verified email or placeholder */}
                     <div className="mb-2">
-                        <label className="block text-xs font-semibold mb-1">Email/Username</label>
-                        <div className="text-purple-600">{emailVerified ? email : 'Not provided yet'}</div>
+                        <label className="block text-xs font-semibold mb-1">{lang === 'zh' ? '電子郵件/用戶名' : "Email/Username"}</label>
+                        <div className="text-purple-600">{emailVerified ? email : lang === 'zh' ? '尚未提供' : 'Not provided yet'}</div>
                     </div>
 
-                    {/* Display entered names */}
                     <div className="mb-1">
-                        <label className="block text-xs font-semibold">First name</label>
+                        <label className="block text-xs font-semibold">{lang === 'zh' ? '名字' : 'First name'}</label>
                         <div className="text-gray-700">{firstName || '—'}</div>
                     </div>
                     <div className="mb-4">
-                        <label className="block text-xs font-semibold">Last name</label>
+                        <label className="block text-xs font-semibold">{lang === 'zh' ? '姓氏' : 'Last name'}</label>
                         <div className="text-gray-700">{lastName || '—'}</div>
                     </div>
 
-                    {/* Email input */}
                     <div className="mb-4">
-                        <label className="block text-xs mb-1">Enter your email</label>
+                        <label className="block text-xs mb-1">{lang === 'zh' ? '請輸入您的電子郵件' : 'Enter your email'}</label>
                         <input
                             type="email"
                             value={email}
@@ -95,21 +92,19 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
                             className="w-full p-2 border rounded"
                             disabled={emailVerified}
                         />
-                        {/* Send code button (if not verified) */}
                         {!emailVerified && (
                             <button
                                 onClick={sendVerification}
                                 className="mt-2 text-xs text-purple-600 underline"
                             >
-                                Send verification code
+                                {lang === 'zh' ? '發送驗證碼' : 'Send Verification Code'}
                             </button>
                         )}
                     </div>
 
-                    {/* Code verification */}
                     {!emailVerified && (
                         <div className="mb-4">
-                            <label className="block text-xs mb-1">Enter verification code</label>
+                            <label className="block text-xs mb-1">{lang === 'zh' ? '請輸入驗證碼' : 'Enter verification code'}</label>
                             <input
                                 type="text"
                                 value={code}
@@ -120,14 +115,13 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
                                 onClick={verifyCode}
                                 className="mt-2 text-xs text-purple-600 underline"
                             >
-                                Verify Code
+                                {lang === 'zh' ? '驗證碼' : 'Verify Code'}
                             </button>
                         </div>
                     )}
 
-                    {/* Name inputs */}
                     <div className="mb-4">
-                        <label className="block text-xs mb-1">First Name</label>
+                        <label className="block text-xs mb-1">{lang === 'zh' ? '名字' : 'First name'}</label>
                         <input
                             type="text"
                             value={firstName}
@@ -137,7 +131,7 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
                     </div>
 
                     <div className="mb-4">
-                        <label className="block text-xs mb-1">Last Name</label>
+                        <label className="block text-xs mb-1">{lang === 'zh' ? '姓氏' : 'Last name'}</label>
                         <input
                             type="text"
                             value={lastName}
@@ -146,7 +140,6 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
                         />
                     </div>
 
-                    {/* Agreement checkbox with dynamic terms text */}
                     <label className="text-xs flex items-start gap-1 mb-6">
                         <input
                             type="checkbox"
@@ -155,29 +148,22 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
                             className="mt-1"
                         />
                         <span>
-                            I have read and agree to the
+                            {lang === 'zh' ? '我已閱讀並同意' : 'I have read and agree to the'}
                             <button
                                 type="button"
                                 onClick={() => alert(termsText)}
                                 className="text-blue-600 underline mx-1"
-                            >Terms</button>
-                            and
-                            <button
-                                type="button"
-                                onClick={() => alert(policyText)}
-                                className="text-blue-600 underline ml-1"
-                            >Privacy Policy</button>
+                            >{lang === 'zh' ? '條款/隱私政策' : 'Terms/Privacy'}</button>
                         </span>
                     </label>
 
-                    {/* Navigation buttons */}
                     <div className="text-center space-y-4">
                         <button
                             onClick={handleNext}
                             disabled={loading}
                             className="bg-purple-500 text-white px-8 py-2 rounded hover:bg-purple-600 disabled:opacity-50"
                         >
-                            Start
+                            {lang === 'zh' ? '開始' : 'Start'}
                         </button>
                         <div>
                             <button
@@ -194,4 +180,5 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
     );
 };
 
-export default Step1BasicInfo;
+// 언어 context props 활용 버전
+export default Step1Start;
