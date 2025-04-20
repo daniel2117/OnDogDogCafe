@@ -1,66 +1,5 @@
 const { TIME_SLOTS } = require('../models/Reservation');
 
-const validateRegistration = (req, res, next) => {
-    const { name, email, password } = req.body;
-    
-    if (!name || !email || !password) {
-        return res.status(400).json({
-            message: 'Please provide all required fields: name, email, password'
-        });
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        return res.status(400).json({
-            message: 'Please provide a valid email address'
-        });
-    }
-
-    // Validate password strength
-    if (password.length < 8) {
-        return res.status(400).json({
-            message: 'Password must be at least 8 characters long'
-        });
-    }
-
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/;
-    if (!passwordRegex.test(password)) {
-        return res.status(400).json({
-            message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
-        });
-    }
-
-    // Validate name length
-    if (name.length < 2 || name.length > 50) {
-        return res.status(400).json({
-            message: 'Name must be between 2 and 50 characters'
-        });
-    }
-
-    next();
-};
-
-const validateLogin = (req, res, next) => {
-    const { email, password } = req.body;
-    
-    if (!email || !password) {
-        return res.status(400).json({
-            message: 'Please provide email and password'
-        });
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        return res.status(400).json({
-            message: 'Please provide a valid email address'
-        });
-    }
-
-    next();
-};
-
 const validateReservation = (req, res, next) => {
     const { date, timeSlot, numberOfPeople } = req.body;
 
@@ -222,8 +161,6 @@ const validateDog = (req, res, next) => {
 };
 
 module.exports = {
-    validateRegistration,
-    validateLogin,
     validateReservation,
     validateAdoptionApplication,
     validateDog
