@@ -18,9 +18,7 @@ const dogCafeApi = {
 
     getAvailability: async (date) => {
         try {
-
             const response = await axiosInstance.get('/reservations/availability', { params: { date } });
-
             return response.data;
         } catch (error) {
             throw error.response?.data || { message: 'Failed to fetch availability' };
@@ -136,34 +134,59 @@ const dogCafeApi = {
 
     getAdoptionFilterList: async () => {
         try {
-          const response = await axiosInstance.get("/adoption/filters");
-          return response.data;
+            const response = await axiosInstance.get('/adoption/filters');
+            return response.data;
         } catch (error) {
-          throw error.response?.data || { message: "Failed to fetch filter list" };
+            throw error.response?.data || { message: 'Failed to fetch filter list' };
         }
-      },
-      
+    },
 
     applyForAdoption: async (applicationData) => {
         try {
-            const response = await axiosInstance.post('/adoption/apply', {
-                dogId: applicationData.dogId,
-                customerInfo: {
-                    name: applicationData.name,
-                    email: applicationData.email,
-                    phone: applicationData.phone,
-                    address: applicationData.address
-                },
-                applicationDetails: {
-                    livingArrangement: applicationData.livingArrangement,
-                    hasOtherPets: applicationData.hasOtherPets,
-                    experience: applicationData.experience,
-                    reason: applicationData.reason
-                }
-            });
+            const response = await axiosInstance.post('/adoption/apply', applicationData);
             return response.data;
         } catch (error) {
             throw error.response?.data || { message: 'Failed to submit adoption application' };
+        }
+    },
+
+    // =====================
+    // Additional Features
+    // =====================
+
+    submitRehomeApplication: async (formData) => {
+        try {
+            const response = await axiosInstance.post('/rehome/apply', formData);
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || { message: 'Failed to submit rehome application' };
+        }
+    },
+
+    getUserFeedbackList: async () => {
+        try {
+            const response = await axiosInstance.get('/feedback');
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || { message: 'Failed to fetch feedback list' };
+        }
+    },
+
+    submitFeedback: async (feedbackData) => {
+        try {
+            const response = await axiosInstance.post('/feedback/submit', feedbackData);
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || { message: 'Failed to submit feedback' };
+        }
+    },
+
+    getTermsAndPrivacy: async () => {
+        try {
+            const response = await axiosInstance.get('/policies');
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || { message: 'Failed to load terms and policies' };
         }
     }
 };

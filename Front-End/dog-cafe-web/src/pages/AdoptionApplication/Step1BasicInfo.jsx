@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import dogCafeApi from "../../services/api";
+import React, { useState, useEffect } from "react";
 
 const Step1BasicInfo = ({ formData, setFormData, next }) => {
     const [email, setEmail] = useState(formData.email || "");
@@ -9,11 +8,14 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
     const [emailVerified, setEmailVerified] = useState(false);
     const [agree, setAgree] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [termsText, setTermsText] = useState(""); // State for terms content
+    const [policyText, setPolicyText] = useState(""); // State for policy content
 
+    // Send verification code to user's email
     const sendVerification = async () => {
         setLoading(true);
         try {
-            await dogCafeApi.verifyEmail(email);
+            await window.dogCafeApi.verifyEmail(email);
             alert("Verification code sent to your email.");
         } catch (e) {
             alert(e.message || "Failed to send verification code.");
@@ -22,10 +24,11 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
         }
     };
 
+    // Verify the entered code
     const verifyCode = async () => {
         setLoading(true);
         try {
-            await dogCafeApi.verifyCode(email, code);
+            await window.dogCafeApi.verifyCode(email, code);
             setEmailVerified(true);
             alert("Email verified successfully.");
         } catch (e) {
@@ -35,6 +38,7 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
         }
     };
 
+    // Submit and go to next step
     const handleNext = () => {
         if (!emailVerified || !firstName || !lastName || !agree) {
             alert("Please complete all fields and verify your email.");
@@ -44,14 +48,31 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
         next();
     };
 
+    // Load terms and policy from API on mount
+    useEffect(() => {
+        const fetchTermsAndPolicy = async () => {
+            try {
+                const result = await dogCafeApi.getTermsAndPrivacy();
+                setTermsText(result.terms || "");
+                setPolicyText(result.privacy || "");
+            } catch (error) {
+                console.error("Failed to fetch terms and privacy policy:", error);
+            }
+        };
+        fetchTermsAndPolicy();
+    }, []);
+
     return (
         <div className="min-h-screen flex flex-col items-center justify-start px-4 py-10">
             <div className="w-full max-w-2xl border rounded-lg shadow p-6">
                 <div className="text-sm text-gray-700">
+                    {/* Display verified email or placeholder */}
                     <div className="mb-2">
                         <label className="block text-xs font-semibold mb-1">Email/Username</label>
                         <div className="text-purple-600">{emailVerified ? email : 'Not provided yet'}</div>
                     </div>
+
+                    {/* Display entered names */}
                     <div className="mb-1">
                         <label className="block text-xs font-semibold">First name</label>
                         <div className="text-gray-700">{firstName || '—'}</div>
@@ -61,6 +82,7 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
                         <div className="text-gray-700">{lastName || '—'}</div>
                     </div>
 
+                    {/* Email input */}
                     <div className="mb-4">
                         <label className="block text-xs mb-1">Enter your email</label>
                         <input
@@ -70,6 +92,7 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
                             className="w-full p-2 border rounded"
                             disabled={emailVerified}
                         />
+                        {/* Send code button (if not verified) */}
                         {!emailVerified && (
                             <button
                                 onClick={sendVerification}
@@ -80,6 +103,7 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
                         )}
                     </div>
 
+                    {/* Code verification */}
                     {!emailVerified && (
                         <div className="mb-4">
                             <label className="block text-xs mb-1">Enter verification code</label>
@@ -98,6 +122,7 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
                         </div>
                     )}
 
+                    {/* Name inputs */}
                     <div className="mb-4">
                         <label className="block text-xs mb-1">First Name</label>
                         <input
@@ -118,16 +143,31 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
                         />
                     </div>
 
-                    <label className="text-xs flex items-center mb-6">
+                    {/* Agreement checkbox with dynamic terms text */}
+                    <label className="text-xs flex items-start gap-1 mb-6">
                         <input
                             type="checkbox"
                             checked={agree}
                             onChange={() => setAgree(!agree)}
-                            className="mr-2"
+                            className="mt-1"
                         />
-                        I have read and agree to the <a href="/terms" className="text-blue-600 underline ml-1">Terms</a> and <a href="/privacy" className="text-blue-600 underline">Privacy Policy</a>
+                        <span>
+                            I have read and agree to the
+                            <button
+                                type="button"
+                                onClick={() => alert(termsText)}
+                                className="text-blue-600 underline mx-1"
+                            >Terms</button>
+                            and
+                            <button
+                                type="button"
+                                onClick={() => alert(policyText)}
+                                className="text-blue-600 underline ml-1"
+                            >Privacy Policy</button>
+                        </span>
                     </label>
 
+                    {/* Navigation buttons */}
                     <div className="text-center space-y-4">
                         <button
                             onClick={handleNext}

@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
-const ContactUs = () => {
+const ContactUs = ({ lang, toggleLang }) => {
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
-    const lang = queryParams.get("lang") || "en";
+    //const lang = queryParams.get("lang") || "en";
 
     const texts = {
         en: {
@@ -18,7 +18,8 @@ const ContactUs = () => {
             message: "Message",
             agree: "You agree to our friendly",
             policy: "privacy policy",
-            send: "Send message"
+            send: "Send message",
+            language: "中文",
         },
         zh: {
             contact: "聯絡我們",
@@ -31,7 +32,9 @@ const ContactUs = () => {
             message: "留言內容",
             agree: "你同意我們的",
             policy: "私隱政策",
-            send: "發送訊息"
+            send: "發送訊息",
+            language: "English",
+
         }
     };
 
@@ -59,6 +62,20 @@ const ContactUs = () => {
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center px-4 py-10">
+            {/* Header */}
+            <div className="w-full flex justify-between items-center max-w-4xl mb-4">
+
+                <Link to={`/home?lang=${lang}`}>
+                    <img src="/logo.png" alt="Dog Dog Cafe" className="h-14 cursor-pointer" />
+                </Link>
+
+                <button
+                    onClick={toggleLang}
+                    className="border border-gray-400 rounded-md px-3 py-1 text-sm"
+                >
+                    {t.language}
+                </button>
+            </div>
             <div className="w-full max-w-xl">
                 <h4 className="text-purple-600 text-sm font-semibold text-center mb-1">{t.contact}</h4>
                 <h2 className="text-3xl font-bold text-center mb-2">{t.title}</h2>

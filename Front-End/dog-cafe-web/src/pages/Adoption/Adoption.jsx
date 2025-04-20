@@ -16,6 +16,8 @@ const Adoption = () => {
 
     const [filters, setFilters] = useState({ breed: '', color: '', gender: '', age: '', size: '' });
     const [filterOptions, setFilterOptions] = useState({});
+    const [pendingFilters, setPendingFilters] = useState({ breed: '', color: '', gender: '', age: '', size: '' });
+
 
     useEffect(() => {
         const fetchFilterOptions = async () => {
@@ -51,12 +53,17 @@ const Adoption = () => {
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
-        setFilters(prev => ({ ...prev, [name]: value }));
+        setPendingFilters(prev => ({ ...prev, [name]: value }));
     };
 
+
     const applyFilters = () => {
-        setPage(1); // 필터 적용 시 첫 페이지부터
+        setFilters({ ...pendingFilters });
+        setPage(1);
     };
+
+
+
 
     const texts = {
         en: {
@@ -110,7 +117,7 @@ const Adoption = () => {
                 <h2 className="text-lg font-semibold">{t.filter}</h2>
                 <div className="flex gap-2">
                     {filterOptions.breed?.length > 0 && (
-                        <select name="breed" value={filters.breed} onChange={handleFilterChange} className="border px-3 py-1 rounded">
+                        <select name="breed" value={pendingFilters.breed} onChange={handleFilterChange} className="border px-3 py-1 rounded">
                             <option value="">{t.breed}</option>
                             {filterOptions.breed.map((option) => (
                                 <option key={option} value={option}>{option}</option>
@@ -118,7 +125,7 @@ const Adoption = () => {
                         </select>
                     )}
                     {filterOptions.color?.length > 0 && (
-                        <select name="color" value={filters.color} onChange={handleFilterChange} className="border px-3 py-1 rounded">
+                        <select name="color" value={pendingFilters.color} onChange={handleFilterChange} className="border px-3 py-1 rounded">
                             <option value="">{t.color}</option>
                             {filterOptions.color.map((option) => (
                                 <option key={option} value={option}>{option}</option>
@@ -126,7 +133,7 @@ const Adoption = () => {
                         </select>
                     )}
                     {filterOptions.gender?.length > 0 && (
-                        <select name="gender" value={filters.gender} onChange={handleFilterChange} className="border px-3 py-1 rounded">
+                        <select name="gender" value={pendingFilters.gender} onChange={handleFilterChange} className="border px-3 py-1 rounded">
                             <option value="">{t.gender}</option>
                             {filterOptions.gender.map((option) => (
                                 <option key={option} value={option}>{option}</option>
@@ -134,7 +141,7 @@ const Adoption = () => {
                         </select>
                     )}
                     {filterOptions.age?.length > 0 && (
-                        <select name="age" value={filters.age} onChange={handleFilterChange} className="border px-3 py-1 rounded">
+                        <select name="age" value={pendingFilters.age} onChange={handleFilterChange} className="border px-3 py-1 rounded">
                             <option value="">{t.age}</option>
                             {filterOptions.age.map((option) => (
                                 <option key={option} value={option}>{option}</option>
@@ -142,7 +149,7 @@ const Adoption = () => {
                         </select>
                     )}
                     {filterOptions.size?.length > 0 && (
-                        <select name="size" value={filters.size} onChange={handleFilterChange} className="border px-3 py-1 rounded">
+                        <select name="size" value={pendingFilters.size} onChange={handleFilterChange} className="border px-3 py-1 rounded">
                             <option value="">{t.size}</option>
                             {filterOptions.size.map((option) => (
                                 <option key={option} value={option}>{option}</option>
