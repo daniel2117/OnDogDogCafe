@@ -30,19 +30,20 @@ app.use(helmet({
     },
 }));
 
-// Rate limiting
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100 // limit each IP to 100 requests per windowMs
-});
-app.use('/api', limiter);
-
-app.use(mongoSanitize());
+// Updated CORS configuration
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: function (origin, callback) {
+        if (!origin || origin === 'https://ondogdogcafe.onrender.com') {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
     maxAge: 86400 // CORS preflight cache time
 }));
+
+app.use(mongoSanitize());
 app.use(compression());
 app.use(express.json({ limit: '10kb' }));
 
