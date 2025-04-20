@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from "react-router-dom";
-import dogCafeApi from "../../services/api";
+import { adoptionApi } from "../../services/api";
 
 
 const Adoption = () => {
@@ -22,7 +22,7 @@ const Adoption = () => {
     useEffect(() => {
         const fetchFilterOptions = async () => {
             try {
-                const response = await dogCafeApi.getAdoptionFilterList();
+                const response = await adoptionApi.getFilters();
                 setFilterOptions(response);
 
             } catch (error) {
@@ -37,7 +37,7 @@ const Adoption = () => {
         window.scrollTo({ top: 0, behavior: "instant" });
         const fetchDogs = async () => {
             try {
-                const response = await dogCafeApi.getAdoptableDogs({
+                const response = await adoptionApi.getDogs({
                     page,
                     limit: dogsPerPage,
                     ...filters

@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import dogCafeApi from "../../services/api";
+import { adoptionApi } from "../../services/api";
 
 
 const DogDetail = () => {
@@ -17,7 +17,7 @@ const DogDetail = () => {
     useEffect(() => {
         const fetchDog = async () => {
             try {
-                const response = await dogCafeApi.getDogDetails(id);
+                const response = await adoptionApi.getDogDetails(id);
                 setDog(response);
             } catch (error) {
                 console.error("Error fetching dog detail:", error);
@@ -26,7 +26,7 @@ const DogDetail = () => {
 
         const fetchSimilar = async () => {
             try {
-                const response = await dogCafeApi.getSimilarDogs(id);
+                const response = await adoptionApi.getSimilarDogs(id);
                 setSimilarPets(response);
             } catch (error) {
                 console.error("Error fetching similar dogs:", error);

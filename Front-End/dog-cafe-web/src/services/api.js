@@ -1,194 +1,249 @@
+// apiGrouped.js
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:10000/api';
-
-// Create axios instance with default config
 const axiosInstance = axios.create({
     baseURL: API_URL,
     timeout: 10000,
-    headers: {
-        'Content-Type': 'application/json'
-    }
+    headers: { 'Content-Type': 'application/json' }
 });
 
-const dogCafeApi = {
-    // =====================
-    // Reservation Endpoints
-    // =====================
-
-    getAvailability: async (date) => {
+export const adoptionApi = {
+    getDogs: async (params) => {
         try {
-            const response = await axiosInstance.get('/reservations/availability', { params: { date } });
-            return response.data;
-        } catch (error) {
-            throw error.response?.data || { message: 'Failed to fetch availability' };
+            const res = await axiosInstance.get('/adoption/dogs', { params });
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to fetch dogs' };
         }
     },
-
-    verifyEmail: async (email) => {
-        try {
-            const response = await axiosInstance.post('/reservations/verify-email',
-                {},
-                { headers: { email } }
-            );
-            return response.data;
-        } catch (error) {
-            throw error.response?.data || { message: 'Failed to verify email' };
-        }
-    },
-
-    verifyCode: async (email, code) => {
-        try {
-            const response = await axiosInstance.post('/reservations/verify-code', {
-                email,
-                code
-            });
-            return response.data;
-        } catch (error) {
-            throw error.response?.data || { message: 'Failed to verify code' };
-        }
-    },
-
-    createReservation: async (reservationData) => {
-        try {
-            const payload = {
-                customerInfo: {
-                    name: reservationData.name,
-                    email: reservationData.email,
-                    phone: reservationData.phone,
-                    petName: reservationData.petName,
-                    petType: reservationData.petType,
-                    location: reservationData.location,
-                    message: reservationData.message
-                },
-                date: reservationData.date,
-                timeSlot: reservationData.timeSlot,
-                selectedServices: reservationData.selectedServices
-            };
-
-            const response = await axiosInstance.post('/reservations/create', payload);
-            return response.data;
-        } catch (error) {
-            if (error.response?.status === 400) {
-                throw new Error(error.response.data.message || 'Invalid reservation data');
-            }
-            throw new Error('Failed to create reservation. Please try again later.');
-        }
-    },
-
-    getUserReservations: async (email, phone) => {
-        try {
-            const response = await axiosInstance.get('/reservations/history', {
-                params: { email, phone }
-            });
-            return response.data;
-        } catch (error) {
-            throw error.response?.data || { message: 'Failed to fetch reservations' };
-        }
-    },
-
-    cancelReservation: async (id, email, phone) => {
-        try {
-            const response = await axiosInstance.post(`/reservations/${id}/cancel`, {
-                email,
-                phone
-            });
-            return response.data;
-        } catch (error) {
-            throw error.response?.data || { message: 'Failed to cancel reservation' };
-        }
-    },
-
-    // =====================
-    // Adoption Endpoints
-    // =====================
-
-    getAdoptableDogs: async (filters = {}) => {
-        try {
-            const response = await axiosInstance.get('/adoption/dogs', {
-                params: filters
-            });
-            return response.data;
-        } catch (error) {
-            throw error.response?.data || { message: 'Failed to fetch adoptable dogs' };
-        }
-    },
-
     getDogDetails: async (id) => {
         try {
-            const response = await axiosInstance.get(`/adoption/dogs/${id}`);
-            return response.data;
-        } catch (error) {
-            throw error.response?.data || { message: 'Failed to fetch dog details' };
+            const res = await axiosInstance.get(`/adoption/dogs/${id}`);
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to fetch dog details' };
         }
     },
-
     getSimilarDogs: async (id) => {
         try {
-            const response = await axiosInstance.get(`/adoption/dogs/${id}/similar`);
-            return response.data;
-        } catch (error) {
-            throw error.response?.data || { message: 'Failed to fetch similar dogs' };
+            const res = await axiosInstance.get(`/adoption/dogs/${id}/similar`);
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to fetch similar dogs' };
         }
     },
-
-    getAdoptionFilterList: async () => {
+    getFilters: async () => {
         try {
-            const response = await axiosInstance.get('/adoption/filters');
-            return response.data;
-        } catch (error) {
-            throw error.response?.data || { message: 'Failed to fetch filter list' };
+            const res = await axiosInstance.get('/adoption/filters');
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to fetch filters' };
         }
     },
-
-    applyForAdoption: async (applicationData) => {
+    apply: async (data) => {
         try {
-            const response = await axiosInstance.post('/adoption/apply', applicationData);
-            return response.data;
-        } catch (error) {
-            throw error.response?.data || { message: 'Failed to submit adoption application' };
-        }
-    },
-
-    // =====================
-    // Additional Features
-    // =====================
-
-    submitRehomeApplication: async (formData) => {
-        try {
-            const response = await axiosInstance.post('/rehome/apply', formData);
-            return response.data;
-        } catch (error) {
-            throw error.response?.data || { message: 'Failed to submit rehome application' };
-        }
-    },
-
-    getUserFeedbackList: async () => {
-        try {
-            const response = await axiosInstance.get('/feedback');
-            return response.data;
-        } catch (error) {
-            throw error.response?.data || { message: 'Failed to fetch feedback list' };
-        }
-    },
-
-    submitFeedback: async (feedbackData) => {
-        try {
-            const response = await axiosInstance.post('/feedback/submit', feedbackData);
-            return response.data;
-        } catch (error) {
-            throw error.response?.data || { message: 'Failed to submit feedback' };
-        }
-    },
-
-    getTermsAndPrivacy: async () => {
-        try {
-            const response = await axiosInstance.get('/policies');
-            return response.data;
-        } catch (error) {
-            throw error.response?.data || { message: 'Failed to load terms and policies' };
+            const res = await axiosInstance.post('/adoption/apply', data);
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to submit application' };
         }
     }
 };
 
-export default dogCafeApi;
+
+export const myPageApi = {
+    getApplications: async (email) => {
+        try {
+            const res = await axiosInstance.get('/mypage/applications', { params: { email } });
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to fetch user applications' };
+        }
+    }
+};
+
+export const contentApi = {
+    getServices: async (lang = 'en') => {
+        try {
+            const res = await axiosInstance.get('/content/services', { headers: { 'accept-language': lang } });
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to fetch services' };
+        }
+    },
+    getBusinessInfo: async (lang = 'en') => {
+        try {
+            const res = await axiosInstance.get('/content/business-info', { headers: { 'accept-language': lang } });
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to fetch business info' };
+        }
+    },
+    getTerms: async (lang = 'en') => {
+        try {
+            const res = await axiosInstance.get('/content/terms', { headers: { 'accept-language': lang } });
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to fetch terms' };
+        }
+    },
+    getPrivacy: async (lang = 'en') => {
+        try {
+            const res = await axiosInstance.get('/content/privacy', { headers: { 'accept-language': lang } });
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to fetch privacy policy' };
+        }
+    }
+};
+
+export const contactApi = {
+    submitMessage: async (data) => {
+        try {
+            const res = await axiosInstance.post('/contact/submit', data);
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to submit contact message' };
+        }
+    },
+    getInquiries: async () => {
+        try {
+            const res = await axiosInstance.get('/contact/inquiries');
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to fetch inquiries' };
+        }
+    },
+    updateInquiryStatus: async (id, data) => {
+        try {
+            const res = await axiosInstance.patch(`/contact/inquiries/${id}/status`, data);
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to update inquiry status' };
+        }
+    }
+};
+
+export const feedbackApi = {
+    submit: async (data) => {
+        try {
+            const res = await axiosInstance.post('/feedback/submit', data);
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to submit feedback' };
+        }
+    },
+    getById: async (id) => {
+        try {
+            const res = await axiosInstance.get(`/feedback/${id}`);
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to fetch feedback' };
+        }
+    },
+    getAllAdmin: async () => {
+        try {
+            const res = await axiosInstance.get('/feedback/admin/all');
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to fetch all feedback' };
+        }
+    },
+    respond: async (id, data) => {
+        try {
+            const res = await axiosInstance.post(`/feedback/${id}/respond`, data);
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to respond to feedback' };
+        }
+    }
+};
+
+export const rehomingApi = {
+    submit: async (data) => {
+        try {
+            const res = await axiosInstance.post('/rehoming/submit', data);
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to submit rehoming request' };
+        }
+    },
+    getById: async (id) => {
+        try {
+            const res = await axiosInstance.get(`/rehoming/application/${id}`);
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to fetch rehoming request' };
+        }
+    },
+    getByEmail: async (email) => {
+        try {
+            const res = await axiosInstance.get('/rehoming/applications', { params: { email } });
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to fetch applications by email' };
+        }
+    },
+    update: async (id, data) => {
+        try {
+            const res = await axiosInstance.put(`/rehoming/application/${id}`, data);
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to update rehoming application' };
+        }
+    },
+    getAllAdmin: () => axiosInstance.get('/rehoming/admin/applications'),
+    updateStatus: (id, data) => axiosInstance.patch(`/rehoming/admin/application/${id}/status`, data)
+};
+
+export const reservationApi = {
+    getAvailability: async (date) => {
+        try {
+            const res = await axiosInstance.get('/reservation/availability', { headers: { date: date.toISOString() } });
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to fetch availability' };
+        }
+    },
+    verifyEmail: async (email) => {
+        try {
+            const res = await axiosInstance.post('/reservation/verify-email', {}, { headers: { email } });
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to send verification email' };
+        }
+    },
+    verifyCode: async (email, code) => {
+        try {
+            const res = await axiosInstance.post('/reservation/verify-code', { email, code });
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to verify code' };
+        }
+    },
+    create: async (data) => {
+        try {
+            const res = await axiosInstance.post('/reservation/create', data);
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to create reservation' };
+        }
+    },
+    getHistory: async (email, phone) => {
+        try {
+            const res = await axiosInstance.get('/reservation/history', { params: { email, phone } });
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to fetch reservation history' };
+        }
+    },
+    cancel: async (id, email, phone) => {
+        try {
+            const res = await axiosInstance.post(`/reservation/${id}/cancel`, { email, phone });
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to cancel reservation' };
+        }
+    }
+};

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import {contentApi,reservationApi} from "../../services/api";
+
 
 const Step1BasicInfo = ({ formData, setFormData, next }) => {
     const [email, setEmail] = useState(formData.email || "");
@@ -15,7 +17,7 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
     const sendVerification = async () => {
         setLoading(true);
         try {
-            await window.dogCafeApi.verifyEmail(email);
+            await reservationApi.verifyEmail(email);
             alert("Verification code sent to your email.");
         } catch (e) {
             alert(e.message || "Failed to send verification code.");
@@ -28,7 +30,7 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
     const verifyCode = async () => {
         setLoading(true);
         try {
-            await window.dogCafeApi.verifyCode(email, code);
+            await reservationApi.verifyCode(email, code);
             setEmailVerified(true);
             alert("Email verified successfully.");
         } catch (e) {
@@ -52,9 +54,10 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
     useEffect(() => {
         const fetchTermsAndPolicy = async () => {
             try {
-                const result = await dogCafeApi.getTermsAndPrivacy();
-                setTermsText(result.terms || "");
-                setPolicyText(result.privacy || "");
+                const terms = await contentApi.getTerms("en");
+                const privacy = await contentApi.getPrivacy("en");
+                setTermsText(terms?.content || "");
+                setPolicyText(privacy?.content || "");
             } catch (error) {
                 console.error("Failed to fetch terms and privacy policy:", error);
             }

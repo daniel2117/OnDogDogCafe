@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import api from "../services/api";
+import { adoptionApi } from "../services/api";
 import GoogleMapComponent from '../components/GoogleMapComponent';
 
 
@@ -11,7 +11,7 @@ const Home = ({ lang, toggleLang }) => {
     useEffect(() => {
         const fetchDogs = async () => {
             try {
-                const response = await api.getAdoptableDogs({ page: 1, limit: 8 });
+                const response = await adoptionApi.getDogs({ page: 1, limit: 8 });
                 setDogs(response.dogs || []);
             } catch (err) {
                 console.error("Failed to fetch dogs", err);
@@ -64,7 +64,7 @@ const Home = ({ lang, toggleLang }) => {
             viewMore: "查看更多 →",
             location: "地點",
             bookNow: "立即預約",
-            footer: "香港蘇沙道3號1樓\n電話: 6613 2128\n©2025 On Dog Dog Cafe.",
+            footer: "Kwai Chung, Lai King Hill Rd, Lai Chi Kok Bay Garden Block D\n©2025 On Dog Dog Cafe.",
             cafeServices: [
                 {
                     title: "寵物咖啡廳",

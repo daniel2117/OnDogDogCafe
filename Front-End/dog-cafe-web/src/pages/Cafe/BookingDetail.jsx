@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import dogCafeApi from "../../services/api";
+import {reservationApi} from "../../services/api";
 
 const BookingDetail = ({ lang, toggleLang }) => {
     const navigate = useNavigate();
@@ -61,7 +61,7 @@ const BookingDetail = ({ lang, toggleLang }) => {
     const fetchAvailability = async () => {
         if (!date) return alert("Please select a date.");
         try {
-            const res = await dogCafeApi.getAvailability(date.toISOString().split("T")[0]);
+            const res = await reservationApi.getAvailability(date.toISOString().split("T")[0]);
             setAvailableSlots(res.availableSlots || {});
         } catch (err) {
             alert(err.message || "Failed to fetch availability");
@@ -83,7 +83,7 @@ const BookingDetail = ({ lang, toggleLang }) => {
     const sendVerificationCode = async () => {
         setLoading(true);
         try {
-            await dogCafeApi.verifyEmail(email);
+            await reservationApi.verifyEmail(email);
             alert("Verification code sent.");
         } catch (err) {
             alert(err.message || "Failed to send code");
@@ -97,7 +97,7 @@ const BookingDetail = ({ lang, toggleLang }) => {
     const verifyCode = async () => {
         setLoading(true);
         try {
-            await dogCafeApi.verifyCode(email, code);
+            await reservationApi.verifyCode(email, code);
             setVerified(true);
             alert("Email verified");
         } catch (err) {

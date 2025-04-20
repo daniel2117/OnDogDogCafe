@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import dogCafeApi from "../../services/api";
+import {adoptionApi} from "../../services/api";
 
 const Step7Confirmation = ({ formData }) => {
     const navigate = useNavigate();
@@ -8,7 +8,7 @@ const Step7Confirmation = ({ formData }) => {
     useEffect(() => {
         const submitAdoptionApplication = async () => {
             try {
-                const response = await dogCafeApi.applyForAdoption(formData);
+                const response = await adoptionApi.apply(formData);
                 console.log("Adoption application submitted:", response);
                 alert("Your adoption application has been submitted successfully!");
             } catch (error) {
