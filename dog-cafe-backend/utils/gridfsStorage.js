@@ -1,17 +1,6 @@
 const multer = require('multer');
-const { GridFsStorage } = require('multer-gridfs-storage');
-const config = require('../config/config');
 
-const storage = new GridFsStorage({
-    url: config.database.url,
-    options: config.database.options,
-    file: (req, file) => {
-        return {
-            bucketName: 'adoptionImages',
-            filename: `${Date.now()}-${file.originalname}`
-        };
-    }
-});
+const storage = multer.memoryStorage();
 
 module.exports = {
     upload: multer({ 

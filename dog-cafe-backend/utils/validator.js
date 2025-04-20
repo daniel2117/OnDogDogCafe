@@ -186,22 +186,6 @@ const validators = {
         return dimensions.width <= 2048 && dimensions.height <= 2048;
     },
 
-    // Add reservation time validation
-    isValidReservationTime: (time, businessHours) => {
-        const [hours, minutes] = time.split(':').map(Number);
-        const reservationTime = hours * 60 + minutes;
-        return reservationTime >= businessHours.open && 
-               reservationTime <= businessHours.close;
-    },
-
-    // Add new validation for business hours
-    isWithinBusinessHours: (time, businessHours) => {
-        const [hours, minutes] = time.split(':').map(Number);
-        const timeInMinutes = hours * 60 + minutes;
-        return timeInMinutes >= businessHours.open && 
-               timeInMinutes <= businessHours.close;
-    },
-
     // Add contact form validation
     isValidContactForm: (data) => {
         const errors = [];

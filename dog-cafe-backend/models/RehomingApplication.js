@@ -81,7 +81,11 @@ const rehomingApplicationSchema = new mongoose.Schema({
         }
     },
     media: {
-        photos: [String],
+        photos: {
+            type: [String],
+            required: true,
+            validate: [array => array.length > 0, 'At least one photo is required']
+        },
         documents: [{
             type: {
                 type: String,
