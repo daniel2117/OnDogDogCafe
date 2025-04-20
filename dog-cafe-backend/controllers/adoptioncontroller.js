@@ -3,6 +3,7 @@ const Dog = require('../models/Dog');
 const Adoption = require('../models/Adoption');
 const cache = require('../utils/cache');
 const emailService = require('../utils/emailService');
+const mongoose = require('mongoose');
 
 const adoptionController = {
     getAllDogs: asyncHandler(async (req, res) => {
@@ -91,12 +92,14 @@ const adoptionController = {
     }),
 
     createAdoptionApplication: asyncHandler(async (req, res) => {
+        const imageUrls = req.files ? req.files.map(file => ({
+            url: `/api/adoption/images/${file.filename}`,
+            filename: file.filename
+        })) : [];
+
         const applicationData = {
             ...req.body,
-            homeImages: req.files ? req.files.map(file => ({
-                url: file.location, // If using S3
-                key: file.key
-            })) : []
+            homeImages: imageUrls
         };
 
         // Create application
@@ -113,8 +116,41 @@ const adoptionController = {
 
         res.status(201).json({
             message: 'Application submitted successfully',
-            applicationId: application._id
+            applicationId: application._id,
+            uploadedImages: imageUrls
         });
+    }),
+
+    getImage: asyncHandler(async (req, res) => {
+        const db = mongoose.connection.db;
+        const bucket = new mongoose.mongo.GridFSBucket(db, {
+            bucketName: 'adoptionImages'
+        });
+
+        const file = await bucket.find({ filename: req.params.filename }).toArray();
+        if (!file.length) {
+            res.status(404);
+            throw new Error('Image not found');
+        }
+
+        res.set('Content-Type', file[0].contentType);
+        bucket.openDownloadStreamByName(req.params.filename).pipe(res);
+    }),
+
+    deleteImage: asyncHandler(async (req, res) => {
+        const db = mongoose.connection.db;
+        const bucket = new mongoose.mongo.GridFSBucket(db, {
+            bucketName: 'adoptionImages'
+        });
+
+        const file = await bucket.find({ filename: req.params.filename }).toArray();
+        if (!file.length) {
+            res.status(404);
+            throw new Error('Image not found');
+        }
+
+        await bucket.delete(file[0]._id);
+        res.json({ message: 'Image deleted successfully' });
     }),
 
     getSimilarDogs: asyncHandler(async (req, res) => {
