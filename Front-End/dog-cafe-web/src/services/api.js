@@ -200,7 +200,10 @@ export const rehomingApi = {
 export const reservationApi = {
     getAvailability: async (date) => {
         try {
-            const res = await axiosInstance.get('/reservations/availability', { headers: { date: date.toISOString() } });
+            const res = await axiosInstance.get('/reservations/availability', {
+                params: { date }
+            });
+            console.log(date);
             return res.data;
         } catch (err) {
             throw err.response?.data || { message: 'Failed to fetch availability' };

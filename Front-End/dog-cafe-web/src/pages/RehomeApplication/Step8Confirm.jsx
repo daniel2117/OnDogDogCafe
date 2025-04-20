@@ -12,7 +12,7 @@ const Step8Confirm = ({ formData, back, lang }) => {
         submit: lang === "zh" ? "提交申請" : "Submit Application",
         loading: lang === "zh" ? "提交中..." : "Submitting...",
         tryAgain: lang === "zh" ? "請再試一次" : "Please try again",
-        goHome: lang === "zh" ? "返回首頁" : "Go To My Profile",
+        goHome: lang === "zh" ? "返回首頁" : "Go Home",
         back: lang === "zh" ? "返回" : "Back"
     };
 
@@ -32,7 +32,7 @@ const Step8Confirm = ({ formData, back, lang }) => {
                             payload.append(`${key}[${index}]`, item);
                         }
                     });
-                } else if (typeof formData[key] === "object") {
+                } else if (typeof formData[key] === "object" && formData[key] !== null) {
                     payload.append(key, JSON.stringify(formData[key]));
                 } else {
                     payload.append(key, formData[key]);
@@ -48,6 +48,30 @@ const Step8Confirm = ({ formData, back, lang }) => {
         }
     };
 
+    const renderSummary = () => {
+        const summary = [];
+        for (const key in formData) {
+            const value = formData[key];
+            if (typeof value === "string" || typeof value === "number") {
+                summary.push(
+                    <div key={key} className="mb-2">
+                        <strong>{key}:</strong> {value}
+                    </div>
+                );
+            } else if (typeof value === "object" && value !== null && !(value instanceof File)) {
+                summary.push(
+                    <div key={key} className="mb-2">
+                        <strong>{key}:</strong>
+                        <pre className="text-xs text-gray-600 ml-2 whitespace-pre-wrap">
+                            {JSON.stringify(value, null, 2)}
+                        </pre>
+                    </div>
+                );
+            }
+        }
+        return summary;
+    };
+
     return (
         <div className="min-h-screen bg-white flex flex-col items-center px-6 py-12">
             <div className="w-full max-w-3xl">
@@ -55,9 +79,7 @@ const Step8Confirm = ({ formData, back, lang }) => {
                 <p className="text-sm text-gray-600 text-center mb-6">{t.desc1}</p>
 
                 <div className="bg-gray-50 border rounded p-4 mb-6 text-sm text-gray-800">
-                    <pre className="whitespace-pre-wrap break-words">
-                        {JSON.stringify(formData, null, 2)}
-                    </pre>
+                    {renderSummary()}
                 </div>
 
                 <div className="flex justify-between mb-6">
