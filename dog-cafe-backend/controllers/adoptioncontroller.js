@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler');
 const Dog = require('../models/Dog');
 const Adoption = require('../models/Adoption');
 const cache = require('../utils/cache');
+const emailService = require('../utils/emailService');
 
 const adoptionController = {
     getAllDogs: asyncHandler(async (req, res) => {
@@ -90,37 +91,24 @@ const adoptionController = {
     }),
 
     createAdoptionApplication: asyncHandler(async (req, res) => {
-        const {
-            email,
-            firstName,
-            lastName,
-            address,
-            environment,
-            homeImages,
-            roommates,
-            otherAnimals
-        } = req.body;
-
-        // Validate request body
-        if (!email || !firstName || !lastName || !address || !environment) {
-            res.status(400);
-            throw new Error('Please provide all required information');
-        }
+        const applicationData = {
+            ...req.body,
+            homeImages: req.files ? req.files.map(file => ({
+                url: file.location, // If using S3
+                key: file.key
+            })) : []
+        };
 
         // Create application
-        const application = await Adoption.create({
-            personalInfo: {
-                email,
-                firstName,
-                lastName,
-                address
+        const application = await Adoption.create(applicationData);
+
+        // Send confirmation email
+        await emailService.sendAdoptionApplicationConfirmation(applicationData.email, {
+            customerInfo: {
+                name: `${applicationData.firstName} ${applicationData.lastName}`
             },
-            environment,
-            homeImages,
-            roommates,
-            otherAnimals,
-            status: 'pending',
-            submittedAt: new Date()
+            _id: application._id,
+            status: 'pending'
         });
 
         res.status(201).json({
