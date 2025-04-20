@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const dogController = require('../controllers/dogcontroller');
-const auth = require('../middleware/auth');
 
 // Destructure all required controller methods
 const {
@@ -24,9 +23,9 @@ router.get('/:id', getDogById);
 router.get('/:id/similar', getSimilarDogs);
 
 // Protected routes (admin only)
-router.post('/', auth, createDog);
-router.put('/:id', auth, updateDog);
-router.delete('/:id', auth, deleteDog);
-router.post('/:id/image', auth, uploadDogImage);
+router.post('/', createDog);
+router.put('/:id', updateDog);
+router.delete('/:id', deleteDog);
+router.post('/:id/image', uploadDogImage);
 
 module.exports = router;
