@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import GoogleMapComponent from '../components/GoogleMapComponent';
+
 
 const Home = ({ lang, toggleLang }) => {
     const navigate = useNavigate();
@@ -33,7 +35,7 @@ const Home = ({ lang, toggleLang }) => {
             viewMore: "View more →",
             location: "Location",
             bookNow: "Book Now",
-            footer: "1F, 3 Soares Avenue\nTel: 6613 2128\n©2025 by On Dog Dog Cafe.",
+            footer: "Kwai Chung, Lai King Hill Rd, Lai Chi Kok Bay Garden Block D\n©2025 by On Dog Dog Cafe.",
             cafeServices: [
                 {
                     title: "Pet Cafe",
@@ -85,7 +87,11 @@ const Home = ({ lang, toggleLang }) => {
     return (
         <div className="min-h-screen font-sans bg-white text-gray-800">
             {/* Hero Section */}
+            <div className="cursor-pointer" onClick={() => navigate(`/?lang=${lang}`)}>
+                <img src="/logo.png" alt="logo" className="h-16" />
+            </div>
             <div className="relative bg-[#fff7ed] px-6 pt-10 pb-16 overflow-hidden">
+
                 {/* Language toggle */}
                 <div className="absolute top-4 right-6">
                     <button
@@ -176,7 +182,7 @@ const Home = ({ lang, toggleLang }) => {
                     <div>
                         <h2 className="text-xl font-bold mb-4">{t.location}</h2>
                         <div className="bg-white h-64 flex items-center justify-center text-lg font-semibold text-gray-400 border">
-                            Map
+                            <GoogleMapComponent t={t} />
                         </div>
                     </div>
                     <div className="text-sm text-gray-700">
