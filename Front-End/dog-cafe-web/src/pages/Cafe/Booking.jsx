@@ -8,6 +8,7 @@ const Booking = ({ lang, toggleLang }) => {
             title: "Reservation",
             bookCafe: "Book for the cafe",
             bookAdoption: "Book for the adoption",
+            bookRehome: "Book for the rehome",
             message: "A few words from us",
             hours: `Cafe Opening Hours:
 Monday: Closed
@@ -19,6 +20,7 @@ Tuesday–Sunday: 1–7 pm`,
             title: "預約",
             bookCafe: "預約狗狗咖啡廳",
             bookAdoption: "預約領養狗狗",
+            bookRehome: "Book for the rehome",
             message: "來自我們的話",
             hours: `營業時間：
 星期一：休息
@@ -76,6 +78,20 @@ Tuesday–Sunday: 1–7 pm`,
                         />
                         <div className="text-center font-semibold py-3">
                             {t.bookAdoption}
+                        </div>
+                    </div>
+                </Link>
+                <Link to={`/rehome/apply?lang=${lang}`} className="block">
+                    <div className="bg-white rounded-xl overflow-hidden shadow-md cursor-pointer hover:shadow-lg transition">
+                        <img
+
+                            src="/images/cafe4.png"
+
+                            alt="Rehome Reservation"
+                            className="w-full h-48 object-cover"
+                        />
+                        <div className="text-center font-semibold py-3">
+                            {t.bookRehome}
                         </div>
                     </div>
                 </Link>

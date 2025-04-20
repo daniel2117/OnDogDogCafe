@@ -11,15 +11,7 @@ import DogDetail from "./pages/Adoption/DogDetail";
 import AdoptionApplication from './pages/AdoptionApplication/AdoptionApplication';
 
 //RehomeApplication
-// import RehomeStart from './pages/Rehome/RehomeStartPage';
-// import PrimaryQuestions from './pages/Rehome/PrimaryQuestions';
-// import PetImage from './pages/Rehome/PetImage';
-// import Characteristics from './pages/Rehome/Characteristics';
-// import KeyFacts from './pages/Rehome/KeyFacts';
-// import PetStory from './pages/Rehome/PetStory';
-// import Documents from './pages/Rehome/Documents';
-// import Confirm from './pages/Rehome/Confirm';
-
+import RehomeApplication from "./pages/RehomeApplication/RehomeApplication";
 
 
 function App() {
@@ -42,18 +34,9 @@ function App() {
         <Route path="/adoption" element={<Adoption lang={lang} toggleLang={toggleLang} />} />
         <Route path="/dog/:id" element={<DogDetail lang={lang} toggleLang={toggleLang} />} />
         {/* Adoption Application */}
-        <Route path="/adoption/apply" element={<AdoptionApplication />} />
+        <Route path="/adoption/apply" element={<AdoptionApplication lang={lang} toggleLang={toggleLang} />} />
         {/* Rehome Application */}
-        {/* 
-        <Route path="/rehome/start" element={<RehomeStart />} />
-        <Route path="/rehome/primary" element={<PrimaryQuestions />} />
-        <Route path="/rehome/images" element={<PetImage />} />
-        <Route path="/rehome/characteristics" element={<Characteristics />} />
-        <Route path="/rehome/keyfacts" element={<KeyFacts />} />
-        <Route path="/rehome/story" element={<PetStory />} />
-        <Route path="/rehome/documents" element={<Documents />} />
-        <Route path="/rehome/confirm" element={<Confirm />} /> 
-        */}
+        <Route path="/rehome/apply" element={<RehomeApplication lang={lang} toggleLang={toggleLang} />} />
       </Routes>
     </Router>
   );
