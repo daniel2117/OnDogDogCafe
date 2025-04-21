@@ -3,6 +3,7 @@ const RehomingApplication = require('../models/RehomingApplication');
 const gridfsStorage = require('../utils/gridfsStorage');
 const { sendEmail } = require('../utils/notifications');
 const Dog = require('../models/Dog');
+const validators = require('../utils/validator');
 
 const rehomingController = {
     uploadPhotos: asyncHandler(async (req, res) => {
@@ -46,28 +47,57 @@ const rehomingController = {
     }),
 
     submitApplication: asyncHandler(async (req, res) => {
-        const { photoUrls, documentUrls } = req.body;
+        // Validate the application
+        const validation = validators.isValidRehomingApplication(req.body);
+        if (!validation.isValid) {
+            return res.status(400).json({
+                message: 'Invalid application data',
+                errors: validation.errors
+            });
+        }
 
-        // Create application with uploaded file URLs
-        const application = await RehomingApplication.create({
-            ...req.body,
-            media: {
-                photos: photoUrls || [],
-                documents: documentUrls || []
-            }
-        });
-
-        // Send confirmation email
-        await sendEmail(
-            application.ownerInfo.email,
-            'Rehoming Application Received',
-            `Dear ${application.ownerInfo.firstName},\n\nThank you for submitting a rehoming application for ${application.petInfo.name}. We will review your application and contact you soon.\n\nBest regards,\nDog Cafe Team`
+        // Process file URLs to get GridFS IDs
+        const photoIds = req.body.media.photos.map(url => 
+            url.split('/').pop() // Extract ID from URL like '/api/files/123456...'
         );
 
-        res.status(201).json({
-            message: 'Application submitted successfully',
-            applicationId: application._id
-        });
+        // Fetch file info from GridFS to validate existence
+        try {
+            const photoFiles = await Promise.all(
+                photoIds.map(id => gridfsStorage.getFileInfo(id))
+            );
+
+            // Create application with file IDs and URLs
+            const application = await RehomingApplication.create({
+                ...req.body,
+                media: {
+                    photos: photoFiles.map(file => ({
+                        fileId: file._id.toString(),
+                        url: `/api/files/${file._id}`,
+                        filename: file.filename
+                    })),
+                    documents: req.body.media.documents
+                }
+            });
+
+            // Send confirmation email
+            await sendEmail(
+                application.ownerInfo.email,
+                'Rehoming Application Received',
+                `Dear ${application.ownerInfo.firstName},\n\nThank you for submitting a rehoming application for ${application.petInfo.name}. We will review your application and contact you soon.\n\nBest regards,\nDog Cafe Team`
+            );
+
+            res.status(201).json({
+                message: 'Application submitted successfully',
+                applicationId: application._id
+            });
+        } catch (error) {
+            console.error('Error processing rehoming application:', error);
+            res.status(500).json({
+                message: 'Failed to process application',
+                error: error.message
+            });
+        }
     }),
 
     getApplicationById: asyncHandler(async (req, res) => {
