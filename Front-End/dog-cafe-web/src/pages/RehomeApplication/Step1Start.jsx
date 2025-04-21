@@ -9,8 +9,6 @@ const Step1Start = ({ formData, setFormData, next, lang, toggleLang }) => {
     const [emailVerified, setEmailVerified] = useState(false);
     const [agree, setAgree] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [termsText, setTermsText] = useState("");
-    const [policyText, setPolicyText] = useState("");
 
     const sendVerification = async () => {
         setLoading(true);
@@ -50,19 +48,7 @@ const Step1Start = ({ formData, setFormData, next, lang, toggleLang }) => {
 
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: "auto" });
-        // const fetchTermsAndPolicy = async () => {
-        //     console.log("Fetching terms and privacy for language:", lang);
-        //     const languageCode = lang === 'zh' ? 'zh' : 'en';
-        //     try {
-        //         const terms = await contentApi.getTerms(languageCode);
-        //         const privacy = await contentApi.getPrivacy(languageCode);
-        //         setTermsText(terms?.content || "");
-        //         setPolicyText(privacy?.content || "");
-        //     } catch (error) {
-        //         console.error("Failed to fetch terms and privacy policy:", error);
-        //     }
-        // }
-        // fetchTermsAndPolicy();
+
     }, []);
 
     return (

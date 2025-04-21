@@ -1,11 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { rehomingApi } from "../../services/api";
 
 const Step8Confirm = ({ formData, back, lang }) => {
-    useEffect(() => {
-        window.scrollTo({ top: 0, behavior: "auto" });
-    }, []);
     const navigate = useNavigate();
     const [submitting, setSubmitting] = useState(false);
 
@@ -15,32 +12,66 @@ const Step8Confirm = ({ formData, back, lang }) => {
         submit: lang === "zh" ? "提交申請" : "Submit Application",
         loading: lang === "zh" ? "提交中..." : "Submitting...",
         tryAgain: lang === "zh" ? "請再試一次" : "Please try again",
-        goHome: lang === "zh" ? "返回首頁" : "Go Home",
+        goHome: lang === "zh" ? "返回首頁" : "Go To My Profile",
         back: lang === "zh" ? "返回" : "Back"
     };
 
     const handleSubmit = async () => {
         setSubmitting(true);
         try {
-            const payload = new FormData();
+            const checklistRaw = typeof formData.keyFacts === "string"
+                ? JSON.parse(formData.keyFacts)
+                : formData.keyFacts;
 
-            for (const key in formData) {
-                if (Array.isArray(formData[key])) {
-                    formData[key].forEach((item, index) => {
-                        if (item instanceof File) {
-                            payload.append(`${key}`, item);
-                        } else if (typeof item === "object") {
-                            payload.append(`${key}[${index}]`, JSON.stringify(item));
-                        } else {
-                            payload.append(`${key}[${index}]`, item);
-                        }
-                    });
-                } else if (typeof formData[key] === "object" && formData[key] !== null) {
-                    payload.append(key, JSON.stringify(formData[key]));
-                } else {
-                    payload.append(key, formData[key]);
+            const checklist = {
+                shotsUpToDate: checklistRaw.shotsUpToDate === "yes",
+                microchipped: checklistRaw.microchipped === "yes",
+                houseTrained: checklistRaw.houseTrained === "yes",
+                goodWithDogs: checklistRaw.goodWithDogs === "yes",
+                goodWithCats: checklistRaw.goodWithCats === "yes",
+                goodWithKids: checklistRaw.goodWithKids === "yes",
+                purebred: checklistRaw.purebred === "yes",
+                hasSpecialNeeds: checklistRaw.specialNeeds === "yes",
+                hasBehaviouralIssues: checklistRaw.behaviouralIssues === "yes",
+            };
+
+            const uploadedPhotos = (formData.uploadedPhotos || []);
+            console.log(formData);
+            // Assume formData.documents is an array of File objects
+            const uploadedDocuments = (formData.uploadedDocuments || [])
+                .map((url, index) => ({
+                    type: "other",
+                    url,
+                    name: formData.documents?.[index]?.name || "Uploaded file"
+                }));
+
+            const payload = {
+                ownerInfo: {
+                    email: formData.email,
+                    firstName: formData.firstName,
+                    lastName: formData.lastName
+                },
+                petInfo: {
+                    name: formData.petName,
+                    type: formData.petType,
+                    age: Number(formData.age),
+                    size: formData.size,
+                    gender: formData.gender,
+                    breed: formData.breed,
+                    color: formData.color,
+                    isSpayedNeutered: formData.neutered === 'yes',
+                    description: formData.petStory,
+                    checklist: checklist
+                },
+                rehomingDetails: {
+                    reason: formData.reason,
+                    timeWindow: formData.duration
+                },
+                media: {
+                    photos: uploadedPhotos,
+                    documents: uploadedDocuments
                 }
-            }
+            };
 
             await rehomingApi.submit(payload);
             navigate(`/home?lang=${lang}`);

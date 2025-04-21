@@ -1,28 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { rehomingApi } from "../../services/api";
 
-const Step3PetImages = ({ formData, setFormData, next, back, lang }) => {
-    useEffect(() => {
-        window.scrollTo({ top: 0, behavior: "auto" });
-    }, []);
+const Step3PetImages = ({ formData, setFormData, next, back }) => {
     const [dragIndex, setDragIndex] = useState(null);
+    const [uploading, setUploading] = useState(false);
+    const [uploaded, setUploaded] = useState(false);
 
-    const t = {
-        instruction: lang === 'zh'
-            ? "請上傳您寵物的4張照片。（至少需要2張，但建議上傳4張）"
-            : "Please add 4 photos of your pet. (A minimum of 2 photos are required but uploading 4 is better!)",
-        note: lang === 'zh'
-            ? "圖片格式應為 (.jpg, .png, .jpeg)。\n尺寸需為600x600像素正方形。\n檔案大小應在240到1024KB之間。"
-            : "The image format should be (.jpg, .png, .jpeg).\nThe image measurements must be square in shape, with dimensions of 600 × 600 pixels.\nThe maximum & minimum image size is 1024 and 240 KB.",
-        back: lang === 'zh' ? "返回" : "Back",
-        continue: lang === 'zh' ? "繼續" : "Continue",
-        alert: lang === 'zh' ? "請至少上傳兩張圖片。" : "Please upload at least 2 images.",
-        skip: lang === 'zh' ? "跳過驗證（開發用途）→" : "Skip verification for development →"
-    };
-
-    const handleImageChange = (index, file) => {
-        const updated = [...(formData.homeImages || [])];
+    const handleImageChange = async (index, file) => {
+        const updated = [...(formData.photos || [])];
         updated[index] = file;
-        setFormData(prev => ({ ...prev, homeImages: updated }));
+        setFormData(prev => ({ ...prev, photos: updated }));
     };
 
     const handleDrop = (index, event) => {
@@ -34,10 +21,41 @@ const Step3PetImages = ({ formData, setFormData, next, back, lang }) => {
         setDragIndex(null);
     };
 
+    const uploadAll = async () => {
+        const files = (formData.photos || []).filter(Boolean);
+        if (files.length < 2) {
+            alert("Please upload at least 2 images before submitting.");
+            return;
+        }
+
+        const tooLarge = files.find(f => f.size > 5 * 1024 * 1024);
+        if (tooLarge) {
+            alert("Each image must be under 5MB.");
+            return;
+        }
+
+        const formDataToSend = new FormData();
+        files.forEach(file => formDataToSend.append("photos", file));
+
+        setUploading(true);
+        try {
+            const res = await rehomingApi.uploadPhoto(formDataToSend);
+            const urls = res.map(item => item.url);
+            setFormData(prev => ({ ...prev, uploadedPhotos: urls }));
+            setUploaded(true);
+            alert("Upload success");
+
+        } catch (err) {
+            console.error("Upload failed:", err);
+            alert(err.message || "Upload failed");
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const handleNext = () => {
-        const uploadedCount = (formData.homeImages || []).filter(Boolean).length;
-        if (uploadedCount < 2) {
-            alert(t.alert);
+        if (!uploaded) {
+            alert("Please upload your images first.");
             return;
         }
         next();
@@ -46,8 +64,15 @@ const Step3PetImages = ({ formData, setFormData, next, back, lang }) => {
     return (
         <div className="min-h-screen bg-white flex flex-col items-center px-6 py-8">
             <div className="w-full max-w-3xl">
-                <p className="mb-4 text-sm text-gray-700 whitespace-pre-line">{t.instruction}</p>
-                <p className="text-sm text-gray-500 mb-6 whitespace-pre-line">{t.note}</p>
+                <p className="mb-4 text-sm text-gray-700">
+                    Please add 4 photos of your pet. <br />
+                    (A minimum of 2 photos are required but uploading 4 is better!)
+                </p>
+                <p className="text-sm text-gray-500 mb-6">
+                    The image format should be (.jpg, .png, .jpeg).<br />
+                    The image measurements must be square in shape, with dimensions of 600 × 600 pixels.<br />
+                    The maximum image size is 5MB.
+                </p>
 
                 <div className="grid grid-cols-2 gap-4 mb-6">
                     {[0, 1, 2, 3].map((index) => (
@@ -60,9 +85,9 @@ const Step3PetImages = ({ formData, setFormData, next, back, lang }) => {
                             onDrop={(e) => handleDrop(index, e)}
                         >
                             <div className="text-xs font-semibold mb-2">{index + 1}. {index === 0 ? "Main" : ""}</div>
-                            {formData.homeImages && formData.homeImages[index] ? (
+                            {formData.photos && formData.photos[index] ? (
                                 <img
-                                    src={URL.createObjectURL(formData.homeImages[index])}
+                                    src={URL.createObjectURL(formData.photos[index])}
                                     alt={`Upload ${index + 1}`}
                                     className="h-32 w-32 object-cover rounded mb-2"
                                 />
@@ -82,17 +107,22 @@ const Step3PetImages = ({ formData, setFormData, next, back, lang }) => {
                 </div>
 
                 <div className="flex justify-between">
-                    <button onClick={back} className="border border-purple-500 text-purple-500 px-6 py-2 rounded hover:bg-purple-50">◀ {t.back}</button>
-                    <button onClick={handleNext} className="bg-purple-500 text-white px-6 py-2 rounded hover:bg-purple-600">{t.continue} ▶</button>
-                </div>
+                    <button onClick={back} className="border border-purple-500 text-purple-500 px-6 py-2 rounded hover:bg-purple-50">◀ Back</button>
 
-                <div>
                     <button
-                        onClick={next}
-                        className="text-xs text-gray-400 underline"
+                        onClick={uploadAll}
+                        disabled={uploading}
+                        className="bg-gray-300 text-black px-6 py-2 rounded hover:bg-gray-400 disabled:opacity-50"
                     >
-                        {t.skip}
+                        Upload
                     </button>
+                    <button
+                        onClick={handleNext}
+                        className="bg-purple-500 text-white px-6 py-2 rounded hover:bg-purple-600"
+                    >
+                        Continue ▶
+                    </button>
+
                 </div>
             </div>
         </div>

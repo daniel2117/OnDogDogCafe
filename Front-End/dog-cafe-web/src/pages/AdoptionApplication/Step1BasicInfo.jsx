@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { contentApi, reservationApi } from "../../services/api";
 
 
-const Step1BasicInfo = ({ formData, setFormData, next }) => {
+const Step1BasicInfo = ({ lang, toggleLang, formData, setFormData, next }) => {
     const [email, setEmail] = useState(formData.email || "");
     const [firstName, setFirstName] = useState(formData.firstName || "");
     const [lastName, setLastName] = useState(formData.lastName || "");
@@ -156,19 +156,17 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
                             className="mt-1"
                         />
                         <span>
-                            I have read and agree to the
-                            <button
-                                type="button"
-                                onClick={() => alert(termsText)}
+                            {lang === 'zh' ? '我已閱讀並同意' : 'I have read and agree to the'}
+                            <a
+                                href="/terms.html"
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 className="text-blue-600 underline mx-1"
-                            >Terms</button>
-                            and
-                            <button
-                                type="button"
-                                onClick={() => alert(policyText)}
-                                className="text-blue-600 underline ml-1"
-                            >Privacy Policy</button>
+                            >
+                                {lang === 'zh' ? '條款/隱私政策' : 'Terms/Privacy'}
+                            </a>
                         </span>
+
                     </label>
 
                     {/* Navigation buttons */}
@@ -190,6 +188,10 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
                         </div>
                     </div>
                 </div>
+
+            </div>
+            <div className="mt-10 text-center text-sm text-gray-500">
+                <p className="text-xs mt-2">©2025 by On Dog Dog Cafe.</p>
             </div>
         </div>
     );
