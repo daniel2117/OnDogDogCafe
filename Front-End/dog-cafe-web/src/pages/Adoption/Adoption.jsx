@@ -20,6 +20,7 @@ const Adoption = ({ lang, toggleLang }) => {
 
 
     useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "auto" });
         const fetchFilterOptions = async () => {
             try {
                 const response = await adoptionApi.getFilters();

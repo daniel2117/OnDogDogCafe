@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const Step6OtherAnimal = ({ formData, setFormData, next, back }) => {
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "auto" });
+    }, []);
     const [allergies, setAllergies] = useState(formData.allergies || "");
     const [hasOtherAnimals, setHasOtherAnimals] = useState(formData.hasOtherAnimals || "");
     const [otherAnimalDetails, setOtherAnimalDetails] = useState(formData.otherAnimalDetails || "");

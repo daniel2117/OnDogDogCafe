@@ -7,7 +7,9 @@ import GoogleMapComponent from '../components/GoogleMapComponent';
 const Home = ({ lang, toggleLang }) => {
     const navigate = useNavigate();
     const [dogs, setDogs] = useState([]);
-
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "auto" });
+    }, []);
     useEffect(() => {
         const fetchDogs = async () => {
             try {

@@ -5,7 +5,7 @@ import Step4Images from "./Step4Images";
 import Step5Roommate from "./Step5Roommate";
 import Step6OtherAnimal from "./Step6OtherAnimal";
 import Step7Confirmation from "./Step7Confirmation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 
@@ -19,13 +19,16 @@ const steps = [
     Step7Confirmation,
 ];
 
-const AdoptionApplication = () => {
+const AdoptionApplication = (lang, toggleLang) => {
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "auto" });
+    }, []);
     const [currentStep, setCurrentStep] = useState(0);
     const [formData, setFormData] = useState({});
     const navigate = useNavigate();
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
-    const lang = queryParams.get("lang") || "en";
+    //const lang = queryParams.get("lang") || "en";
 
     const StepComponent = steps[currentStep];
 
@@ -41,15 +44,15 @@ const AdoptionApplication = () => {
                         <img src="/logo.png" alt="logo" className="h-16" />
                     </div>
                     <button
-                        onClick={() => navigate(`/contactus?lang=${lang}`)}
+                        onClick={toggleLang}
                         className="border border-gray-500 px-4 py-2 rounded hover:bg-gray-100"
                     >
-                        Contact Us
+                        {lang === 'zh' ? 'English' : '中文'}
                     </button>
                 </div>
 
                 <div className="mb-6 text-center">
-                    <h1 className="text-xl font-bold">Adoption Application</h1>
+                    <h1 className="text-xl font-bold">{lang === 'zh' ? '收養申請' : 'Adoption Application'}</h1>
                     <p className="text-sm text-gray-500">Step {currentStep + 1} of {steps.length}</p>
                 </div>
 
@@ -59,6 +62,8 @@ const AdoptionApplication = () => {
                     next={next}
                     back={back}
                     isLastStep={currentStep === steps.length - 1}
+                    lang={lang}
+                    toggleLang={toggleLang}
                 />
             </div>
         </div>

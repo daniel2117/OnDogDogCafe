@@ -49,19 +49,20 @@ const Step1Start = ({ formData, setFormData, next, lang, toggleLang }) => {
     };
 
     useEffect(() => {
-        const fetchTermsAndPolicy = async () => {
-            console.log("Fetching terms and privacy for language:", lang);
-            const languageCode = lang === 'zh' ? 'zh' : 'en';
-            try {
-                const terms = await contentApi.getTerms(languageCode);
-                const privacy = await contentApi.getPrivacy(languageCode);
-                setTermsText(terms?.content || "");
-                setPolicyText(privacy?.content || "");
-            } catch (error) {
-                console.error("Failed to fetch terms and privacy policy:", error);
-            }
-        }
-        fetchTermsAndPolicy();
+        window.scrollTo({ top: 0, behavior: "auto" });
+        // const fetchTermsAndPolicy = async () => {
+        //     console.log("Fetching terms and privacy for language:", lang);
+        //     const languageCode = lang === 'zh' ? 'zh' : 'en';
+        //     try {
+        //         const terms = await contentApi.getTerms(languageCode);
+        //         const privacy = await contentApi.getPrivacy(languageCode);
+        //         setTermsText(terms?.content || "");
+        //         setPolicyText(privacy?.content || "");
+        //     } catch (error) {
+        //         console.error("Failed to fetch terms and privacy policy:", error);
+        //     }
+        // }
+        // fetchTermsAndPolicy();
     }, []);
 
     return (
@@ -149,12 +150,16 @@ const Step1Start = ({ formData, setFormData, next, lang, toggleLang }) => {
                         />
                         <span>
                             {lang === 'zh' ? '我已閱讀並同意' : 'I have read and agree to the'}
-                            <button
-                                type="button"
-                                onClick={() => alert(termsText)}
+                            <a
+                                href="/terms.html"
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 className="text-blue-600 underline mx-1"
-                            >{lang === 'zh' ? '條款/隱私政策' : 'Terms/Privacy'}</button>
+                            >
+                                {lang === 'zh' ? '條款/隱私政策' : 'Terms/Privacy'}
+                            </a>
                         </span>
+
                     </label>
 
                     <div className="text-center space-y-4">

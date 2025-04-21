@@ -1,6 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const Step4Images = ({ formData, setFormData, next, back }) => {
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "auto" });
+    }, []);
+
     const [dragIndex, setDragIndex] = useState(null);
 
     const handleImageChange = (index, file) => {

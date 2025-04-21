@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {contentApi,reservationApi} from "../../services/api";
+import { contentApi, reservationApi } from "../../services/api";
 
 
 const Step1BasicInfo = ({ formData, setFormData, next }) => {
@@ -52,17 +52,18 @@ const Step1BasicInfo = ({ formData, setFormData, next }) => {
 
     // Load terms and policy from API on mount
     useEffect(() => {
-        const fetchTermsAndPolicy = async () => {
-            try {
-                const terms = await contentApi.getTerms("en");
-                const privacy = await contentApi.getPrivacy("en");
-                setTermsText(terms?.content || "");
-                setPolicyText(privacy?.content || "");
-            } catch (error) {
-                console.error("Failed to fetch terms and privacy policy:", error);
-            }
-        };
-        fetchTermsAndPolicy();
+        window.scrollTo({ top: 0, behavior: "auto" });
+        // const fetchTermsAndPolicy = async () => {
+        //     try {
+        //         const terms = await contentApi.getTerms("en");
+        //         const privacy = await contentApi.getPrivacy("en");
+        //         setTermsText(terms?.content || "");
+        //         setPolicyText(privacy?.content || "");
+        //     } catch (error) {
+        //         console.error("Failed to fetch terms and privacy policy:", error);
+        //     }
+        // };
+        // fetchTermsAndPolicy();
     }, []);
 
     return (

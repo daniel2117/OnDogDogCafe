@@ -1,8 +1,11 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {adoptionApi} from "../../services/api";
+import { adoptionApi } from "../../services/api";
 
 const Step7Confirmation = ({ formData }) => {
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "auto" });
+    }, []);
     const navigate = useNavigate();
 
     useEffect(() => {

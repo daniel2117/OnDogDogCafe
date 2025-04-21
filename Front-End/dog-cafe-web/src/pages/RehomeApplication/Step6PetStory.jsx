@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const Step6PetStory = ({ formData, setFormData, next, back, lang }) => {
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "auto" });
+    }, []);
     const [story, setStory] = useState(formData.petStory || "");
 
     const t = {

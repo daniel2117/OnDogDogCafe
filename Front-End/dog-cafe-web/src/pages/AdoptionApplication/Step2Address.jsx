@@ -1,10 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const Step2Address = ({ formData, setFormData, next, back }) => {
     const [line1, setLine1] = useState(formData.line1 || "");
     const [line2, setLine2] = useState(formData.line2 || "");
     const [town, setTown] = useState(formData.town || "");
     const [phone, setPhone] = useState(formData.phone || "");
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "auto" });
+    }, []);
 
     const handleNext = () => {
         if (!line1 || !line2 || !town || !phone) {

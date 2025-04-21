@@ -15,6 +15,7 @@ const DogDetail = () => {
     const [similarPets, setSimilarPets] = useState([]);
 
     useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "auto" });
         const fetchDog = async () => {
             try {
                 const response = await adoptionApi.getDogDetails(id);

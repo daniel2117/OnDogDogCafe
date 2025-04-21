@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 const ContactUs = ({ lang, toggleLang }) => {
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "auto" });
+    }, []);
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     //const lang = queryParams.get("lang") || "en";

@@ -1,13 +1,15 @@
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import {reservationApi} from "../../services/api";
+import { reservationApi } from "../../services/api";
 
 const BookingDetail = ({ lang, toggleLang }) => {
     const navigate = useNavigate();
-
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "auto" });
+    }, []);
     const t = {
         service: lang === "zh" ? "選擇服務" : "Choose Service",
         date: lang === "zh" ? "選擇日期" : "Select Date",
