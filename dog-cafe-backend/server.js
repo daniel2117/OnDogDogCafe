@@ -70,7 +70,7 @@ app.use((req, res, next) => {
     next();
 });
 
-// Connect to MongoDB with timeout
+// Connect to MongoDB with timeout and proper initialization
 const connectWithRetry = async () => {
     try {
         await mongoose.connect(config.database.url, {
@@ -78,6 +78,9 @@ const connectWithRetry = async () => {
             serverSelectionTimeoutMS: 5000, // Timeout after 5 seconds
         });
         console.log('Connected to MongoDB');
+        
+        // Initialize gridfsStorage after successful connection
+        gridfsStorage.init(mongoose.connection.db);
     } catch (err) {
         console.error('MongoDB connection error:', err);
         console.log('Retrying in 5 seconds...');
@@ -86,9 +89,6 @@ const connectWithRetry = async () => {
 };
 
 connectWithRetry();
-
-// Initialize gridfsStorage after MongoDB connection
-gridfsStorage.init();
 
 // Serve files using gridfsStorage
 app.use('/api/files/:fileId', async (req, res) => {

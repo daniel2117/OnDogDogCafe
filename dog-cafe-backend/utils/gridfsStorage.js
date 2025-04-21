@@ -22,10 +22,14 @@ const upload = multer({
 let bucket;
 
 const gridfsStorage = {
-    init: () => {
-        bucket = new GridFSBucket(mongoose.connection.db, {
+    init: (db) => {
+        if (!db) {
+            throw new Error('Database connection is required');
+        }
+        bucket = new GridFSBucket(db, {
             bucketName: 'uploads'
         });
+        console.log('GridFS storage initialized');
     },
 
     upload,
