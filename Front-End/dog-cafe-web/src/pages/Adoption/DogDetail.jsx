@@ -4,7 +4,7 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { adoptionApi } from "../../services/api";
 
 
-const DogDetail = () => {
+const DogDetail = (Lang, toggleLang) => {
     const { id } = useParams();
     const navigate = useNavigate();
     const queryParams = new URLSearchParams(useLocation().search);
@@ -81,12 +81,22 @@ const DogDetail = () => {
             {/* Header */}
             <div className="flex justify-between items-center mb-4">
                 <img src="/logo.png" alt="logo" className="h-16 cursor-pointer" onClick={() => navigate(`/?lang=${lang}`)} />
-                <button
+
+                {/* <button
                     onClick={() => navigate(`/contactus?lang=${lang}`)}
                     className="border px-4 py-2 rounded hover:bg-gray-100"
                 >
                     Contact Us
-                </button>
+                </button> */}
+                {/* Language toggle */}
+                <div className="absolute top-4 right-6">
+                    <button
+                        onClick={toggleLang}
+                        className="border border-gray-400 rounded-md px-3 py-1 text-sm"
+                    >
+                        {lang === "en" ? "中文" : "English"}
+                    </button>
+                </div>
             </div>
 
             {/* Profile Section */}
@@ -97,6 +107,7 @@ const DogDetail = () => {
                     <div className="text-xl font-bold">{dog.name}</div>
 
                 </div>
+
             </div>
 
             {/* Main Image */}
@@ -119,6 +130,7 @@ const DogDetail = () => {
                         </div>
                     ))}
                 </div>
+
             </div>
 
             {/* Tags */}
