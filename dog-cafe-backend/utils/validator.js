@@ -236,6 +236,51 @@ const validators = {
             isValid: errors.length === 0,
             errors
         };
+    },
+
+    // Add validation for rehoming applications
+    isValidRehomingApplication: (application) => {
+        const errors = [];
+
+        // Validate owner info
+        if (!application.ownerInfo?.email || !validators.isValidEmail(application.ownerInfo.email)) {
+            errors.push('Valid email is required');
+        }
+        if (!application.ownerInfo?.firstName?.trim()) {
+            errors.push('First name is required');
+        }
+        if (!application.ownerInfo?.lastName?.trim()) {
+            errors.push('Last name is required');
+        }
+
+        // Validate pet info
+        if (!application.petInfo?.name?.trim()) {
+            errors.push('Pet name is required');
+        }
+        if (!['dog', 'cat'].includes(application.petInfo?.type)) {
+            errors.push('Valid pet type is required');
+        }
+        if (!application.petInfo?.breed?.trim()) {
+            errors.push('Breed is required');
+        }
+
+        // Validate media
+        if (!application.media?.photos || !Array.isArray(application.media.photos) || application.media.photos.length === 0) {
+            errors.push('At least one photo is required');
+        }
+
+        // Validate file URLs
+        if (application.media?.photos) {
+            const validFileUrl = (url) => /^\/api\/files\/[a-f0-9]{24}$/.test(url);
+            if (!application.media.photos.every(validFileUrl)) {
+                errors.push('Invalid photo URL format');
+            }
+        }
+
+        return {
+            isValid: errors.length === 0,
+            errors
+        };
     }
 };
 
