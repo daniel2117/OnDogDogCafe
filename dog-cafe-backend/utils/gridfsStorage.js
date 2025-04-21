@@ -1,7 +1,6 @@
 const multer = require('multer');
 const { GridFSBucket } = require('mongodb');
 const mongoose = require('mongoose');
-const sharp = require('sharp');
 
 const storage = multer.memoryStorage();
 const upload = multer({ 
@@ -36,15 +35,7 @@ const gridfsStorage = {
 
     async saveFile(file, type) {
         const filename = `${Date.now()}-${file.originalname}`;
-        let buffer = file.buffer;
-
-        // If it's an image, optimize it
-        if (file.mimetype.startsWith('image/')) {
-            buffer = await sharp(file.buffer)
-                .resize(800, 800, { fit: 'inside', withoutEnlargement: true })
-                .webp({ quality: 80 })
-                .toBuffer();
-        }
+        const buffer = file.buffer;
 
         const uploadStream = bucket.openUploadStream(filename, {
             contentType: file.mimetype,
