@@ -7,7 +7,8 @@
     "dev": "nodemon server.js",
     "seed": "node utils/seedDogs.js",
     "test:email": "node utils/emailTest.js",
-    "seed:dogs": "node utils/seedDogsEnhanced.js"
+    "seed:dogs": "node utils/seedDogsEnhanced.js",
+    "postinstall": "npm rebuild sharp"
   },
   "dependencies": {
     "axios": "^1.8.4",
@@ -31,7 +32,6 @@
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "validator": "^13.15.0",
-    "sharp": "^0.32.6",
     "multer": "^1.4.5-lts.1"
   },
   "devDependencies": {
