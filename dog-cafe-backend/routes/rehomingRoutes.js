@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const rehomingController = require('../controllers/rehomingController');
-const localImageStorage = require('../utils/localImageStorage');
+const gridfsStorage = require('../utils/gridfsStorage');
 const { validateRehomingApplication } = require('../middleware/validate');
 
 // Public routes
@@ -13,14 +13,32 @@ router.post(
 
 router.post(
     '/upload/photos',
-    localImageStorage.upload.array('photos', 5), 
-    rehomingController.uploadPhotos
+    gridfsStorage.upload.array('photos', 5), 
+    async (req, res) => {
+        try {
+            const files = await Promise.all(
+                req.files.map(file => gridfsStorage.saveFile(file, 'photos'))
+            );
+            res.json(files);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
 );
 
 router.post(
     '/upload/documents',
-    localImageStorage.upload.array('documents', 5), 
-    rehomingController.uploadDocuments
+    gridfsStorage.upload.array('documents', 5), 
+    async (req, res) => {
+        try {
+            const files = await Promise.all(
+                req.files.map(file => gridfsStorage.saveFile(file, 'documents'))
+            );
+            res.json(files);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
 );
 
 router.get('/uploads', rehomingController.getUploadedFiles);

@@ -4,7 +4,7 @@ const Adoption = require('../models/Adoption');
 const cache = require('../utils/cache');
 const emailService = require('../utils/emailService');
 const mongoose = require('mongoose');
-const imageStorage = require('../utils/imageStorage');
+const gridfsStorage = require('../utils/gridfsStorage');
 
 const adoptionController = {
     getAllDogs: asyncHandler(async (req, res) => {
@@ -96,13 +96,11 @@ const adoptionController = {
         const imageUrls = [];
         if (req.files && req.files.length > 0) {
             for (const file of req.files) {
-                const savedImage = await imageStorage.saveImage(file, {
-                    width: 800,  // Standardize image size
-                    height: 800
-                });
+                const savedFile = await gridfsStorage.saveFile(file, 'adoption-images');
                 imageUrls.push({
-                    url: savedImage.url,
-                    filename: savedImage.fileName
+                    url: savedFile.url,
+                    fileId: savedFile.fileId,
+                    filename: savedFile.filename
                 });
             }
         }
@@ -133,29 +131,21 @@ const adoptionController = {
 
     getImage: asyncHandler(async (req, res) => {
         try {
-            const imageBuffer = await imageStorage.getImage(req.params.filename);
-            res.set('Content-Type', 'image/webp');  // All images are converted to WebP
-            res.set('Cache-Control', 'public, max-age=31536000');  // Cache for 1 year
-            res.send(imageBuffer);
+            const stream = await gridfsStorage.getFile(req.params.fileId);
+            stream.pipe(res);
         } catch (error) {
-            if (error.code === 'ENOENT') {
-                res.status(404);
-                throw new Error('Image not found');
-            }
-            throw error;
+            res.status(404);
+            throw new Error('Image not found');
         }
     }),
 
     deleteImage: asyncHandler(async (req, res) => {
         try {
-            await imageStorage.deleteImage(req.params.filename);
+            await gridfsStorage.deleteFile(req.params.fileId);
             res.json({ message: 'Image deleted successfully' });
         } catch (error) {
-            if (error.code === 'ENOENT') {
-                res.status(404);
-                throw new Error('Image not found');
-            }
-            throw error;
+            res.status(404);
+            throw new Error('Image not found');
         }
     }),
 

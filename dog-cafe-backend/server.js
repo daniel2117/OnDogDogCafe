@@ -7,7 +7,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const rateLimit = require('express-rate-limit');
 const config = require('./config/config');
 const errorHandler = require('./middleware/errorHandler');
-const imageStorage = require('./utils/imageStorage');
+const gridfsStorage = require('./utils/gridfsStorage'); // Replace imageStorage with gridfsStorage
 const path = require('path');
 
 // Import routes
@@ -87,10 +87,18 @@ const connectWithRetry = async () => {
 
 connectWithRetry();
 
-// Initialize image storage
-imageStorage.init().catch(console.error);
-const localImageStorage = require('./utils/localImageStorage');
-localImageStorage.init().catch(console.error);
+// Initialize gridfsStorage after MongoDB connection
+gridfsStorage.init();
+
+// Serve files using gridfsStorage
+app.use('/api/files/:fileId', async (req, res) => {
+    try {
+        const stream = await gridfsStorage.getFile(req.params.fileId);
+        stream.pipe(res);
+    } catch (error) {
+        res.status(404).json({ message: 'File not found' });
+    }
+});
 
 // Serve static images from upload directory
 app.use('/images', express.static(process.env.NODE_ENV === 'production' 
