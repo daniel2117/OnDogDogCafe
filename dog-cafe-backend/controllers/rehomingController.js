@@ -1,39 +1,47 @@
 const asyncHandler = require('express-async-handler');
 const RehomingApplication = require('../models/RehomingApplication');
-const localImageStorage = require('../utils/localImageStorage');
+const gridfsStorage = require('../utils/gridfsStorage');
 const { sendEmail } = require('../utils/notifications');
 const Dog = require('../models/Dog');
 
 const rehomingController = {
     uploadPhotos: asyncHandler(async (req, res) => {
-        const photoUrls = req.files.map(file => ({
-            url: `/uploads/photos/${file.filename}`, // Ensure URL includes the correct path
-            filename: file.filename
+        const photoUrls = await Promise.all(req.files.map(async file => {
+            const savedFile = await gridfsStorage.saveFile(file, 'photos');
+            return {
+                url: savedFile.url,
+                filename: savedFile.filename
+            };
         }));
+        
         res.status(201).json({
             message: 'Photos uploaded successfully',
-            photoUrls: photoUrls.map(photo => photo.url) // Return only the URLs
+            photoUrls: photoUrls.map(photo => photo.url)
         });
     }),
 
     uploadDocuments: asyncHandler(async (req, res) => {
-        const documentUrls = req.files.map(file => ({
-            url: `/uploads/documents/${file.filename}`, // Ensure URL includes the correct path
-            filename: file.filename
+        const documentUrls = await Promise.all(req.files.map(async file => {
+            const savedFile = await gridfsStorage.saveFile(file, 'documents');
+            return {
+                url: savedFile.url,
+                filename: savedFile.filename
+            };
         }));
+        
         res.status(201).json({
             message: 'Documents uploaded successfully',
-            documentUrls: documentUrls.map(doc => doc.url) // Return only the URLs
+            documentUrls: documentUrls.map(doc => doc.url)
         });
     }),
 
     getUploadedFiles: asyncHandler(async (req, res) => {
-        const { type } = req.query; // 'photos' or 'documents'
+        const { type } = req.query;
         if (!type || !['photos', 'documents'].includes(type)) {
             return res.status(400).json({ message: 'Invalid type parameter' });
         }
 
-        const files = await localImageStorage.listFiles(type);
+        const files = await gridfsStorage.listFiles(type);
         res.json({ files });
     }),
 
