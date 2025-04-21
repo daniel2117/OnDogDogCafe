@@ -60,6 +60,21 @@ const gridfsStorage = {
         return bucket.openDownloadStream(new mongoose.Types.ObjectId(fileId));
     },
 
+    async getFileInfo(fileId) {
+        const files = await bucket.find({ _id: new mongoose.Types.ObjectId(fileId) }).toArray();
+        if (files.length === 0) {
+            return null;
+        }
+        return {
+            fileId: files[0]._id,
+            filename: files[0].filename,
+            contentType: files[0].contentType,
+            metadata: files[0].metadata,
+            uploadDate: files[0].uploadDate,
+            length: files[0].length
+        };
+    },
+
     async deleteFile(fileId) {
         await bucket.delete(new mongoose.Types.ObjectId(fileId));
     },

@@ -57,26 +57,35 @@ const rehomingController = {
         }
 
         // Process file URLs to get GridFS IDs
-        const photoIds = req.body.media.photos.map(url => 
-            url.split('/').pop() // Extract ID from URL like '/api/files/123456...'
-        );
+        const photoIds = req.body.media.photos.map(url => {
+            const segments = url.split('/');
+            return segments[segments.length - 1]; // Extract ID from URL like '/api/files/123456...'
+        }).filter(id => id); // Filter out any empty IDs
 
-        // Fetch file info from GridFS to validate existence
+        if (photoIds.length === 0) {
+            return res.status(400).json({
+                message: 'At least one valid photo is required'
+            });
+        }
+
         try {
+            // Fetch file info from GridFS
             const photoFiles = await Promise.all(
-                photoIds.map(id => gridfsStorage.getFileInfo(id))
+                photoIds.map(async (id) => {
+                    const fileInfo = await gridfsStorage.getFileInfo(id);
+                    if (!fileInfo) {
+                        throw new Error(`File with ID ${id} not found`);
+                    }
+                    return fileInfo;
+                })
             );
 
-            // Create application with file IDs and URLs
+            // Create application with file references
             const application = await RehomingApplication.create({
                 ...req.body,
                 media: {
-                    photos: photoFiles.map(file => ({
-                        fileId: file._id.toString(),
-                        url: `/api/files/${file._id}`,
-                        filename: file.filename
-                    })),
-                    documents: req.body.media.documents
+                    photos: photoFiles.map(file => `/api/files/${file.fileId}`),
+                    documents: req.body.media.documents || []
                 }
             });
 

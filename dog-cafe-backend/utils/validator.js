@@ -271,7 +271,7 @@ const validators = {
 
         // Validate file URLs
         if (application.media?.photos) {
-            const validFileUrl = (url) => /^\/api\/files\/[a-f0-9]{24}$/.test(url);
+            const validFileUrl = (url) => /^\/?(?:api\/)?files\/[a-f0-9]{24}$/.test(url);
             if (!application.media.photos.every(validFileUrl)) {
                 errors.push('Invalid photo URL format');
             }
