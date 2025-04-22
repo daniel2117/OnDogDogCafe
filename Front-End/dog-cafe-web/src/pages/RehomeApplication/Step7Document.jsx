@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { rehomingApi } from "../../services/api";
 
 const Step7Documents = ({ formData, setFormData, next, back, lang }) => {
-    useEffect(() => {
-        window.scrollTo({ top: 0, behavior: "auto" });
-    }, []);
     const [dragIndex, setDragIndex] = useState(null);
+    const [uploaded, setUploaded] = useState(false);
 
     const handleImageChange = (index, file) => {
+        if (file.size > 5 * 1024 * 1024) {
+            alert(lang === 'zh' ? "檔案大小不能超過 5MB。" : "File size must not exceed 5MB.");
+            return;
+        }
         const updated = [...(formData.documents || [])];
         updated[index] = file;
         setFormData(prev => ({ ...prev, documents: updated }));
@@ -21,6 +24,26 @@ const Step7Documents = ({ formData, setFormData, next, back, lang }) => {
         setDragIndex(null);
     };
 
+    const uploadAll = async () => {
+        const files = (formData.documents || []).filter(Boolean);
+        if (files.length === 0) return alert(lang === 'zh' ? "請至少上傳一份文件。" : "Please upload at least one document.");
+
+        const form = new FormData();
+        files.forEach(file => form.append("documents", file));
+
+        try {
+            const result = await rehomingApi.uploadDocuments(form);
+            console.log("Upload success:", result);
+            const urls = (result || []).map(file => file.url);
+            setFormData(prev => ({ ...prev, uploadedDocuments: urls }));
+            setUploaded(true);
+            
+        } catch (err) {
+            console.error("Upload failed:", err);
+            alert(lang === 'zh' ? "文件上傳失敗" : "Failed to upload documents");
+        }
+    };
+
     const t = {
         instruction: lang === 'zh'
             ? "這些資料僅供完成送養流程後提供給領養者。我們建議您遮蓋文件上的個人資料。"
@@ -29,10 +52,11 @@ const Step7Documents = ({ formData, setFormData, next, back, lang }) => {
             ? "如有疫苗接種記錄、結紮或晶片證明，請在此上傳"
             : "If you have any vaccine history, proof of spay or neuter, and/or microchip info, please upload below.",
         format: lang === 'zh'
-            ? "圖片格式應為 (.jpg, .png, .jpeg)。圖片需為正方形，尺寸為 600 × 600 像素，最大與最小檔案大小為 1024 與 240 KB"
-            : "The image format should be (.jpg, .png, .jpeg). The image must be square in shape, with dimensions of 600 × 600 pixels. The maximum & minimum image size is 1024 and 240 KB.",
+            ? "圖片格式應為 (.jpg, .png, .jpeg)。最大檔案大小為 5MB。"
+            : "The image format should be (.jpg, .png, .jpeg). Max file size is 5MB.",
         back: lang === 'zh' ? '返回' : 'Back',
         continue: lang === 'zh' ? '繼續' : 'Continue',
+        upload: lang === 'zh' ? '上傳文件' : 'Upload Documents'
     };
 
     return (
@@ -75,15 +99,17 @@ const Step7Documents = ({ formData, setFormData, next, back, lang }) => {
 
                 <div className="flex justify-between">
                     <button onClick={back} className="border border-purple-500 text-purple-500 px-6 py-2 rounded hover:bg-purple-50">◀ {t.back}</button>
-                    <button onClick={next} className="bg-purple-500 text-white px-6 py-2 rounded hover:bg-purple-600">{t.continue} ▶</button>
+                    <button
+                        onClick={uploadAll}
+                        className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
+                    >{t.upload}</button>
+                    <button
+                        onClick={next}
+                        className="bg-purple-500 text-white px-6 py-2 rounded hover:bg-purple-600"
+                        disabled={!uploaded}
+                    >{t.continue} ▶</button>
                 </div>
             </div>
-            <button
-                onClick={next}
-                className="text-xs text-gray-400 underline"
-            >
-                Skip verification for development →
-            </button>
         </div>
     );
 };

@@ -193,6 +193,49 @@ export const rehomingApi = {
             throw err.response?.data || { message: 'Failed to update rehoming application' };
         }
     },
+    uploadPhoto: async (files) => {
+        try {
+            const formData = new FormData();
+            files.forEach((file) => {
+                formData.append("photos", file);
+            });
+
+            const res = await axiosInstance.post(
+                `/rehoming/upload/photos`,
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to upload rehoming photo' };
+        }
+    },
+    uploadDocuments: async (files) => {
+        try {
+            const formData = new FormData();
+            files.forEach((file) => {
+                formData.append("documents", file);
+            });
+
+            const res = await axiosInstance.post(
+                `/rehoming/upload/documents`,
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to upload rehoming documents' };
+        }
+    },
+
     getAllAdmin: () => axiosInstance.get('/rehoming/admin/applications'),
     updateStatus: (id, data) => axiosInstance.patch(`/rehoming/admin/application/${id}/status`, data)
 };
