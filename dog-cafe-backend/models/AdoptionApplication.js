@@ -20,8 +20,11 @@ const adoptionApplicationSchema = new mongoose.Schema({
     address: {
         line1: { type: String, required: true },
         line2: String,
-        town: { type: String, required: true },
-        phone: { type: String, required: true }
+        town: { type: String, required: true }
+    },
+    phone: {
+        type: String,
+        required: true
     },
     garden: {
         type: String,
@@ -50,7 +53,7 @@ const adoptionApplicationSchema = new mongoose.Schema({
     },
     homeImages: [{
         url: String,
-        key: String
+        fileId: String
     }],
     adults: {
         type: String,

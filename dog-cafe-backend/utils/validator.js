@@ -94,20 +94,64 @@ const validators = {
     isValidAdoptionApplication: (application) => {
         const errors = [];
 
-        if (!application.livingArrangement) {
-            errors.push('Living arrangement is required');
+        // Basic required field checks
+        if (!application.email || !validators.isValidEmail(application.email)) {
+            errors.push('Valid email is required');
         }
 
-        if (!application.experience) {
-            errors.push('Previous experience information is required');
+        if (!application.firstName?.trim()) {
+            errors.push('First name is required');
         }
 
-        if (!application.reason) {
-            errors.push('Reason for adoption is required');
+        if (!application.lastName?.trim()) {
+            errors.push('Last name is required');
         }
 
-        if (application.income && !validator.isNumeric(application.income.toString())) {
-            errors.push('Income must be a number');
+        // Address validation
+        if (!application.line1?.trim()) {
+            errors.push('Address line 1 is required');
+        }
+
+        if (!application.town?.trim()) {
+            errors.push('Town is required');
+        }
+
+        if (!application.phone || !validators.isValidPhone(application.phone)) {
+            errors.push('Valid phone number is required');
+        }
+
+        // Enum validations
+        const enumChecks = {
+            garden: ['yes', 'no'],
+            homeSituation: ['apartment', 'house', 'shared'],
+            householdSetting: ['single', 'couple', 'family', 'shared'],
+            activityLevel: ['low', 'moderate', 'high'],
+            incomeLevel: ['low', 'medium', 'high'],
+            hasVisitingChildren: ['yes', 'no'],
+            hasFlatmates: ['yes', 'no'],
+            hasOtherAnimals: ['yes', 'no'],
+            neutered: ['yes', 'no', 'n/a'],
+            vaccinated: ['yes', 'no', 'n/a']
+        };
+
+        for (const [field, validValues] of Object.entries(enumChecks)) {
+            if (!application[field] || !validValues.includes(application[field])) {
+                errors.push(`Invalid value for ${field}`);
+            }
+        }
+
+        // Optional validations
+        if (application.hasVisitingChildren === 'yes' && 
+            !['toddler', 'child', 'teen', 'n/a'].includes(application.visitingAge)) {
+            errors.push('Invalid visiting age');
+        }
+
+        if (!application.adults?.trim() || !application.children?.trim()) {
+            errors.push('Number of adults and children is required');
+        }
+
+        if (!application.youngestAge?.trim()) {
+            errors.push('Youngest age information is required');
         }
 
         return {
