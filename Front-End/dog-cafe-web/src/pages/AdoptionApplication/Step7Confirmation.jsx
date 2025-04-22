@@ -11,6 +11,7 @@ const Step7Confirmation = ({ formData }) => {
     useEffect(() => {
         const submitAdoptionApplication = async () => {
             try {
+                console.log(formData);
                 const response = await adoptionApi.apply(formData);
                 console.log("Adoption application submitted:", response);
                 alert("Your adoption application has been submitted successfully!");

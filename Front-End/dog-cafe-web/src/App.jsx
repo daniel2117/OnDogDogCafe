@@ -2,6 +2,8 @@ import { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import ContactUs from "./pages/ContactUs";
+
+//Reservation
 import Booking from "./pages/Cafe/Booking";
 import BookingDetail from "./pages/Cafe/BookingDetail";
 
@@ -13,6 +15,8 @@ import AdoptionApplication from './pages/AdoptionApplication/AdoptionApplication
 //RehomeApplication
 import RehomeApplication from "./pages/RehomeApplication/RehomeApplication";
 
+//MyPage
+import MyPage from "./pages/MyPage/MyPage";
 
 function App() {
   const [lang, setLang] = useState("en"); // "en" or "zh"
@@ -37,6 +41,8 @@ function App() {
         <Route path="/adoption/apply" element={<AdoptionApplication lang={lang} toggleLang={toggleLang} />} />
         {/* Rehome Application */}
         <Route path="/rehome/apply" element={<RehomeApplication lang={lang} toggleLang={toggleLang} />} />
+        {/* MyPage */}
+        <Route path="/mypage" element={<MyPage lang={lang} toggleLang={toggleLang} />} />
       </Routes>
     </Router>
   );

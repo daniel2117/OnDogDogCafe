@@ -93,13 +93,24 @@ const Home = ({ lang, toggleLang }) => {
                 <div className="cursor-pointer" onClick={() => navigate(`/?lang=${lang}`)}>
                     <img src="/logo.png" alt="logo" className="h-16" />
                 </div>
-                <button
-                    onClick={() => navigate(`/contactus?lang=${lang}`)}
-                    className="border px-4 py-2 rounded hover:bg-gray-100"
-                >
-                    Contact Us
-                </button>
+
+                {/* Right-aligned buttons */}
+                <div className="flex gap-4">
+                    <button
+                        onClick={() => navigate(`/mypage?lang=${lang}`)}
+                        className="border px-4 py-2 rounded hover:bg-gray-100"
+                    >
+                        My Page
+                    </button>
+                    <button
+                        onClick={() => navigate(`/contactus?lang=${lang}`)}
+                        className="border px-4 py-2 rounded hover:bg-gray-100"
+                    >
+                        Contact Us
+                    </button>
+                </div>
             </div>
+
             <div className="relative bg-[#fff7ed] px-6 pt-10 pb-16 overflow-hidden">
 
                 {/* Language toggle */}
@@ -163,7 +174,7 @@ const Home = ({ lang, toggleLang }) => {
                 </div>
             </div>
 
-         
+
             {/* Pet Preview Section */}
             <div className="max-w-7xl mx-auto px-6 pb-12">
                 <div className="flex justify-between items-center mb-4">
