@@ -154,6 +154,16 @@ const validators = {
             errors.push('Youngest age information is required');
         }
 
+        // Validate homeImages array
+        if (!application.homeImages || !Array.isArray(application.homeImages)) {
+            errors.push('Home images must be an array');
+        } else {
+            const validFileUrl = (url) => /^\/?(?:api\/)?files\/[a-f0-9]{24}$/.test(url);
+            if (!application.homeImages.every(validFileUrl)) {
+                errors.push('Invalid home image URL format');
+            }
+        }
+
         return {
             isValid: errors.length === 0,
             errors

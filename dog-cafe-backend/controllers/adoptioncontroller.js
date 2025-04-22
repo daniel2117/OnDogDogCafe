@@ -110,35 +110,23 @@ const adoptionController = {
         }).filter(id => id);
 
         try {
-            // Fetch file info from GridFS
-            const imageFiles = await Promise.all(
+            // Verify file existence in GridFS
+            await Promise.all(
                 imageIds.map(async (id) => {
                     const fileInfo = await gridfsStorage.getFileInfo(id);
                     if (!fileInfo) {
                         throw new Error(`File with ID ${id} not found`);
                     }
-                    return fileInfo;
                 })
             );
 
-            // Restructure the data to match the schema
-            const applicationData = {
-                ...req.body,
-                address: {
-                    line1: req.body.line1,
-                    line2: req.body.line2,
-                    town: req.body.town
-                },
-                homeImages: imageFiles.map(file => `/api/files/${file.fileId}`)
-            };
-
-            // Create application
-            const application = await AdoptionApplication.create(applicationData);
+            // Create application with direct URLs
+            const application = await AdoptionApplication.create(req.body);
 
             // Send confirmation email
-            await emailService.sendAdoptionApplicationConfirmation(applicationData.email, {
+            await emailService.sendAdoptionApplicationConfirmation(req.body.email, {
                 customerInfo: {
-                    name: `${applicationData.firstName} ${applicationData.lastName}`
+                    name: `${req.body.firstName} ${req.body.lastName}`
                 },
                 _id: application._id,
                 status: 'pending'
