@@ -52,8 +52,13 @@ const adoptionApplicationSchema = new mongoose.Schema({
         required: true
     },
     homeImages: [{
-        url: String,
-        fileId: String
+        type: String,
+        validate: {
+            validator: function(url) {
+                return /^\/?(?:api\/)?files\/[a-f0-9]{24}$/.test(url);
+            },
+            message: 'Invalid file URL format'
+        }
     }],
     adults: {
         type: String,
