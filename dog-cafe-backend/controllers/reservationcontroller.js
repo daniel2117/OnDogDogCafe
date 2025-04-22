@@ -2,7 +2,7 @@ const asyncHandler = require('express-async-handler');
 const { Reservation, TIME_SLOTS, SERVICES } = require('../models/Reservation');
 const emailService = require('../utils/emailService');
 const cache = require('../utils/cache');
-const { sendEmail, sendSMS } = require('../utils/notifications');
+const { sendEmail } = require('../utils/notifications');
 const validators = require('../utils/validator');
 
 const reservationController = {
@@ -182,11 +182,6 @@ const reservationController = {
                 await sendEmail(
                     customerInfo.email,
                     'Reservation Confirmation',
-                    `Your reservation for ${servicesList} on ${date} at ${timeSlot} is pending confirmation.`
-                );
-                
-                await sendSMS(
-                    customerInfo.phone,
                     `Your reservation for ${servicesList} on ${date} at ${timeSlot} is pending confirmation.`
                 );
             } catch (error) {

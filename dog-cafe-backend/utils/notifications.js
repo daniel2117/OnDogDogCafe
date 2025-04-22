@@ -23,19 +23,4 @@ const sendEmail = async (to, subject, text) => {
     }
 };
 
-const sendSMS = async (to, message) => {
-    try {
-        if (!to || !message) {
-            throw new Error('Missing required SMS parameters');
-        }
-
-        // Placeholder for SMS service integration
-        console.log(`SMS would be sent to ${to}: ${message}`);
-        return true;
-    } catch (error) {
-        console.error('SMS sending failed:', error);
-        return false;
-    }
-};
-
-module.exports = { sendEmail, sendSMS };
+module.exports = { sendEmail };
