@@ -103,45 +103,58 @@ const adoptionController = {
             });
         }
 
-        const imageUrls = [];
-        if (req.files && req.files.length > 0) {
-            for (const file of req.files) {
-                const savedFile = await gridfsStorage.saveFile(file, 'adoption-images');
-                imageUrls.push({
-                    url: savedFile.url,
-                    fileId: savedFile.fileId
-                });
-            }
+        // Process file URLs to get GridFS IDs
+        const imageIds = (req.body.homeImages || []).map(url => {
+            const segments = url.split('/');
+            return segments[segments.length - 1];
+        }).filter(id => id);
+
+        try {
+            // Fetch file info from GridFS
+            const imageFiles = await Promise.all(
+                imageIds.map(async (id) => {
+                    const fileInfo = await gridfsStorage.getFileInfo(id);
+                    if (!fileInfo) {
+                        throw new Error(`File with ID ${id} not found`);
+                    }
+                    return fileInfo;
+                })
+            );
+
+            // Restructure the data to match the schema
+            const applicationData = {
+                ...req.body,
+                address: {
+                    line1: req.body.line1,
+                    line2: req.body.line2,
+                    town: req.body.town
+                },
+                homeImages: imageFiles.map(file => `/api/files/${file.fileId}`)
+            };
+
+            // Create application
+            const application = await AdoptionApplication.create(applicationData);
+
+            // Send confirmation email
+            await emailService.sendAdoptionApplicationConfirmation(applicationData.email, {
+                customerInfo: {
+                    name: `${applicationData.firstName} ${applicationData.lastName}`
+                },
+                _id: application._id,
+                status: 'pending'
+            });
+
+            res.status(201).json({
+                message: 'Application submitted successfully',
+                applicationId: application._id
+            });
+        } catch (error) {
+            console.error('Error processing adoption application:', error);
+            res.status(500).json({
+                message: 'Failed to process application',
+                error: error.message
+            });
         }
-
-        // Restructure the data to match the schema
-        const applicationData = {
-            ...req.body,
-            address: {
-                line1: req.body.line1,
-                line2: req.body.line2,
-                town: req.body.town
-            },
-            homeImages: imageUrls
-        };
-
-        // Create application
-        const application = await AdoptionApplication.create(applicationData);  // Changed from Adoption
-
-        // Send confirmation email
-        await emailService.sendAdoptionApplicationConfirmation(applicationData.email, {
-            customerInfo: {
-                name: `${applicationData.firstName} ${applicationData.lastName}`
-            },
-            _id: application._id,
-            status: 'pending'
-        });
-
-        res.status(201).json({
-            message: 'Application submitted successfully',
-            applicationId: application._id,
-            uploadedImages: imageUrls
-        });
     }),
 
     getImage: asyncHandler(async (req, res) => {
