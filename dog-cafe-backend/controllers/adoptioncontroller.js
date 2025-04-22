@@ -1,10 +1,11 @@
 const asyncHandler = require('express-async-handler');
 const Dog = require('../models/Dog');
-const Adoption = require('../models/Adoption');
+const AdoptionApplication = require('../models/AdoptionApplication');  // Changed from Adoption
 const cache = require('../utils/cache');
 const emailService = require('../utils/emailService');
 const mongoose = require('mongoose');
 const gridfsStorage = require('../utils/gridfsStorage');
+const validators = require('../utils/validators');
 
 const adoptionController = {
     getAllDogs: asyncHandler(async (req, res) => {
@@ -93,25 +94,39 @@ const adoptionController = {
     }),
 
     createAdoptionApplication: asyncHandler(async (req, res) => {
+        // Validate the application data
+        const validation = validators.isValidAdoptionApplication(req.body);
+        if (!validation.isValid) {
+            return res.status(400).json({
+                message: 'Invalid application data',
+                errors: validation.errors
+            });
+        }
+
         const imageUrls = [];
         if (req.files && req.files.length > 0) {
             for (const file of req.files) {
                 const savedFile = await gridfsStorage.saveFile(file, 'adoption-images');
                 imageUrls.push({
                     url: savedFile.url,
-                    fileId: savedFile.fileId,
-                    filename: savedFile.filename
+                    fileId: savedFile.fileId
                 });
             }
         }
 
+        // Restructure the data to match the schema
         const applicationData = {
             ...req.body,
+            address: {
+                line1: req.body.line1,
+                line2: req.body.line2,
+                town: req.body.town
+            },
             homeImages: imageUrls
         };
 
         // Create application
-        const application = await Adoption.create(applicationData);
+        const application = await AdoptionApplication.create(applicationData);  // Changed from Adoption
 
         // Send confirmation email
         await emailService.sendAdoptionApplicationConfirmation(applicationData.email, {
