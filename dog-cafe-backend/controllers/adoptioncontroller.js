@@ -5,7 +5,7 @@ const cache = require('../utils/cache');
 const emailService = require('../utils/emailService');
 const mongoose = require('mongoose');
 const gridfsStorage = require('../utils/gridfsStorage');
-const validators = require('../utils/validators');
+const validators = require('../utils/validator');
 
 const adoptionController = {
     getAllDogs: asyncHandler(async (req, res) => {

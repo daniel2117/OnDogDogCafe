@@ -1,6 +1,6 @@
 const asyncHandler = require('express-async-handler');
 const { Reservation } = require('../models/Reservation');
-const Adoption = require('../models/Adoption');
+const AdoptionApplication = require('../models/AdoptionApplication');  // Changed from Adoption
 const RehomingApplication = require('../models/RehomingApplication');
 const validators = require('../utils/validator');
 
@@ -22,9 +22,8 @@ const myPageController = {
                 .sort({ date: -1 }),
 
             // Get adoption applications
-            Adoption.find({ 'personalInfo.email': email })
-                .select('submittedAt status dog')
-                .populate('dog', 'name')
+            AdoptionApplication.find({ email: email })  // Changed from 'personalInfo.email'
+                .select('submittedAt status firstName lastName')
                 .sort({ submittedAt: -1 }),
 
             // Get rehoming applications
@@ -46,7 +45,7 @@ const myPageController = {
         const formattedAdoptions = adoptions.map(a => ({
             type: 'adoption',
             date: a.submittedAt,
-            interestedCompanion: a.dog?.name || 'Unknown Dog',
+            name: `${a.firstName} ${a.lastName}`,  // Changed from dog?.name
             status: a.status
         }));
 
