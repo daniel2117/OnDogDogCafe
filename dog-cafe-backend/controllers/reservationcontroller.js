@@ -123,9 +123,11 @@ const reservationController = {
                 });
             }
 
-            if (!validators.isValidPhone(customerInfo?.phone)) {
+            // Simple time slot validation if validator function is not available
+            const timeSlotHour = parseInt(timeSlot.split(':')[0]);
+            if (timeSlotHour < 13 || timeSlotHour > 19) {
                 return res.status(400).json({
-                    message: 'Invalid phone number format'
+                    message: 'Reservation time must be within business hours (13:00-19:00)'
                 });
             }
 
@@ -163,6 +165,17 @@ const reservationController = {
                 });
             }
 
+            // Check if services are valid
+            const invalidServices = selectedServices.filter(
+                service => !Object.values(SERVICES).includes(service)
+            );
+            
+            if (invalidServices.length > 0) {
+                return res.status(400).json({
+                    message: `Invalid services: ${invalidServices.join(', ')}`
+                });
+            }
+
             // Create reservation
             const reservation = await Reservation.create({
                 customerInfo,
@@ -176,16 +189,16 @@ const reservationController = {
             const cacheKey = `availability:${new Date(date).toISOString().split('T')[0]}`;
             await cache.del(cacheKey);
 
-            // Send notifications
+            // Send detailed confirmation email
             try {
-                const servicesList = selectedServices.join(', ');
-                await sendEmail(
-                    customerInfo.email,
-                    'Reservation Confirmation',
-                    `Your reservation for ${servicesList} on ${date} at ${timeSlot} is pending confirmation.`
-                );
+                await emailService.sendReservationConfirmation(customerInfo.email, {
+                    ...reservation.toObject(),
+                    formattedDate: reservationDate.toLocaleDateString(),
+                    totalServices: selectedServices.length
+                });
             } catch (error) {
-                console.error('Notification error:', error);
+                console.error('Email notification error:', error);
+                // Continue even if email fails
             }
 
             res.status(201).json({
@@ -193,6 +206,11 @@ const reservationController = {
                 reservation
             });
         } catch (error) {
+            if (error.code === 11000) { // Duplicate key error
+                return res.status(409).json({
+                    message: 'A reservation already exists for this time slot'
+                });
+            }
             console.error('Reservation creation error:', error);
             res.status(500).json({
                 message: 'Failed to create reservation',

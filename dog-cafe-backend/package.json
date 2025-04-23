@@ -8,7 +8,8 @@
     "seed": "node utils/seedDogs.js",
     "test:email": "node utils/emailTest.js",
     "seed:dogs": "node utils/seedDogsEnhanced.js",
-    "postinstall": "npm rebuild sharp"
+    "postinstall": "npm rebuild sharp",
+    "test:reservation": "node tests/reservationTest.js"
   },
   "dependencies": {
     "axios": "^1.8.4",
