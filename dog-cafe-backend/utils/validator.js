@@ -338,4 +338,16 @@ const validators = {
     }
 };
 
-module.exports = validators;
+const isValidReservationTime = (timeSlot, businessHours) => {
+    // Convert time slot to minutes for comparison
+    const [hours, minutes] = timeSlot.split(':').map(Number);
+    const timeInMinutes = hours * 60 + minutes;
+
+    // Check if time is within business hours
+    return timeInMinutes >= businessHours.open && timeInMinutes <= businessHours.close;
+};
+
+module.exports = {
+    ...validators,
+    isValidReservationTime,
+};
