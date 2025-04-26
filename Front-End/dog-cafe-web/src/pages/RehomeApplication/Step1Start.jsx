@@ -43,7 +43,7 @@ const Step1Start = ({ formData, setFormData, next, lang, toggleLang }) => {
     };
 
     const verifyCode = async () => {
-        console.log("Verifying code:", code);
+        if (!email || !code) return alert("Please enter both email and verification code.");
         setLoading(true);
         try {
             await reservationApi.verifyCode(email, code);

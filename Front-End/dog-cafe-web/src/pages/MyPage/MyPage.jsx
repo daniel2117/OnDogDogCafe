@@ -54,12 +54,14 @@ const MyPage = ({ lang, toggleLang }) => {
             await reservationApi.verifyCode(email, code);
             setVerified(true);
             alert("Email verified successfully!");
+            navigate("/mypage/home"); // ✅ verify 성공하면 이쪽으로 이동
         } catch (err) {
             alert(err.message || "Verification failed.");
         } finally {
             setLoading(false);
         }
     };
+    
 
     return (
         <div className="min-h-screen bg-white flex flex-col items-center px-6 py-12">
@@ -90,15 +92,16 @@ const MyPage = ({ lang, toggleLang }) => {
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="border rounded px-3 py-2 w-full"
+                            className="border rounded px-3 py-2 w-72"
                         />
                         <button
                             onClick={sendCode}
                             disabled={countdown > 0}
-                            className="bg-purple-500 text-white px-3 py-2 rounded hover:bg-purple-600 disabled:opacity-50"
+                            className="bg-purple-500 text-white px-3 py-1.5 text-sm rounded hover:bg-purple-600 disabled:opacity-50 h-10"
                         >
                             {countdown > 0 ? `${countdown}s` : sent ? t.resend : t.send}
                         </button>
+
                     </div>
                 </div>
 
