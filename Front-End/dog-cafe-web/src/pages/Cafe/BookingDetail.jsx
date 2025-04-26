@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import DatePicker from "react-datepicker";
@@ -10,6 +9,7 @@ const BookingDetail = ({ lang, toggleLang }) => {
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: "auto" });
     }, []);
+
     const t = {
         service: lang === "zh" ? "選擇服務" : "Choose Service",
         date: lang === "zh" ? "選擇日期" : "Select Date",
@@ -26,20 +26,27 @@ const BookingDetail = ({ lang, toggleLang }) => {
         submit: lang === "zh" ? "提交預約" : "Submit Reservation",
         success: lang === "zh" ? "預約成功提交！" : "Reservation Submitted!",
         home: lang === "zh" ? "返回首頁" : "Return to Home",
-        language: lang === "zh" ? "English" : "中文"
+        language: lang === "zh" ? "English" : "中文",
+        services: {
+            "Cafe Visit": lang === "zh" ? "咖啡廳探訪" : "Cafe Visit",
+            "Dog Cake": lang === "zh" ? "狗狗蛋糕" : "Dog Cake",
+            "Dog Day Care": lang === "zh" ? "狗狗托育" : "Dog Day Care",
+            "Swimming Pool": lang === "zh" ? "狗狗游泳池" : "Swimming Pool"
+        }
     };
 
     const [email, setEmail] = useState("");
     const [code, setCode] = useState("");
     const [verified, setVerified] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [showSummary, setShowSummary] = useState(false);
+    const [timer, setTimer] = useState(null);
+    const [canResend, setCanResend] = useState(false);
 
+    const [showSummary, setShowSummary] = useState(false);
     const [selectedServices, setSelectedServices] = useState([]);
     const [availableSlots, setAvailableSlots] = useState({});
     const [date, setDate] = useState(null);
     const [time, setTime] = useState("");
-
     const [formData, setFormData] = useState({
         name: "",
         petName: "",
@@ -52,6 +59,41 @@ const BookingDetail = ({ lang, toggleLang }) => {
         "Dog Cake": "/icons/dog_cake.png",
         "Dog Day Care": "/icons/day_care.png",
         "Swimming Pool": "/icons/swimming_pool.png"
+    };
+
+    const officialHolidays = [
+        "2025-01-01", "2025-01-29", "2025-01-30", "2025-01-31",
+        "2025-04-04", "2025-04-18", "2025-04-19", "2025-04-21",
+        "2025-05-01", "2025-05-05", "2025-05-31",
+        "2025-07-01", "2025-10-01", "2025-10-07", "2025-10-29",
+        "2025-12-25", "2025-12-26"
+    ];
+
+    const formatDate = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    };
+
+    const isBookingDateSelectable = (date) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const day = date.getDay();
+        const formatted = formatDate(date);
+
+        if (date < today) return false;
+        if (officialHolidays.includes(formatted)) return false;
+        if (day === 1) return false;
+        return true;
+    };
+
+    const getDayLabel = (date) => {
+        const day = date.getDay();
+        const formatted = formatDate(date);
+        if (officialHolidays.includes(formatted)) return "Public Holiday";
+        if (day === 1) return "Cafe Closed";
+        return null;
     };
 
     const toggleService = (s) => {
@@ -82,41 +124,82 @@ const BookingDetail = ({ lang, toggleLang }) => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    useEffect(() => {
+        let interval;
+        if (timer !== null && timer > 0) {
+            interval = setInterval(() => {
+                setTimer(prev => prev - 1);
+            }, 1000);
+        } else if (timer === 0) {
+            setCanResend(true);
+            clearInterval(interval);
+        }
+        return () => clearInterval(interval);
+    }, [timer]);
+
     const sendVerificationCode = async () => {
+        if (!email) {
+            alert("Please enter your email.");
+            return;
+        }
         setLoading(true);
         try {
             await reservationApi.verifyEmail(email);
             alert("Verification code sent.");
+            setTimer(300);
+            setCanResend(false);
         } catch (err) {
             alert(err.message || "Failed to send code");
-
         } finally {
             setLoading(false);
         }
     };
 
-
     const verifyCode = async () => {
+        if (!code) {
+            alert("Please enter the verification code.");
+            return;
+        }
         setLoading(true);
         try {
             await reservationApi.verifyCode(email, code);
             setVerified(true);
-            alert("Email verified");
+            alert("Email verified successfully!");
         } catch (err) {
             alert(err.message || "Verification failed");
-
         } finally {
             setLoading(false);
         }
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!formData.name || !formData.petName || !formData.phone || !formData.message || !email || !verified || !date || !time || selectedServices.length === 0) {
             alert("Please complete all fields and verify your email.");
             return;
         }
-        setShowSummary(true);
+
+        const payload = {
+            customerInfo: {
+                name: formData.name,
+                email: email,
+                phone: formData.phone
+            },
+            date: formatDate(date), // YYYY-MM-DD 포맷
+            timeSlot: time,
+            selectedServices: selectedServices
+        };
+
+        try {
+            await reservationApi.create(payload);
+            alert("Reservation submitted successfully!");
+            setShowSummary(true);
+        } catch (err) {
+            alert(err.message || "Failed to submit reservation.");
+        }
     };
+
+
+
 
     return (
         <div className="p-6 max-w-2xl mx-auto space-y-6">
@@ -135,6 +218,7 @@ const BookingDetail = ({ lang, toggleLang }) => {
 
             {!showSummary ? (
                 <>
+                    {/* Services */}
                     <div>
                         <h2 className="text-lg font-bold mb-2">{t.service}</h2>
                         <div className="grid grid-cols-2 gap-4">
@@ -145,24 +229,42 @@ const BookingDetail = ({ lang, toggleLang }) => {
                                     className={`border rounded p-2 flex flex-col items-center ${selectedServices.includes(s) ? "bg-purple-500 text-white" : "bg-white"}`}
                                 >
                                     <img src={serviceIcons[s]} alt={s} className="h-10 mb-1" />
-                                    <span>{s}</span>
+                                    <span>{t.services[s]}</span>
                                 </button>
                             ))}
                         </div>
                     </div>
 
+                    {/* Date */}
                     <div>
                         <h2 className="text-lg font-bold mb-2">{t.date}</h2>
                         <DatePicker
                             selected={date}
                             onChange={(d) => setDate(d)}
+                            filterDate={isBookingDateSelectable}
+                            dayClassName={(date) => {
+                                const label = getDayLabel(date);
+                                if (label === "Public Holiday") return "text-red-500";
+                                if (label === "Cafe Closed") return "text-gray-400";
+                                return "";
+                            }}
+                            renderDayContents={(dayOfMonth, date) => {
+                                const label = getDayLabel(date);
+                                return label ? (
+                                    <div className="relative group">
+                                        <span>{dayOfMonth}</span>
+                                        <div className="absolute bottom-full mb-1 hidden group-hover:block text-xs bg-black text-white px-1 rounded">
+                                            {label}
+                                        </div>
+                                    </div>
+                                ) : <span>{dayOfMonth}</span>;
+                            }}
                             className="w-full border rounded p-2 mb-2"
                         />
-                        <button onClick={fetchAvailability} className="bg-purple-600 text-white px-4 py-2 rounded">
-                            {t.search}
-                        </button>
+                        <button onClick={fetchAvailability} className="bg-purple-600 text-white px-4 py-2 rounded">{t.search}</button>
                     </div>
 
+                    {/* Time */}
                     {getCommonSlots().length > 0 && (
                         <div>
                             <h2 className="text-lg font-bold mb-2">{t.time}</h2>
@@ -172,64 +274,68 @@ const BookingDetail = ({ lang, toggleLang }) => {
                                         key={tVal}
                                         onClick={() => setTime(tVal)}
                                         className={`border px-2 py-1 rounded ${time === tVal ? "bg-purple-500 text-white" : "bg-white"}`}
-
                                     >
                                         {tVal}
                                     </button>
                                 ))}
                             </div>
-
                         </div>
                     )}
 
-                    <div>
-                        <h2 className="text-lg font-bold mb-2">{t.name}</h2>
-                        <input name="name" required className="w-full border rounded p-2 mb-2" onChange={handleInput} />
+                    {/* Form */}
+                    <div className="space-y-4">
+                        <h2 className="text-lg font-bold">{t.name}</h2>
+                        <input name="name" required className="w-full border rounded p-2" onChange={handleInput} />
 
-                        <h2 className="text-lg font-bold mb-2">{t.petName}</h2>
-                        <input name="petName" required className="w-full border rounded p-2 mb-2" onChange={handleInput} />
+                        <h2 className="text-lg font-bold">{t.petName}</h2>
+                        <input name="petName" required className="w-full border rounded p-2" onChange={handleInput} />
 
-                        <h2 className="text-lg font-bold mb-2">{t.phone}</h2>
-                        <input name="phone" required className="w-full border rounded p-2 mb-2" onChange={handleInput} />
+                        <h2 className="text-lg font-bold">{t.phone}</h2>
+                        <input name="phone" required className="w-full border rounded p-2" onChange={handleInput} />
 
-                        <h2 className="text-lg font-bold mb-2">{t.message}</h2>
-                        <textarea name="message" required className="w-full border rounded p-2 mb-2" onChange={handleInput} />
+                        <h2 className="text-lg font-bold">{t.message}</h2>
+                        <textarea name="message" required className="w-full border rounded p-2" onChange={handleInput} />
 
-                        <h2 className="text-lg font-bold mb-2">{t.email}</h2>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={e => setEmail(e.target.value)}
-                            disabled={verified}
-                            className="w-full border rounded p-2 mb-2"
-                        />
+                        {/* Email Verification */}
                         {!verified && (
-                            <>
-                                <button
-                                    onClick={sendVerificationCode}
-                                    className="text-sm text-purple-600 underline mb-2"
-                                >
-                                    {t.sendCode}
-                                </button>
+                            <div className="space-y-2">
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={e => setEmail(e.target.value)}
+                                    className="w-full border rounded p-2"
+                                    placeholder={t.email}
+                                />
+                                {timer === null && !canResend && (
+                                    <button onClick={sendVerificationCode} className="text-sm text-purple-600 underline">{t.sendCode}</button>
+                                )}
+                                {timer !== null && timer > 0 && (
+                                    <div className="text-sm text-gray-600">
+                                        {Math.floor(timer / 60)}:{String(timer % 60).padStart(2, '0')}
+                                    </div>
+                                )}
+                                {canResend && (
+                                    <button onClick={sendVerificationCode} className="text-sm text-purple-600 underline">
+                                        Resend Verification Code
+                                    </button>
+                                )}
                                 <input
                                     type="text"
-                                    placeholder={t.enterCode}
                                     value={code}
                                     onChange={e => setCode(e.target.value)}
-                                    className="w-full border rounded p-2 mb-2"
+                                    placeholder={t.enterCode}
+                                    className="w-full border rounded p-2"
                                 />
-                                <button onClick={verifyCode} className="bg-purple-500 text-white px-4 py-2 rounded">
-                                    {t.verify}
-                                </button>
-                            </>
+                                <button onClick={verifyCode} className="bg-purple-500 text-white px-4 py-2 rounded">{t.verify}</button>
+                            </div>
                         )}
                     </div>
 
-                    <button onClick={handleSubmit} className="bg-purple-700 text-white px-6 py-2 rounded">
-                        {t.submit}
-                    </button>
+                    {/* Submit */}
+                    <button onClick={handleSubmit} className="bg-purple-700 text-white px-6 py-2 rounded">{t.submit}</button>
                 </>
             ) : (
+                // Summary 화면
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded p-6 shadow-md w-full max-w-md text-sm">
                         <h3 className="font-semibold text-purple-700 mb-4 text-lg">{t.success}</h3>
@@ -241,12 +347,7 @@ const BookingDetail = ({ lang, toggleLang }) => {
                         <p><strong>Service(s):</strong> {selectedServices.join(", ")}</p>
                         <p><strong>Date:</strong> {date?.toLocaleDateString()}</p>
                         <p><strong>Time:</strong> {time}</p>
-                        <button
-                            onClick={() => navigate(`/?lang=${lang}`)}
-                            className="mt-4 bg-purple-600 text-white px-4 py-2 rounded"
-                        >
-                            {t.home}
-                        </button>
+                        <button onClick={() => navigate(`/?lang=${lang}`)} className="mt-4 bg-purple-600 text-white px-4 py-2 rounded">{t.home}</button>
                     </div>
                 </div>
             )}
@@ -255,4 +356,3 @@ const BookingDetail = ({ lang, toggleLang }) => {
 };
 
 export default BookingDetail;
-

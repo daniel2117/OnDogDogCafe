@@ -107,23 +107,31 @@ const Step3PetImages = ({ formData, setFormData, next, back }) => {
                 </div>
 
                 <div className="flex justify-between">
-                    <button onClick={back} className="border border-purple-500 text-purple-500 px-6 py-2 rounded hover:bg-purple-50">◀ Back</button>
-
                     <button
-                        onClick={uploadAll}
-                        disabled={uploading}
-                        className="bg-gray-300 text-black px-6 py-2 rounded hover:bg-gray-400 disabled:opacity-50"
+                        onClick={back}
+                        className="border border-purple-500 text-purple-500 px-6 py-2 rounded hover:bg-purple-50"
                     >
-                        Upload
+                        ◀ Back
                     </button>
+
+                    {!uploaded && ( // ✨ 업로드 성공하면 Upload 버튼 아예 숨기기
+                        <button
+                            onClick={uploadAll}
+                            disabled={uploading}
+                            className="bg-gray-300 text-black px-6 py-2 rounded hover:bg-gray-400 disabled:opacity-50"
+                        >
+                            {uploading ? "Uploading..." : "Upload"}
+                        </button>
+                    )}
+
                     <button
                         onClick={handleNext}
                         className="bg-purple-500 text-white px-6 py-2 rounded hover:bg-purple-600"
                     >
                         Continue ▶
                     </button>
-
                 </div>
+
             </div>
         </div>
     );

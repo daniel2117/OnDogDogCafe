@@ -3,6 +3,7 @@ import { rehomingApi } from "../../services/api";
 
 const Step7Documents = ({ formData, setFormData, next, back, lang }) => {
     const [dragIndex, setDragIndex] = useState(null);
+    const [uploading, setUploading] = useState(false);
     const [uploaded, setUploaded] = useState(false);
 
     const handleImageChange = (index, file) => {
@@ -37,11 +38,20 @@ const Step7Documents = ({ formData, setFormData, next, back, lang }) => {
             const urls = (result || []).map(file => file.url);
             setFormData(prev => ({ ...prev, uploadedDocuments: urls }));
             setUploaded(true);
-            
+            alert("Upload success");
+
         } catch (err) {
             console.error("Upload failed:", err);
             alert(lang === 'zh' ? "文件上傳失敗" : "Failed to upload documents");
         }
+    };
+
+    const handleNext = () => {
+        if (!uploaded) {
+            alert("Please upload your images first.");
+            return;
+        }
+        next();
     };
 
     const t = {
@@ -98,16 +108,29 @@ const Step7Documents = ({ formData, setFormData, next, back, lang }) => {
                 </div>
 
                 <div className="flex justify-between">
-                    <button onClick={back} className="border border-purple-500 text-purple-500 px-6 py-2 rounded hover:bg-purple-50">◀ {t.back}</button>
                     <button
-                        onClick={uploadAll}
-                        className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
-                    >{t.upload}</button>
+                        onClick={back}
+                        className="border border-purple-500 text-purple-500 px-6 py-2 rounded hover:bg-purple-50"
+                    >
+                        ◀ Back
+                    </button>
+
+                    {!uploaded && ( // ✨ 업로드 성공하면 Upload 버튼 아예 숨기기
+                        <button
+                            onClick={uploadAll}
+                            disabled={uploading}
+                            className="bg-gray-300 text-black px-6 py-2 rounded hover:bg-gray-400 disabled:opacity-50"
+                        >
+                            {uploading ? "Uploading..." : "Upload"}
+                        </button>
+                    )}
+
                     <button
-                        onClick={next}
+                        onClick={handleNext}
                         className="bg-purple-500 text-white px-6 py-2 rounded hover:bg-purple-600"
-                        disabled={!uploaded}
-                    >{t.continue} ▶</button>
+                    >
+                        Continue ▶
+                    </button>
                 </div>
             </div>
         </div>

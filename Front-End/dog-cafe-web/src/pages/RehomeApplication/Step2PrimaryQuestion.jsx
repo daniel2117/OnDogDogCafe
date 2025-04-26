@@ -85,12 +85,12 @@ const Step2PrimaryQuestion = ({ formData, setFormData, next, back, lang }) => {
                 <button onClick={back} className="border border-gray-400 px-4 py-2 rounded">{t.back}</button>
                 <button onClick={handleNext} className="bg-purple-600 text-white px-4 py-2 rounded">{t.continue}</button>
             </div>
-            <button
+            {/* <button
                 onClick={next}
                 className="text-xs text-gray-400 underline"
             >
                 Skip verification for development →
-            </button>
+            </button> */}
         </div>
     );
 };

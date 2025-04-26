@@ -84,9 +84,49 @@ const Step8Confirm = ({ formData, back, lang }) => {
 
     const renderSummary = () => {
         const summary = [];
+
         for (const key in formData) {
             const value = formData[key];
-            if (typeof value === "string" || typeof value === "number") {
+
+            if (key === "uploadedPhotos" || key === "uploadedDocuments") {
+                continue;
+            }
+
+            if ((key === "photos" || key === "uploadedPhotos") && Array.isArray(value)) {
+                summary.push(
+                    <div key={key} className="mb-4">
+                        <strong>{key}:</strong>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                            {value.map((item, idx) => (
+                                <img
+                                    key={idx}
+                                    src={typeof item === "string"
+                                        ? item // uploadedPhotos일 경우 (string)
+                                        : URL.createObjectURL(item) // photos일 경우 (File 객체)
+                                    }
+                                    alt={`photo-${idx}`}
+                                    className="h-24 w-24 object-cover border rounded"
+                                />
+                            ))}
+                        </div>
+                    </div>
+                );
+
+
+            } else if ((key === "uploadedDocuments" || key === "documents") && Array.isArray(value)) {
+                summary.push(
+                    <div key={key} className="mb-4">
+                        <strong>{key}:</strong>
+                        <ul className="list-disc list-inside text-xs ml-2 mt-2">
+                            {value.map((doc, idx) => (
+                                <li key={idx}>
+                                    {doc.name || "Uploaded file"}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                );
+            } else if (typeof value === "string" || typeof value === "number") {
                 summary.push(
                     <div key={key} className="mb-2">
                         <strong>{key}:</strong> {value}
@@ -105,6 +145,7 @@ const Step8Confirm = ({ formData, back, lang }) => {
         }
         return summary;
     };
+
 
     return (
         <div className="min-h-screen bg-white flex flex-col items-center px-6 py-12">
