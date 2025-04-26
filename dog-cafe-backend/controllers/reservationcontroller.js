@@ -35,10 +35,10 @@ const reservationController = {
         const availableSlots = {};
         Object.values(SERVICES).forEach(service => {
             availableSlots[service] = TIME_SLOTS.filter(slot => {
-                const conflictingReservation = reservations.find(r => 
+                const serviceReservations = reservations.filter(r => 
                     r.timeSlot === slot && r.selectedServices.includes(service)
                 );
-                return !conflictingReservation;
+                return serviceReservations.length < 2;
             });
         });
     
@@ -155,14 +155,27 @@ const reservationController = {
             const existingReservations = await Reservation.find({
                 date: reservationDate,
                 timeSlot,
-                selectedServices: { $in: selectedServices },
                 status: { $ne: 'cancelled' }
             });
 
-            if (existingReservations.length > 0) {
+            // Check if maximum bookings limit is reached
+            if (existingReservations.length >= 2) {
                 return res.status(400).json({
-                    message: 'One or more selected services are not available for this time slot'
+                    message: 'This time slot is fully booked'
                 });
+            }
+
+            // Check if services are available
+            for (const service of selectedServices) {
+                const serviceBookings = existingReservations.filter(reservation => 
+                    reservation.selectedServices.includes(service)
+                );
+                
+                if (serviceBookings.length >= 2) {
+                    return res.status(400).json({
+                        message: `Service ${service} is fully booked for this time slot`
+                    });
+                }
             }
 
             // Check if services are valid
