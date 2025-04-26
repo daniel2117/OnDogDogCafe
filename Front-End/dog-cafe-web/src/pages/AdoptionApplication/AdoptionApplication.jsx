@@ -19,7 +19,7 @@ const steps = [
     Step7Confirmation,
 ];
 
-const AdoptionApplication = (lang, toggleLang) => {
+const AdoptionApplication = ({ lang, toggleLang }) => {
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: "auto" });
     }, []);
