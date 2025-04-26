@@ -106,12 +106,12 @@ const Step4Characteristics = ({ formData, setFormData, next, back, lang }) => {
                     <button onClick={back} className="border border-purple-500 text-purple-500 px-6 py-2 rounded hover:bg-purple-50">◀ {t.back}</button>
                     <button onClick={handleNext} className="bg-purple-500 text-white px-6 py-2 rounded hover:bg-purple-600">{t.continue} ▶</button>
                 </div>
-                <button
+                {/* <button
                     onClick={next}
                     className="text-xs text-gray-400 underline"
                 >
                     Skip verification for development →
-                </button>
+                </button> */}
             </div>
         </div>
     );

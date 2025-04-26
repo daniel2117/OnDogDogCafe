@@ -102,12 +102,12 @@ const Step5KeyFacts = ({ formData, setFormData, next, back, lang }) => {
                         {lang === 'zh' ? '繼續' : 'Continue'} ▶
                     </button>
                 </div>
-                <button
+                {/* <button
                     onClick={next}
                     className="text-xs text-gray-400 underline"
                 >
                     Skip verification for development →
-                </button>
+                </button> */}
             </div>
         </div>
     );

@@ -10,13 +10,33 @@ const Step1Start = ({ formData, setFormData, next, lang, toggleLang }) => {
     const [agree, setAgree] = useState(false);
     const [loading, setLoading] = useState(false);
 
+    const [timer, setTimer] = useState(null); // 초기값 null
+    const [canResend, setCanResend] = useState(false); // 초기값 false
+
+
+    useEffect(() => {
+        let interval;
+        if (timer !== null && timer > 0) {
+            interval = setInterval(() => {
+                setTimer(prev => prev - 1);
+            }, 1000);
+        } else if (timer === 0) {
+            setCanResend(true);
+            clearInterval(interval);
+        }
+        return () => clearInterval(interval);
+    }, [timer]);
+
+
     const sendVerification = async () => {
         setLoading(true);
         try {
             await reservationApi.verifyEmail(email);
             alert(lang === 'zh' ? '驗證碼已發送到您的電子郵件。' : "Verification code sent to your email.");
+            setTimer(300); // ✨ 추가: 5분(300초) 타이머 시작
+            setCanResend(false); // ✨ 추가
         } catch (e) {
-            alert(e.message || lang === 'zh' ? '未能發送驗證碼。' : "Failed to send verification code.");
+            alert(e.message || (lang === 'zh' ? '未能發送驗證碼。' : "Failed to send verification code."));
         } finally {
             setLoading(false);
         }
@@ -48,8 +68,13 @@ const Step1Start = ({ formData, setFormData, next, lang, toggleLang }) => {
 
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: "auto" });
-
     }, []);
+
+    const formatTime = (seconds) => {
+        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const s = (seconds % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+    }; // ✨ 추가: 남은 시간 포맷
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-start px-4 py-10">
@@ -80,12 +105,34 @@ const Step1Start = ({ formData, setFormData, next, lang, toggleLang }) => {
                             disabled={emailVerified}
                         />
                         {!emailVerified && (
-                            <button
-                                onClick={sendVerification}
-                                className="mt-2 text-xs text-purple-600 underline"
-                            >
-                                {lang === 'zh' ? '發送驗證碼' : 'Send Verification Code'}
-                            </button>
+                            <>
+                                <div className="flex items-center gap-2 mt-2">
+                                    {timer === null && (
+                                        <button
+                                            onClick={sendVerification}
+                                            className="text-xs text-purple-600 underline"
+                                            disabled={loading}
+                                        >
+                                            {lang === 'zh' ? '發送驗證碼' : 'Send Verification Code'}
+                                        </button>
+                                    )}
+                                    {timer !== null && timer > 0 && (
+                                        <div className="text-xs text-gray-500">
+                                            {formatTime(timer)}
+                                        </div>
+                                    )}
+                                    {canResend && (
+                                        <button
+                                            onClick={sendVerification}
+                                            className="text-xs text-purple-600 underline"
+                                            disabled={loading}
+                                        >
+                                            {lang === 'zh' ? '重新發送驗證碼' : 'Resend Verification Code'}
+                                        </button>
+                                    )}
+                                </div>
+
+                            </>
                         )}
                     </div>
 
@@ -101,6 +148,7 @@ const Step1Start = ({ formData, setFormData, next, lang, toggleLang }) => {
                             <button
                                 onClick={verifyCode}
                                 className="mt-2 text-xs text-purple-600 underline"
+                                disabled={loading}
                             >
                                 {lang === 'zh' ? '驗證碼' : 'Verify Code'}
                             </button>
@@ -145,7 +193,6 @@ const Step1Start = ({ formData, setFormData, next, lang, toggleLang }) => {
                                 {lang === 'zh' ? '條款/隱私政策' : 'Terms/Privacy'}
                             </a>
                         </span>
-
                     </label>
 
                     <div className="text-center space-y-4">
@@ -156,14 +203,6 @@ const Step1Start = ({ formData, setFormData, next, lang, toggleLang }) => {
                         >
                             {lang === 'zh' ? '開始' : 'Start'}
                         </button>
-                        <div>
-                            <button
-                                onClick={next}
-                                className="text-xs text-gray-400 underline"
-                            >
-                                Skip verification for development →
-                            </button>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -171,5 +210,4 @@ const Step1Start = ({ formData, setFormData, next, lang, toggleLang }) => {
     );
 };
 
-// 언어 context props 활용 버전
 export default Step1Start;
