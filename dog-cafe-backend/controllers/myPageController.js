@@ -35,22 +35,25 @@ const myPageController = {
 
         // Transform the data into a unified format
         const formattedReservations = reservations.map(r => ({
+            id: r._id,
             type: 'reservation',
             date: r.date,
             time: r.timeSlot,
             reservedFacility: r.selectedServices.join(', '),
             specialRequest: r.customerInfo.specialRequest || 'n/a',
-            status: r.status
+            status: 'confirmed'  // Always confirmed as per requirement
         }));
 
         const formattedAdoptions = adoptions.map(a => ({
+            id: a._id,
             type: 'adoption',
             date: a.submittedAt,
-            name: a.dogId ? a.dogId.name : 'Unknown Dog',  // Update this line
+            name: a.dogId ? a.dogId.name : 'Unknown Dog',
             status: a.status
         }));
 
         const formattedRehoming = rehoming.map(r => ({
+            id: r._id,
             type: 'rehoming',
             date: r.createdAt,
             petName: r.petInfo.name,
