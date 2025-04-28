@@ -94,10 +94,8 @@ const validators = {
     isValidAdoptionApplication: (application) => {
         const errors = [];
 
-        // Add dogId validation
-        if (!application.dogId) {
-            errors.push('Dog ID is required');
-        } else if (!validators.isValidObjectId(application.dogId)) {
+        // Make dogId validation optional
+        if (application.dogId && !validators.isValidObjectId(application.dogId)) {
             errors.push('Invalid Dog ID format');
         }
 
