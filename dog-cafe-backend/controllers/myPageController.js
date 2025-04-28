@@ -23,7 +23,8 @@ const myPageController = {
 
             // Get adoption applications
             AdoptionApplication.find({ email: email })  // Changed from 'personalInfo.email'
-                .select('submittedAt status firstName lastName')
+                .select('submittedAt status firstName lastName dogId')
+                .populate('dogId', 'name')  // Add this line to get dog info
                 .sort({ submittedAt: -1 }),
 
             // Get rehoming applications
@@ -45,7 +46,7 @@ const myPageController = {
         const formattedAdoptions = adoptions.map(a => ({
             type: 'adoption',
             date: a.submittedAt,
-            name: `${a.firstName} ${a.lastName}`,  // Changed from dog?.name
+            name: a.dogId ? a.dogId.name : 'Unknown Dog',  // Update this line
             status: a.status
         }));
 
