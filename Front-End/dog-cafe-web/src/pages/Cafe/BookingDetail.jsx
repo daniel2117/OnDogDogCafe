@@ -32,7 +32,14 @@ const BookingDetail = ({ lang, toggleLang }) => {
             "Dog Cake": lang === "zh" ? "狗狗蛋糕" : "Dog Cake",
             "Dog Day Care": lang === "zh" ? "狗狗托育" : "Dog Day Care",
             "Swimming Pool": lang === "zh" ? "狗狗游泳池" : "Swimming Pool"
-        }
+        },
+        numberOfPeople: lang === "zh" ? "訪客人數" : "Number of People",
+        petNameGuide: lang === "zh"
+            ? "如果沒有攜帶寵物，可以選擇0。"
+            : "If you are visiting without a pet, you can select 0.",
+        peopleGuide: lang === "zh"
+            ? "請選擇您一同來訪的人數。"
+            : "Please select how many people are visiting.",
     };
 
     const [email, setEmail] = useState("");
@@ -50,9 +57,13 @@ const BookingDetail = ({ lang, toggleLang }) => {
     const [formData, setFormData] = useState({
         name: "",
         petName: "",
+        bringingPet: "",
+        numberOfPeople: "",
         phone: "",
         message: ""
-    });
+      });
+      
+
 
     const serviceIcons = {
         "Cafe Visit": "/icons/cafe_visit.png",
@@ -182,12 +193,15 @@ const BookingDetail = ({ lang, toggleLang }) => {
             customerInfo: {
                 name: formData.name,
                 email: email,
-                phone: formData.phone
+                phone: formData.phone,
             },
-            date: formatDate(date), // YYYY-MM-DD 포맷
+            date: formatDate(date),
             timeSlot: time,
-            selectedServices: selectedServices
+            selectedServices: selectedServices,
+            numberOfPeople: formData.numberOfPeople,
+            petName: formData.petName
         };
+        
 
         try {
             await reservationApi.create(payload);
@@ -287,8 +301,61 @@ const BookingDetail = ({ lang, toggleLang }) => {
                         <h2 className="text-lg font-bold">{t.name}</h2>
                         <input name="name" required className="w-full border rounded p-2" onChange={handleInput} />
 
-                        <h2 className="text-lg font-bold">{t.petName}</h2>
-                        <input name="petName" required className="w-full border rounded p-2" onChange={handleInput} />
+                        <h2 className="text-lg font-bold">{lang === 'zh' ? "您會攜帶寵物嗎？" : "Are you bringing a pet?"}</h2>
+                        <div className="flex gap-6 mb-4">
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="radio"
+                                    name="bringingPet"
+                                    value="yes"
+                                    checked={formData.bringingPet === "yes"}
+                                    onChange={handleInput}
+                                />
+                                {lang === 'zh' ? "是" : "Yes"}
+                            </label>
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="radio"
+                                    name="bringingPet"
+                                    value="no"
+                                    checked={formData.bringingPet === "no"}
+                                    onChange={handleInput}
+                                />
+                                {lang === 'zh' ? "否" : "No"}
+                            </label>
+                        </div>
+
+
+                        {formData.bringingPet === "yes" && (
+                            <>
+                                <h2 className="text-lg font-bold">{t.petName}</h2>
+                                <input
+                                    name="petName"
+                                    value={formData.petName}
+                                    onChange={handleInput}
+                                    className="w-full border rounded p-2 mb-2"
+                                    placeholder={lang === 'zh' ? "寵物名字" : "Pet Name"}
+                                />
+                            </>
+                        )}
+
+
+                        <h2 className="text-lg font-bold">{t.numberOfPeople}</h2>
+                        <select
+                            name="numberOfPeople"
+                            className="w-full border rounded p-2 mb-1"
+                            value={formData.numberOfPeople}
+                            onChange={handleInput}
+                        >
+                            <option value="">{lang === 'zh' ? "請選擇" : "Please select"}</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5+">5+</option>
+                        </select>
+                        <p className="text-xs text-gray-500 mb-6">{t.peopleGuide}</p>
+
 
                         <h2 className="text-lg font-bold">{t.phone}</h2>
                         <input name="phone" required className="w-full border rounded p-2" onChange={handleInput} />

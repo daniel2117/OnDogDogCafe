@@ -13,10 +13,42 @@ const Step7Confirmation = ({ formData, back }) => {
     const handleApply = async () => {
         setSubmitting(true);
         try {
-            const response = await adoptionApi.apply(formData);
+            console.log("Raw formData:", formData);
+
+            const body = {
+                email: formData.email || "",
+                firstName: formData.firstName || "",
+                lastName: formData.lastName || "",
+                phone: formData.phone || "",
+                address: {
+                    line1: formData.line1 || "",
+                    line2: formData.line2 || "",
+                    town: formData.town || ""
+                },
+                garden: formData.garden || "",
+                homeSituation: formData.homeSituation || "",
+                householdSetting: formData.householdSetting || "",
+                activityLevel: formData.activityLevel || "",
+                incomeLevel: formData.incomeLevel || "",
+                homeImages: (formData.homeImages || []).map(img => img.url || img) || [],
+                adults: formData.adults || "",
+                children: formData.children || "",
+                youngestAge: formData.youngestAge || "",
+                hasVisitingChildren: formData.hasVisitingChildren || "",
+                hasFlatmates: formData.hasFlatmates || "",
+                hasOtherAnimals: formData.hasOtherAnimals || "",
+                neutered: formData.neutered || "",
+                vaccinated: formData.vaccinated || ""
+            };
+
+
+
+            console.log("Formatted body for API:", body);
+
+            const response = await adoptionApi.apply(body);
             console.log("Adoption application submitted:", response);
             alert("Your adoption application has been submitted successfully!");
-            navigate("/profile");
+            navigate(`/`);
         } catch (error) {
             console.error("Failed to submit adoption application:", error);
             alert("Failed to submit adoption application. Please try again later.");
@@ -24,6 +56,7 @@ const Step7Confirmation = ({ formData, back }) => {
             setSubmitting(false);
         }
     };
+
 
     return (
         <div className="min-h-screen bg-white flex flex-col items-center px-6 py-12">
@@ -65,15 +98,18 @@ const Step7Confirmation = ({ formData, back }) => {
                             <h3 className="text-sm font-semibold mb-2">Uploaded Home Images:</h3>
                             <div className="flex flex-wrap gap-4">
                                 {formData.homeImages.map((img, idx) => (
-                                    img instanceof File ? (
+                                    img && (img.file || img.url) ? (
                                         <img
                                             key={idx}
-                                            src={URL.createObjectURL(img)}
+                                            src={img.file ? URL.createObjectURL(img.file) : img.url}
                                             alt={`home-${idx}`}
                                             className="h-24 w-24 object-cover rounded border"
                                         />
                                     ) : (
-                                        <div key={idx} className="h-24 w-24 flex items-center justify-center border rounded text-gray-400 text-xs">
+                                        <div
+                                            key={idx}
+                                            className="h-24 w-24 flex items-center justify-center border rounded text-gray-400 text-xs"
+                                        >
                                             No Image
                                         </div>
                                     )
@@ -81,6 +117,7 @@ const Step7Confirmation = ({ formData, back }) => {
                             </div>
                         </div>
                     )}
+
                 </div>
 
                 {/* Buttons */}

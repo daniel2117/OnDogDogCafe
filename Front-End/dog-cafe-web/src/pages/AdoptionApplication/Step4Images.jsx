@@ -9,12 +9,15 @@ const Step4Images = ({ formData, setFormData, next, back, lang, toggleLang }) =>
     const [dragIndex, setDragIndex] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [uploaded, setUploaded] = useState(false);
+    const [localFiles, setLocalFiles] = useState([]); // ✨ File 객체 저장용
+
 
     const handleImageChange = (index, file) => {
         const updated = [...(formData.homeImages || [])];
-        updated[index] = file;
+        updated[index] = { file, url: null }; // 처음에는 파일만 넣고 URL은 null
         setFormData(prev => ({ ...prev, homeImages: updated }));
     };
+
 
     const handleDrop = (index, event) => {
         event.preventDefault();
@@ -26,11 +29,14 @@ const Step4Images = ({ formData, setFormData, next, back, lang, toggleLang }) =>
     };
 
     const handleUpload = async () => {
-        const files = (formData.homeImages || []).filter(Boolean);
+        const images = (formData.homeImages || []).filter(Boolean);
+        const files = images.map(img => img.file).filter(Boolean);
+
         if (files.length < 2) {
             alert(lang === 'zh' ? "請至少上傳2張圖片。" : "Please upload at least 2 images.");
             return;
         }
+
         const formDataToSend = new FormData();
         files.forEach(file => formDataToSend.append("files", file));
 
@@ -38,9 +44,18 @@ const Step4Images = ({ formData, setFormData, next, back, lang, toggleLang }) =>
         try {
             const res = await adoptionApi.upload(formDataToSend);
             console.log("Uploaded images:", res);
+
+            if (Array.isArray(res) && res.length > 0) {
+                const updated = images.map((img, idx) => ({
+                    file: img.file,
+                    url: res[idx]?.url || null
+                }));
+
+                setFormData(prev => ({ ...prev, homeImages: updated }));
+            }
+
             setUploaded(true);
             alert(lang === 'zh' ? "圖片上傳成功！" : "Images uploaded successfully!");
-            // 업로드된 URL을 formData에 저장하고 싶으면 여기서 추가로 처리 가능
         } catch (error) {
             console.error("Upload failed:", error);
             alert(lang === 'zh' ? "圖片上傳失敗。" : "Failed to upload images.");
@@ -48,6 +63,9 @@ const Step4Images = ({ formData, setFormData, next, back, lang, toggleLang }) =>
             setUploading(false);
         }
     };
+
+
+
 
     const handleNext = () => {
         const uploadedCount = (formData.homeImages || []).filter(Boolean).length;
@@ -86,10 +104,15 @@ const Step4Images = ({ formData, setFormData, next, back, lang, toggleLang }) =>
                             onDragLeave={() => setDragIndex(null)}
                             onDrop={(e) => handleDrop(index, e)}
                         >
-                            <div className="text-xs font-semibold mb-2">{index + 1}. {index === 0 ? (lang === 'zh' ? "主要圖片" : "Main") : ""}</div>
+                            <div className="text-xs font-semibold mb-2">
+                                {index + 1}. {index === 0 ? (lang === 'zh' ? "主要圖片" : "Main") : ""}
+                            </div>
+
                             {formData.homeImages && formData.homeImages[index] ? (
                                 <img
-                                    src={URL.createObjectURL(formData.homeImages[index])}
+                                    src={formData.homeImages[index].file
+                                        ? URL.createObjectURL(formData.homeImages[index].file)
+                                        : formData.homeImages[index].url}
                                     alt={`Upload ${index + 1}`}
                                     className="h-32 w-32 object-cover rounded mb-2"
                                 />
