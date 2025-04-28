@@ -54,16 +54,16 @@ const validateReservation = (req, res, next) => {
 };
 
 const validateAdoptionApplication = (req, res, next) => {
-    const { dogId, livingArrangement, experience, reason, income } = req.body;
+    const { livingArrangement, experience, reason } = req.body;
 
-    if (!dogId || !livingArrangement || !experience || !reason ) {
+    if (!livingArrangement || !experience || !reason ) {
         return res.status(400).json({
-            message: 'Please provide all required fields: dogId, livingArrangement, experience, reason, income'
+            message: 'Please provide all required fields: livingArrangement, experience, reason'
         });
     }
 
-    // Validate dogId format
-    if (!dogId.match(/^[0-9a-fA-F]{24}$/)) {
+    // Optional dogId validation
+    if (req.body.dogId && !req.body.dogId.match(/^[0-9a-fA-F]{24}$/)) {
         return res.status(400).json({
             message: 'Invalid dog ID format'
         });

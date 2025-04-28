@@ -3,8 +3,7 @@ const mongoose = require('mongoose');
 const adoptionApplicationSchema = new mongoose.Schema({
     dogId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Dog',
-        required: true
+        ref: 'Dog'
     },
     email: {
         type: String,
