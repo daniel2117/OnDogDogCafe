@@ -63,6 +63,16 @@ const reservationSchema = new mongoose.Schema({
             message: 'Invalid time slot'
         }
     },
+    numberOfPeople: {
+        type: Number,
+        required: [true, 'Number of people is required'],
+        min: [1, 'Minimum number of people is 1'],
+        max: [10, 'Maximum number of people is 10'],
+        validate: {
+            validator: Number.isInteger,
+            message: 'Number of people must be a whole number'
+        }
+    },
     selectedServices: [{
         type: String,
         enum: {
