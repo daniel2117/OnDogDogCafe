@@ -94,15 +94,6 @@ const adoptionController = {
     }),
 
     createAdoptionApplication: asyncHandler(async (req, res) => {
-        // Validate the application data
-        const validation = validators.isValidAdoptionApplication(req.body);
-        if (!validation.isValid) {
-            return res.status(400).json({
-                message: 'Invalid application data',
-                errors: validation.errors
-            });
-        }
-
         // Process file URLs to get GridFS IDs
         const imageIds = (req.body.homeImages || []).map(url => {
             const segments = url.split('/');
@@ -123,14 +114,20 @@ const adoptionController = {
             // Create application with direct URLs
             const application = await AdoptionApplication.create(req.body);
 
-            // Send confirmation email
-            await emailService.sendAdoptionApplicationConfirmation(req.body.email, {
-                customerInfo: {
-                    name: `${req.body.firstName} ${req.body.lastName}`
-                },
-                _id: application._id,
-                status: 'pending'
-            });
+            // Send confirmation email with proper data structure
+            await emailService.sendAdoptionApplicationConfirmation(
+                application.email,  // Use application.email directly
+                {
+                    customerInfo: {
+                        name: `${application.firstName} ${application.lastName}`  // Construct name from application data
+                    },
+                    dog: {
+                        name: 'Adoption Application'  // Default value since we might not have a specific dog
+                    },
+                    _id: application._id,
+                    status: application.status || 'pending'
+                }
+            );
 
             res.status(201).json({
                 message: 'Application submitted successfully',

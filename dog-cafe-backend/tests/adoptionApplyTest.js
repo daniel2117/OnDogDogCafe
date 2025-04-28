@@ -17,11 +17,12 @@ const testAdoptionApplication = async () => {
             firstName: 'Jeffrey',
             lastName: 'Cheng',
             address: {
-                line1: '123 Test St',
+                line1: '123 Test Street',      // Keep as clean string without comments
                 line2: 'Apt 4B',
-                town: 'Test Town'
+                town: 'Test Town',
+                country: 'Taiwan'
             },
-            phone: '+1234567890',
+            phone: '+886912345678',
             garden: 'yes',
             homeSituation: 'house',
             householdSetting: 'family',
@@ -36,7 +37,8 @@ const testAdoptionApplication = async () => {
             hasOtherAnimals: 'no',
             neutered: 'yes',
             vaccinated: 'yes',
-            homeImages: homeImages
+            homeImages: homeImages,
+            experience: 'Had dogs before'  // Added missing field
         };
 
         console.log('Submitting application with data:', JSON.stringify(applicationData, null, 2));
