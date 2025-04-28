@@ -94,6 +94,13 @@ const validators = {
     isValidAdoptionApplication: (application) => {
         const errors = [];
 
+        // Add dogId validation
+        if (!application.dogId) {
+            errors.push('Dog ID is required');
+        } else if (!validators.isValidObjectId(application.dogId)) {
+            errors.push('Invalid Dog ID format');
+        }
+
         // Basic required field checks
         if (!application.email || !validators.isValidEmail(application.email)) {
             errors.push('Valid email is required');
