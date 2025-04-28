@@ -17,6 +17,7 @@ import RehomeApplication from "./pages/RehomeApplication/RehomeApplication";
 
 //MyPage
 import MyPage from "./pages/MyPage/MyPage";
+import MyPageHome from "./pages/MyPage/MyPageHome";
 
 function App() {
   const [lang, setLang] = useState("en"); // "en" or "zh"
@@ -43,6 +44,7 @@ function App() {
         <Route path="/rehome/apply" element={<RehomeApplication lang={lang} toggleLang={toggleLang} />} />
         {/* MyPage */}
         <Route path="/mypage" element={<MyPage lang={lang} toggleLang={toggleLang} />} />
+        <Route path="/mypage/home" element={<MyPageHome lang={lang} toggleLang={toggleLang} />} />
       </Routes>
     </Router>
   );

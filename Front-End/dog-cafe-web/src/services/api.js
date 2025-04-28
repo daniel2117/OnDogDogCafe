@@ -41,6 +41,28 @@ export const adoptionApi = {
             throw err.response?.data || { message: 'Failed to fetch filters' };
         }
     },
+    upload: async (files) => {
+        try {
+            const formData = new FormData();
+            files.forEach((file) => {
+                formData.append("images", file);
+            });
+
+            const res = await axiosInstance.post(
+                `/adoption/upload/images`,
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to upload adoption photo' };
+        }
+
+    },
     apply: async (data) => {
         try {
             const res = await axiosInstance.post('/adoption/apply', data);

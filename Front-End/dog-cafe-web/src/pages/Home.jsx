@@ -25,8 +25,10 @@ const Home = ({ lang, toggleLang }) => {
 
     const texts = {
         en: {
+            myPage: "My Page",
+            contactUs: "Contact Us",
             explore: "Explore Now",
-            cafe: "Cafe",
+            cafe: "Make a reservation",
             adoption: "Adoption",
             heroTitle: "One More Friend",
             heroSubtitle: "Thousands More Fun!",
@@ -54,8 +56,10 @@ const Home = ({ lang, toggleLang }) => {
             ]
         },
         zh: {
+            myPage: "我的頁面",
+            contactUs: "聯繫我們",
             explore: "立即探索",
-            cafe: "咖啡廳",
+            cafe: "預訂一下",
             adoption: "領養狗狗",
             heroTitle: "多一位朋友",
             heroSubtitle: "多千倍歡樂！",
@@ -100,13 +104,13 @@ const Home = ({ lang, toggleLang }) => {
                         onClick={() => navigate(`/mypage?lang=${lang}`)}
                         className="border px-4 py-2 rounded hover:bg-gray-100"
                     >
-                        My Page
+                        {t.myPage}
                     </button>
                     <button
                         onClick={() => navigate(`/contactus?lang=${lang}`)}
                         className="border px-4 py-2 rounded hover:bg-gray-100"
                     >
-                        Contact Us
+                        {t.contactUs}
                     </button>
                 </div>
             </div>
@@ -138,14 +142,14 @@ const Home = ({ lang, toggleLang }) => {
                                 onClick={() => navigate(`/booking?lang=${lang}`)}
                                 className="bg-[#457b9d] text-white px-6 py-2 rounded hover:bg-[#35607b]"
                             >
-                                {t.explore}
+                                {t.cafe}
                             </button>
-                            <button
+                            {/* <button
                                 onClick={() => navigate(`/bookingDetail?lang=${lang}`)}
                                 className="border border-[#457b9d] text-[#457b9d] px-6 py-2 rounded hover:bg-[#f1faee]"
                             >
                                 {t.cafe}
-                            </button>
+                            </button> */}
                         </div>
                     </div>
 
