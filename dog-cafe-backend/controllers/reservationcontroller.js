@@ -105,14 +105,21 @@ const reservationController = {
 
     // Create reservation with multiple services
     createReservation: asyncHandler(async (req, res) => {
-        const { customerInfo, date, timeSlot, selectedServices } = req.body;
+        const { customerInfo, date, timeSlot, selectedServices, numberOfPeople } = req.body;
 
         try {
             // Validate required fields
             if (!customerInfo?.name || !customerInfo?.email || !customerInfo?.phone || 
-                !date || !timeSlot || !selectedServices?.length) {
+                !date || !timeSlot || !selectedServices?.length || !numberOfPeople) {
                 return res.status(400).json({
                     message: 'All required fields must be provided'
+                });
+            }
+
+            // Validate number of people
+            if (!Number.isInteger(numberOfPeople) || numberOfPeople < 1 || numberOfPeople > 10) {
+                return res.status(400).json({
+                    message: 'Number of people must be between 1 and 10'
                 });
             }
 
@@ -195,6 +202,7 @@ const reservationController = {
                 date: reservationDate,
                 timeSlot,
                 selectedServices,
+                numberOfPeople,
                 status: 'pending'
             });
 
