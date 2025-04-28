@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const MyPageHome = ({ lang, toggleLang }) => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState("Reservation");
+    const [applications, setApplications] = useState({ reservations: [], adoptions: [], rehoming: [] });
 
     const tabs = ["Reservation", "Adoption", "Rehoming"];
 
@@ -12,6 +13,41 @@ const MyPageHome = ({ lang, toggleLang }) => {
         adoption: lang === "zh" ? "領養" : "Adoption",
         rehoming: lang === "zh" ? "重新安置" : "Rehoming",
         returnHome: lang === "zh" ? "返回首頁" : "Return Home"
+    };
+
+    useEffect(() => {
+        const data = localStorage.getItem("applications");
+        if (data) {
+            setApplications(JSON.parse(data));
+        }
+    }, []);
+
+    const renderTableRows = () => {
+        if (activeTab === "Reservation") {
+            return applications.reservations.map((item, idx) => (
+                <tr key={idx} className="border-b">
+                    <td className="py-2">{new Date(item.date).toLocaleDateString()}</td>
+                    <td className="py-2">{item.time}</td>
+                    <td className="py-2 capitalize">{item.status}</td>
+                </tr>
+            ));
+        } else if (activeTab === "Adoption") {
+            return applications.adoptions.map((item, idx) => (
+                <tr key={idx} className="border-b">
+                    <td className="py-2">{new Date(item.date).toLocaleDateString()}</td>
+                    <td className="py-2">{item.name}</td>
+                    <td className="py-2 capitalize">{item.status}</td>
+                </tr>
+            ));
+        } else if (activeTab === "Rehoming") {
+            return applications.rehoming.map((item, idx) => (
+                <tr key={idx} className="border-b">
+                    <td className="py-2">{new Date(item.date).toLocaleDateString()}</td>
+                    <td className="py-2">{item.petName}</td>
+                    <td className="py-2 capitalize">{item.status}</td>
+                </tr>
+            ));
+        }
     };
 
     return (
@@ -47,36 +83,21 @@ const MyPageHome = ({ lang, toggleLang }) => {
                 </div>
 
                 {/* Table */}
-                <div className="border p-4 rounded mb-8">
+                <div className="border p-4 rounded mb-8 overflow-x-auto">
                     <h3 className="font-semibold mb-4">
-                        {activeTab === "Reservation" ? "My Booking" : "My Application"}
+                        {activeTab === "Reservation" ? (lang === 'zh' ? "我的預約" : "My Booking") : (lang === 'zh' ? "我的申請" : "My Application")}
                     </h3>
 
                     <table className="w-full text-sm">
                         <thead>
                             <tr className="border-b">
                                 <th className="text-left py-2">Date</th>
-                                {activeTab !== "Rehoming" && <th className="text-left py-2">Time</th>}
-                                <th className="text-left py-2">Application Status</th>
+                                <th className="text-left py-2">{activeTab === "Reservation" ? "Time" : "Pet / Application"}</th>
+                                <th className="text-left py-2">Status</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {/* 예시 데이터 (나중에 실제 데이터로 교체) */}
-                            <tr className="border-b">
-                                <td className="py-2">2025.04.12</td>
-                                {activeTab !== "Rehoming" && <td className="py-2">15:00</td>}
-                                <td className="py-2">
-                                    <div className="flex gap-2">
-                                        <button className="bg-purple-500 text-white px-3 py-1 rounded text-xs">View Application</button>
-                                        {activeTab !== "Reservation" && (
-                                            <>
-                                                <button className="bg-purple-500 text-white px-3 py-1 rounded text-xs">Book to Visit</button>
-                                                <button className="bg-gray-400 text-white px-3 py-1 rounded text-xs">Withdraw</button>
-                                            </>
-                                        )}
-                                    </div>
-                                </td>
-                            </tr>
+                            {renderTableRows()}
                         </tbody>
                     </table>
                 </div>

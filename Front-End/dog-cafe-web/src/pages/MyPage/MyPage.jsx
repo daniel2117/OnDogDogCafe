@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { reservationApi } from "../../services/api";
+import { reservationApi, myPageApi } from "../../services/api";
 
 const MyPage = ({ lang, toggleLang }) => {
     const [email, setEmail] = useState("");
@@ -54,14 +54,23 @@ const MyPage = ({ lang, toggleLang }) => {
             await reservationApi.verifyCode(email, code);
             setVerified(true);
             alert("Email verified successfully!");
-            navigate("/mypage/home"); // ✅ verify 성공하면 이쪽으로 이동
+
+            // ✅ 여기서 myPageApi.getApplications 호출
+            const applications = await myPageApi.getApplications(email);
+            console.log("Fetched Applications:", applications);
+
+            // 가져온 applications를 localStorage에 저장하거나
+            localStorage.setItem("applications", JSON.stringify(applications));
+
+            // /mypage/home 으로 이동
+            navigate("/mypage/home");
         } catch (err) {
             alert(err.message || "Verification failed.");
         } finally {
             setLoading(false);
         }
     };
-    
+
 
     return (
         <div className="min-h-screen bg-white flex flex-col items-center px-6 py-12">
