@@ -152,8 +152,6 @@ const Step4Images = ({ formData, setFormData, next, back, lang, toggleLang }) =>
                 </div>
 
                 <div className="mt-10 text-center text-sm text-gray-500">
-                    <p>6613 2128</p>
-                    <p className="mt-1">何文田梭椏道3號1樓<br />1/F, 3 Soares Avenue</p>
                     <p className="text-xs mt-2">©2025 by On Dog Dog Cafe.</p>
                 </div>
             </div>

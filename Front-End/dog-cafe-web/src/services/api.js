@@ -70,7 +70,23 @@ export const adoptionApi = {
         } catch (err) {
             throw err.response?.data || { message: 'Failed to submit application' };
         }
-    }
+    },
+    getApplication: async (id) => {
+        try {
+            const res = await axiosInstance.get(`/adoption/application/${id}`);
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to submit application' };
+        }
+    },
+    update: async (id, data) => {
+        try {
+            const res = await axiosInstance.put(`/adoption/application/${id}`, data);
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to update adoption application' };
+        }
+    },
 };
 
 
@@ -121,7 +137,7 @@ export const contentApi = {
 };
 
 export const contactApi = {
-    submitMessage: async (data) => {
+    submit: async (data) => {
         try {
             const res = await axiosInstance.post('/contact/submit', data);
             return res.data;
@@ -154,6 +170,14 @@ export const feedbackApi = {
             return res.data;
         } catch (err) {
             throw err.response?.data || { message: 'Failed to submit feedback' };
+        }
+    },
+    getList: async (params) => {
+        try {
+            const res = await axiosInstance.get(`/feedback/getlist`, { params });
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to fetch feedback List' };
         }
     },
     getById: async (id) => {
@@ -299,18 +323,26 @@ export const reservationApi = {
     },
     getHistory: async (email, phone) => {
         try {
-            const res = await axiosInstance.get('/reservation/history', { params: { email, phone } });
+            const res = await axiosInstance.get('/reservations/history', { params: { email, phone } });
             return res.data;
         } catch (err) {
             throw err.response?.data || { message: 'Failed to fetch reservation history' };
         }
     },
-    cancel: async (id, email, phone) => {
+    cancel: async (id, email) => {
         try {
-            const res = await axiosInstance.post(`/reservation/${id}/cancel`, { email, phone });
+            const res = await axiosInstance.post(`/reservations/${id}/cancel`, { headers: { email } });
             return res.data;
         } catch (err) {
             throw err.response?.data || { message: 'Failed to cancel reservation' };
+        }
+    },
+    modify: async (id, data) => {
+        try {
+            const res = await axiosInstance.put(`/reservations/${id}`, { data });
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to modify reservation' };
         }
     }
 };

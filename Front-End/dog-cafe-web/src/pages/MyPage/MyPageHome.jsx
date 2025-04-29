@@ -1,12 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import FeedbackForm from "../../components/FeedbackForm";
+import { reservationApi, adoptionApi } from "../../services/api";
+import AdoptionApplicationView from "../../components/AdoptionApplicationView";
 
 const MyPageHome = ({ lang, toggleLang }) => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState("Reservation");
     const [applications, setApplications] = useState({ reservations: [], adoptions: [], rehoming: [] });
 
+    const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+    const [selectedEmail, setSelectedEmail] = useState("");
+
+
     const tabs = ["Reservation", "Adoption", "Rehoming"];
+    const verifiedEmail = localStorage.getItem("verifiedEmail");
+
 
     const t = {
         reservation: lang === "zh" ? "預約" : "Reservation",
@@ -22,33 +31,113 @@ const MyPageHome = ({ lang, toggleLang }) => {
         }
     }, []);
 
+    const handleCancel = async (id) => {
+        try {
+            console.log(id, verifiedEmail);
+            await reservationApi.cancel(id, verifiedEmail);
+            const updatedReservations = applications.reservations.map(res =>
+                res.id === id ? { ...res, status: 'cancelled' } : res
+            );
+            setApplications(prev => ({ ...prev, reservations: updatedReservations }));
+        } catch (error) {
+            alert(error.message || 'Failed to cancel reservation');
+        }
+    };
+
     const renderTableRows = () => {
+        const today = new Date();
+
         if (activeTab === "Reservation") {
-            return applications.reservations.map((item, idx) => (
-                <tr key={idx} className="border-b">
-                    <td className="py-2">{new Date(item.date).toLocaleDateString()}</td>
-                    <td className="py-2">{item.time}</td>
-                    <td className="py-2 capitalize">{item.status}</td>
-                </tr>
-            ));
-        } else if (activeTab === "Adoption") {
+            return applications.reservations.map((item, idx) => {
+                const reservationDate = new Date(item.date);
+                const isPast = reservationDate < today;
+
+                return (
+                    <tr key={idx} className="border-b">
+                        <td className="py-2">{reservationDate.toLocaleDateString()}</td>
+                        <td className="py-2">{item.time}</td>
+                        <td className="py-2">{item.reservedFacility}</td>
+                        <td className="py-2">{item.specialRequest}</td>
+                        <td className="py-2 capitalize">{item.status}</td>
+                        <td className="py-2">
+                            <div className="flex gap-2 flex-wrap">
+                                {isPast ? (
+                                    <button
+                                        className="bg-purple-200 text-purple-800 px-3 py-1 rounded text-xs"
+                                        onClick={() => {
+                                            setSelectedEmail(verifiedEmail); // 예약 객체에 email 있어야 함
+                                            setShowFeedbackForm(true);
+                                        }}
+                                    >
+                                        Leave Feedback
+                                    </button>
+                                ) : (
+                                    <>
+                                        <button className="bg-purple-500 text-white px-3 py-1 rounded text-xs">Modify Booking</button>
+                                        <button
+                                            className="bg-gray-400 text-white px-3 py-1 rounded text-xs"
+                                            onClick={() => handleCancel(item.id)}
+                                        >
+                                            Cancel
+                                        </button>
+                                    </>
+                                )}
+
+                            </div>
+                        </td>
+                    </tr>
+                );
+            });
+        }
+
+        if (activeTab === "Adoption") {
             return applications.adoptions.map((item, idx) => (
                 <tr key={idx} className="border-b">
                     <td className="py-2">{new Date(item.date).toLocaleDateString()}</td>
                     <td className="py-2">{item.name}</td>
                     <td className="py-2 capitalize">{item.status}</td>
+                    <td className="py-2">
+                        <div className="flex gap-2 flex-wrap">
+                            <button
+                                className="bg-purple-500 text-white px-3 py-1 rounded text-xs"
+                                onClick={async () => {
+                                    try {
+                                        const res = await adoptionApi.getApplication(item.id);  
+                                        navigate("/adoption-application-view", { state: { application: res.application } });
+                                    } catch (err) {
+                                        alert(err.message || "Failed to fetch application.");
+                                    }
+                                }}
+                            >
+                                View Application
+                            </button>
+                            <button className="bg-purple-500 text-white px-3 py-1 rounded text-xs">Update Application</button>
+                            <button className="bg-gray-400 text-white px-3 py-1 rounded text-xs">Withdraw</button>
+                        </div>
+                    </td>
                 </tr>
             ));
-        } else if (activeTab === "Rehoming") {
+        }
+
+        if (activeTab === "Rehoming") {
             return applications.rehoming.map((item, idx) => (
                 <tr key={idx} className="border-b">
                     <td className="py-2">{new Date(item.date).toLocaleDateString()}</td>
                     <td className="py-2">{item.petName}</td>
                     <td className="py-2 capitalize">{item.status}</td>
+                    <td className="py-2">
+                        <div className="flex gap-2 flex-wrap">
+                            <button className="bg-purple-500 text-white px-3 py-1 rounded text-xs">View Application</button>
+                            <button className="bg-purple-500 text-white px-3 py-1 rounded text-xs">Update Application</button>
+                            <button className="bg-gray-400 text-white px-3 py-1 rounded text-xs">Withdraw</button>
+                        </div>
+                    </td>
                 </tr>
             ));
         }
     };
+
+
 
     return (
         <div className="min-h-screen bg-white flex flex-col items-center px-6 py-10">
@@ -92,10 +181,21 @@ const MyPageHome = ({ lang, toggleLang }) => {
                         <thead>
                             <tr className="border-b">
                                 <th className="text-left py-2">Date</th>
-                                <th className="text-left py-2">{activeTab === "Reservation" ? "Time" : "Pet / Application"}</th>
+                                <th className="text-left py-2">
+                                    {activeTab === "Reservation" ? "Time" : "Pet / Application"}
+                                </th>
+                                {activeTab === "Reservation" && (
+                                    <>
+                                        <th className="text-left py-2">Facility</th>
+                                        <th className="text-left py-2">Request</th>
+                                    </>
+                                )}
                                 <th className="text-left py-2">Status</th>
+                                <th className="text-left py-2">Actions</th>
                             </tr>
                         </thead>
+
+
                         <tbody>
                             {renderTableRows()}
                         </tbody>
@@ -109,6 +209,16 @@ const MyPageHome = ({ lang, toggleLang }) => {
                     {t.returnHome}
                 </button>
             </div>
+
+            {showFeedbackForm && (
+                <FeedbackForm
+                    email={selectedEmail}
+                    onClose={() => {
+                        setSelectedEmail("");
+                        setShowFeedbackForm(false);
+                    }}
+                />
+            )}
 
             <div className="text-xs text-gray-500 mt-10">
                 ©2025 by On Dog Dog Cafe.

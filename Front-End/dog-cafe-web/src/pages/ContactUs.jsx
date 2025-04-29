@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { contactApi } from "../services/api";
 
 const ContactUs = ({ lang, toggleLang }) => {
     useEffect(() => {
@@ -7,7 +8,6 @@ const ContactUs = ({ lang, toggleLang }) => {
     }, []);
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
-    //const lang = queryParams.get("lang") || "en";
 
     const texts = {
         en: {
@@ -37,7 +37,6 @@ const ContactUs = ({ lang, toggleLang }) => {
             policy: "私隱政策",
             send: "發送訊息",
             language: "English",
-
         }
     };
 
@@ -57,21 +56,35 @@ const ContactUs = ({ lang, toggleLang }) => {
         setForm({ ...form, [name]: type === "checkbox" ? checked : value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!form.agreed) return alert("Please agree to the privacy policy.");
-        alert("Message sent! (mock)");
+
+        const payload = {
+            firstName: form.firstName,
+            lastName: form.lastName,
+            email: form.email,
+            message: form.message,
+            phone: form.phone,
+            agreed: form.agreed
+        };
+
+        try {
+            await contactApi.submit(payload);
+            alert("Message sent successfully!");
+            setForm({ firstName: "", lastName: "", email: "", phone: "", message: "", agreed: false });
+        } catch (error) {
+            const errors = error.errors || [error.message || "Failed to send message."];
+            alert(errors.join("\n"));
+        }
     };
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center px-4 py-10">
             {/* Header */}
             <div className="w-full flex justify-between items-center max-w-4xl mb-4">
-
                 <Link to={`/home?lang=${lang}`}>
                     <img src="/logo.png" alt="Dog Dog Cafe" className="h-14 cursor-pointer" />
                 </Link>
-
                 <button
                     onClick={toggleLang}
                     className="border border-gray-400 rounded-md px-3 py-1 text-sm"
