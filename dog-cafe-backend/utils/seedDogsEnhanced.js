@@ -96,6 +96,22 @@ const getDimensions = (size) => {
     return { weight, height };
 };
 
+// Function to generate English description
+const generateDogDescription = (breed, age, gender, color, personalities) => {
+    const pronouns = gender === 'male' ? 'He' : 'She';
+    const ageYears = Math.floor(age / 12);
+    const ageMonths = age % 12;
+    const ageText = ageYears > 0 
+        ? `${ageYears} year${ageYears > 1 ? 's' : ''} ${ageMonths > 0 ? `and ${ageMonths} month${ageMonths > 1 ? 's' : ''}` : ''}`
+        : `${ageMonths} month${ageMonths > 1 ? 's' : ''}`;
+    
+    const personalityText = personalities.length > 0 
+        ? `${pronouns} has a ${personalities.join(', ').toLowerCase()} personality.`
+        : '';
+    
+    return `Meet this beautiful ${color} ${breed}! ${pronouns} is ${ageText} old. ${personalityText} ${pronouns} is looking for a loving forever home.`;
+};
+
 // Function to generate a single dog object based on the specific data
 const generateDog = (dogInfo, index) => {
     const gender = Math.random() < 0.5 ? 'male' : 'female';

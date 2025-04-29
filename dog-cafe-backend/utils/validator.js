@@ -81,8 +81,12 @@ const validators = {
 
         if (!reservation.numberOfPeople) {
             errors.push('Number of people is required');
-        } else if (reservation.numberOfPeople < 1 || reservation.numberOfPeople > 5) {
-            errors.push('Number of people must be between 1 and 5');
+        } else if (reservation.numberOfPeople < 1 || reservation.numberOfPeople > 10) {
+            errors.push('Number of people must be between 1 and 10');
+        }
+
+        if (!reservation.selectedServices || !Array.isArray(reservation.selectedServices) || reservation.selectedServices.length === 0) {
+            errors.push('At least one service must be selected');
         }
 
         return {
@@ -102,8 +106,14 @@ const validators = {
             errors.push('Invalid time format');
         }
 
-        if (update.numberOfPeople && (update.numberOfPeople < 1 || update.numberOfPeople > 5)) {
-            errors.push('Number of people must be between 1 and 5');
+        if (update.numberOfPeople && (update.numberOfPeople < 1 || update.numberOfPeople > 10)) {
+            errors.push('Number of people must be between 1 and 10');
+        }
+
+        if (update.selectedServices) {
+            if (!Array.isArray(update.selectedServices) || update.selectedServices.length === 0) {
+                errors.push('At least one service must be selected');
+            }
         }
 
         return {

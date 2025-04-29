@@ -37,17 +37,19 @@ const emailService = {
 
     async sendReservationConfirmation(email, reservation) {
         console.log(`[Email Service] Attempting to send reservation confirmation to: ${email}`);
+        const isModification = reservation.isModification || false;
         const mailOptions = {
             from: emailConfig.from,
             to: email,
-            subject: 'Dog Cafe Reservation Confirmation',
+            subject: `Dog Cafe Reservation ${isModification ? 'Update' : 'Confirmation'}`,
             html: `
-                <h2>Reservation Confirmation</h2>
+                <h2>Reservation ${isModification ? 'Update' : 'Confirmation'}</h2>
                 <p>Dear ${reservation.customerInfo.name},</p>
-                <p>Your reservation has been confirmed for:</p>
+                <p>Your reservation has been ${isModification ? 'updated' : 'confirmed'} for:</p>
                 <ul>
                     <li>Date: ${new Date(reservation.date).toLocaleDateString()}</li>
                     <li>Time: ${reservation.timeSlot}</li>
+                    <li>Number of People: ${reservation.numberOfPeople}</li>
                     <li>Services: ${reservation.selectedServices.join(', ')}</li>
                 </ul>
                 <p>Thank you for choosing Dog Cafe!</p>
