@@ -4,6 +4,7 @@ const feedbackController = require('../controllers/feedbackController');
 
 // Public routes
 router.post('/submit', feedbackController.submitFeedback);
+router.get('/getlist', feedbackController.getFeedbackList);
 router.get('/:id', feedbackController.getFeedbackById);
 
 // Admin routes (no auth required for now)

@@ -34,6 +34,9 @@ router.get('/dogs/:id/similar', adoptionController.getSimilarDogs);
 // Get filters
 router.get('/filters', adoptionController.getFilters);
 
+// Add new route for getting applications by dog ID
+router.get('/application/:id', adoptionController.getApplicationsByDogId);
+
 // Add new routes for image handling
 router.get('/images/:filename', adoptionController.getImage);
 router.delete('/images/:filename', adoptionController.deleteImage);

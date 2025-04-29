@@ -192,6 +192,46 @@ const adoptionController = {
             age: ages.sort((a, b) => a - b),
             size: ['small', 'medium', 'large']
         });
+    }),
+
+    getApplicationsByDogId: asyncHandler(async (req, res) => {
+        const dogId = req.params.id;
+        
+        // Validate if dogId is a valid MongoDB ObjectId
+        if (!mongoose.Types.ObjectId.isValid(dogId)) {
+            return res.status(400).json({
+                message: 'Invalid dog ID format'
+            });
+        }
+
+        // Find the dog first to verify it exists
+        const dog = await Dog.findById(dogId);
+        if (!dog) {
+            return res.status(404).json({
+                message: 'Dog not found'
+            });
+        }
+
+        // Get all applications for this dog with pagination
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 10));
+
+        const [applications, total] = await Promise.all([
+            AdoptionApplication.find({ dogId })
+                .select('firstName lastName email status submittedAt')
+                .sort({ submittedAt: -1 })
+                .skip((page - 1) * limit)
+                .limit(limit),
+            AdoptionApplication.countDocuments({ dogId })
+        ]);
+
+        res.json({
+            applications,
+            currentPage: page,
+            totalPages: Math.ceil(total / limit),
+            total,
+            hasMore: page * limit < total
+        });
     })
 };
 

@@ -1,5 +1,5 @@
 const asyncHandler = require('express-async-handler');
-const { Reservation, TIME_SLOTS, SERVICES } = require('../models/Reservation');
+const { Reservation, TIME_SLOTS, SERVICES, SERVICE_CONSTRAINTS } = require('../models/Reservation');
 const emailService = require('../utils/emailService');
 const cache = require('../utils/cache');
 const { sendEmail } = require('../utils/notifications');
@@ -8,52 +8,69 @@ const validators = require('../utils/validator');
 const reservationController = {
     // Get available time slots and services
     getAvailability: asyncHandler(async (req, res) => {
-        const { date } = req.query;
+        try {
+            const { date } = req.query;
+            
+            if (!date) {
+                return res.status(400).json({ message: 'Date is required' });
+            }
 
-        if (!date || !validators.isValidDate(date)) {
-            return res.status(400).json({ 
-                message: 'Valid date is required (YYYY-MM-DD format)' 
+            const queryDate = new Date(date);
+            queryDate.setHours(0, 0, 0, 0);
+
+            // Get all reservations for the specified date
+            const reservations = await Reservation.find({
+                date: queryDate,
+                status: { $ne: 'cancelled' }
             });
-        }
 
-        const queryDate = new Date(date);
-        const cacheKey = `availability:${queryDate.toISOString().split('T')[0]}`;
-        
-        // Try to get from cache first
-        const cached = await cache.get(cacheKey);
-        if (cached) {
-            return res.json(cached);
-        }
-    
-        // Get existing reservations for the date
-        const reservations = await Reservation.find({
-            date: queryDate,
-            status: { $ne: 'cancelled' }
-        }).select('timeSlot selectedServices');
-    
-        // Calculate available slots for each service
-        const availableSlots = {};
-        Object.values(SERVICES).forEach(service => {
-            availableSlots[service] = TIME_SLOTS.filter(slot => {
-                const serviceReservations = reservations.filter(r => 
-                    r.timeSlot === slot && r.selectedServices.includes(service)
+            // Calculate availability for each time slot
+            const availability = {};
+            for (const timeSlot of TIME_SLOTS) {
+                const slotReservations = reservations.filter(r => r.timeSlot === timeSlot);
+                
+                const cafeVisitCount = slotReservations.filter(r => 
+                    r.selectedServices.includes(SERVICES.CAFE_VISIT)
+                ).length;
+
+                const hasDogParty = slotReservations.some(r => 
+                    r.selectedServices.includes(SERVICES.DOG_PARTY)
                 );
-                return serviceReservations.length < 2;
-            });
-        });
-    
-        // Cache the result for 5 minutes
-        await cache.set(cacheKey, {
-            date: queryDate,
-            availableSlots,
-            services: Object.values(SERVICES)
-        }, 300);
 
-        res.json({
-            date: queryDate,
-            availableSlots,
-            services: Object.values(SERVICES)
-        });
+                availability[timeSlot] = {
+                    available: true,
+                    availableServices: Object.values(SERVICES),
+                    restrictions: []
+                };
+
+                // Apply restrictions based on existing bookings
+                if (hasDogParty) {
+                    availability[timeSlot].availableServices = Object.values(SERVICES)
+                        .filter(service => service !== SERVICES.CAFE_VISIT);
+                    availability[timeSlot].restrictions.push('Dog Party booked - Cafe Visit unavailable');
+                } else if (cafeVisitCount >= 2) {
+                    availability[timeSlot].availableServices = Object.values(SERVICES)
+                        .filter(service => service !== SERVICES.CAFE_VISIT 
+                                      && service !== SERVICES.DOG_PARTY);
+                    availability[timeSlot].restrictions.push('Maximum Cafe Visits reached');
+                } else if (cafeVisitCount === 1) {
+                    availability[timeSlot].availableServices = Object.values(SERVICES)
+                        .filter(service => service !== SERVICES.DOG_PARTY);
+                    availability[timeSlot].restrictions.push('One Cafe Visit slot remaining');
+                }
+
+                availability[timeSlot].available = availability[timeSlot].availableServices.length > 0;
+            }
+
+            res.json({
+                date: queryDate,
+                timeSlots: availability,
+                serviceConstraints: SERVICE_CONSTRAINTS
+            });
+
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
     }),
 
     verifyContact: asyncHandler(async (req, res) => {
@@ -202,8 +219,7 @@ const reservationController = {
                 date: reservationDate,
                 timeSlot,
                 selectedServices,
-                numberOfPeople,
-                status: 'pending'
+                numberOfPeople
             });
 
             // Clear availability cache after successful reservation
@@ -272,18 +288,24 @@ const reservationController = {
         const reservation = await Reservation.findOne({
             _id: id,
             'customerInfo.email': email,
-            'customerInfo.phone': phone
+            'customerInfo.phone': phone,
+            status: { $ne: 'cancelled' }
         });
 
         if (!reservation) {
             return res.status(404).json({
-                message: 'Reservation not found'
+                message: 'Active reservation not found'
             });
         }
 
-        if (reservation.status === 'cancelled') {
+        // Check if cancellation is within allowed time (24 hours before)
+        const reservationTime = new Date(`${reservation.date}T${reservation.timeSlot}`);
+        const now = new Date();
+        const hoursUntilReservation = (reservationTime - now) / (1000 * 60 * 60);
+
+        if (hoursUntilReservation < 24) {
             return res.status(400).json({
-                message: 'Reservation is already cancelled'
+                message: 'Reservations can only be cancelled at least 24 hours in advance'
             });
         }
 
@@ -292,17 +314,112 @@ const reservationController = {
 
         // Send cancellation notification
         try {
-            await sendEmail(
+            await emailService.sendReservationConfirmation(
                 reservation.customerInfo.email,
-                'Reservation Cancelled',
-                `Your reservation for ${reservation.selectedServices.join(', ')} on ${reservation.date} has been cancelled.`
+                {
+                    ...reservation.toObject(),
+                    status: 'cancelled',
+                    formattedDate: reservation.date.toLocaleDateString()
+                }
             );
         } catch (error) {
-            console.error('Notification error:', error);
+            console.error('Email notification error:', error);
         }
 
         res.json({
-            message: 'Reservation cancelled successfully'
+            message: 'Reservation cancelled successfully',
+            reservation: {
+                id: reservation._id,
+                status: reservation.status,
+                date: reservation.date,
+                timeSlot: reservation.timeSlot
+            }
+        });
+    }),
+
+    // Modify reservation
+    modifyReservation: asyncHandler(async (req, res) => {
+        const { id } = req.params;
+        const { email, phone } = req.body;
+        const updates = req.body.updates;
+
+        // Validate updates
+        const validation = validators.isValidReservationUpdate(updates);
+        if (!validation.isValid) {
+            return res.status(400).json({
+                message: 'Invalid update data',
+                errors: validation.errors
+            });
+        }
+
+        const reservation = await Reservation.findOne({
+            _id: id,
+            'customerInfo.email': email,
+            'customerInfo.phone': phone,
+            status: { $ne: 'cancelled' }
+        });
+
+        if (!reservation) {
+            return res.status(404).json({
+                message: 'Active reservation not found'
+            });
+        }
+
+        // Check if modification is within allowed time (24 hours before)
+        const reservationTime = new Date(`${reservation.date}T${reservation.timeSlot}`);
+        const now = new Date();
+        const hoursUntilReservation = (reservationTime - now) / (1000 * 60 * 60);
+
+        if (hoursUntilReservation < 24) {
+            return res.status(400).json({
+                message: 'Reservations can only be modified at least 24 hours in advance'
+            });
+        }
+
+        // If date or time is being changed, check availability
+        if (updates.date || updates.timeSlot) {
+            const checkDate = updates.date ? new Date(updates.date) : reservation.date;
+            const checkTime = updates.timeSlot || reservation.timeSlot;
+            const isAvailable = await Reservation.checkAvailability(
+                checkDate,
+                checkTime,
+                reservation.selectedServices
+            );
+
+            if (!isAvailable) {
+                return res.status(400).json({
+                    message: 'The requested time slot is not available'
+                });
+            }
+        }
+
+        // Apply updates
+        Object.assign(reservation, updates);
+        await reservation.save();
+
+        // Send modification confirmation
+        try {
+            await emailService.sendReservationConfirmation(
+                reservation.customerInfo.email,
+                {
+                    ...reservation.toObject(),
+                    formattedDate: reservation.date.toLocaleDateString()
+                }
+            );
+        } catch (error) {
+            console.error('Email notification error:', error);
+        }
+
+        res.json({
+            message: 'Reservation modified successfully',
+            reservation: {
+                id: reservation._id,
+                status: reservation.status,
+                date: reservation.date,
+                timeSlot: reservation.timeSlot,
+                numberOfPeople: reservation.numberOfPeople,
+                selectedServices: reservation.selectedServices
+            }
         });
     })
 };

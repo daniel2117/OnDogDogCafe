@@ -91,6 +91,27 @@ const validators = {
         };
     },
 
+    isValidReservationUpdate: (update) => {
+        const errors = [];
+
+        if (update.date && !validators.isValidDate(update.date)) {
+            errors.push('Invalid date format');
+        }
+
+        if (update.timeSlot && !validators.isValidTime(update.timeSlot)) {
+            errors.push('Invalid time format');
+        }
+
+        if (update.numberOfPeople && (update.numberOfPeople < 1 || update.numberOfPeople > 5)) {
+            errors.push('Number of people must be between 1 and 5');
+        }
+
+        return {
+            isValid: errors.length === 0,
+            errors
+        };
+    },
+
     isValidDog: (dog) => {
         const errors = [];
 

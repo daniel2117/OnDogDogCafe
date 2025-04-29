@@ -4,18 +4,40 @@ const { sendEmail } = require('../utils/notifications');
 
 const feedbackController = {
     submitFeedback: asyncHandler(async (req, res) => {
-        const feedback = await Feedback.create(req.body);
+        const { email, name, rating, comment } = req.body;
+
+        if (!email) {
+            res.status(400);
+            throw new Error('Email is required');
+        }
+
+        if (rating < 0 || rating > 5 || rating % 0.5 !== 0) {
+            res.status(400);
+            throw new Error('Rating must be between 0 and 5 in 0.5 increments');
+        }
+
+        const feedback = await Feedback.create({
+            email,
+            name,
+            rating,
+            comment
+        });
 
         // Send confirmation email
         await sendEmail(
-            feedback.userEmail,
+            email,
             'Thank You for Your Feedback - Dog Cafe',
-            `Dear ${feedback.userName},\n\nThank you for sharing your feedback with us. Your opinion helps us improve our services.\n\nBest regards,\nDog Cafe Team`
+            `Dear ${name},\n\nThank you for sharing your feedback with us. Your opinion helps us improve our services.\n\nBest regards,\nDog Cafe Team`
         );
 
         res.status(201).json({
             message: 'Feedback submitted successfully',
-            feedbackId: feedback._id
+            feedback: {
+                id: feedback._id,
+                email: feedback.email,
+                name: feedback.name,
+                rating: feedback.rating
+            }
         });
     }),
 
@@ -26,6 +48,27 @@ const feedbackController = {
             throw new Error('Feedback not found');
         }
         res.json(feedback);
+    }),
+
+    getFeedbackList: asyncHandler(async (req, res) => {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+
+        const [feedbacks, total] = await Promise.all([
+            Feedback.find()
+                .select('email name rating comment createdAt')
+                .sort({ createdAt: -1 })
+                .skip((page - 1) * limit)
+                .limit(limit),
+            Feedback.countDocuments()
+        ]);
+
+        res.json({
+            feedbacks,
+            currentPage: page,
+            totalPages: Math.ceil(total / limit),
+            total
+        });
     }),
 
     // Admin routes

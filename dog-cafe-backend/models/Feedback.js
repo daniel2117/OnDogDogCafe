@@ -1,50 +1,36 @@
 const mongoose = require('mongoose');
 
 const feedbackSchema = new mongoose.Schema({
-    rating: {
-        type: Number,
-        required: true,
-        min: 1,
-        max: 5
-    },
-    serviceType: {
-        type: String,
-        required: true,
-        enum: ['cafe', 'adoption', 'general']
-    },
-    comment: {
-        type: String,
-        required: true,
-        trim: true,
-        maxlength: 1000
-    },
-    userName: {
-        type: String,
-        required: true,
-        trim: true
-    },
-    userEmail: {
+    email: {
         type: String,
         required: true,
         trim: true,
         lowercase: true
     },
-    visitDate: {
-        type: Date,
-        required: true
+    name: {
+        type: String,
+        trim: true
+    },
+    rating: {
+        type: Number,
+        required: true,
+        min: 0,
+        max: 5,
+        validate: {
+            validator: function(v) {
+                return v % 0.5 === 0;
+            },
+            message: 'Rating must be in 0.5 increments'
+        }
+    },
+    comment: {
+        type: String,
+        required: true,
+        trim: true
     },
     createdAt: {
         type: Date,
         default: Date.now
-    },
-    status: {
-        type: String,
-        enum: ['pending', 'reviewed', 'responded'],
-        default: 'pending'
-    },
-    adminResponse: {
-        type: String,
-        trim: true
     }
 });
 
