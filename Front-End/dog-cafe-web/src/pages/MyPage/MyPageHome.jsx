@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import FeedbackForm from "../../components/FeedbackForm";  // 네가 만든 컴포넌트 경로에 맞게 수정!
+
 
 const MyPageHome = ({ lang, toggleLang }) => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState("Reservation");
     const [applications, setApplications] = useState({ reservations: [], adoptions: [], rehoming: [] });
 
+    const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+    const [selectedEmail, setSelectedEmail] = useState("");
+
+
     const tabs = ["Reservation", "Adoption", "Rehoming"];
+    const verifiedEmail = localStorage.getItem("verifiedEmail");
+
 
     const t = {
         reservation: lang === "zh" ? "預約" : "Reservation",
@@ -40,7 +48,13 @@ const MyPageHome = ({ lang, toggleLang }) => {
                         <td className="py-2">
                             <div className="flex gap-2 flex-wrap">
                                 {isPast ? (
-                                    <button className="bg-purple-200 text-purple-800 px-3 py-1 rounded text-xs">
+                                    <button
+                                        className="bg-purple-200 text-purple-800 px-3 py-1 rounded text-xs"
+                                        onClick={() => {
+                                            setSelectedEmail(verifiedEmail); // 예약 객체에 email 있어야 함
+                                            setShowFeedbackForm(true);
+                                        }}
+                                    >
                                         Leave Feedback
                                     </button>
                                 ) : (
@@ -49,6 +63,7 @@ const MyPageHome = ({ lang, toggleLang }) => {
                                         <button className="bg-gray-400 text-white px-3 py-1 rounded text-xs">Cancel</button>
                                     </>
                                 )}
+
                             </div>
                         </td>
                     </tr>
@@ -163,6 +178,16 @@ const MyPageHome = ({ lang, toggleLang }) => {
                     {t.returnHome}
                 </button>
             </div>
+
+            {showFeedbackForm && (
+                <FeedbackForm
+                    email={selectedEmail}
+                    onClose={() => {
+                        setSelectedEmail("");
+                        setShowFeedbackForm(false);
+                    }}
+                />
+            )}
 
             <div className="text-xs text-gray-500 mt-10">
                 ©2025 by On Dog Dog Cafe.

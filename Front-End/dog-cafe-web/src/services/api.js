@@ -299,7 +299,7 @@ export const reservationApi = {
     },
     getHistory: async (email, phone) => {
         try {
-            const res = await axiosInstance.get('/reservation/history', { params: { email, phone } });
+            const res = await axiosInstance.get('/reservations/history', { params: { email, phone } });
             return res.data;
         } catch (err) {
             throw err.response?.data || { message: 'Failed to fetch reservation history' };
@@ -307,10 +307,18 @@ export const reservationApi = {
     },
     cancel: async (id, email, phone) => {
         try {
-            const res = await axiosInstance.post(`/reservation/${id}/cancel`, { email, phone });
+            const res = await axiosInstance.post(`/reservations/${id}/cancel`, { email, phone });
             return res.data;
         } catch (err) {
             throw err.response?.data || { message: 'Failed to cancel reservation' };
+        }
+    },
+    modify: async (id, data) => {
+        try {
+            const res = await axiosInstance.put(`/reservations/${id}`, { data});
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to modify reservation' };
         }
     }
 };

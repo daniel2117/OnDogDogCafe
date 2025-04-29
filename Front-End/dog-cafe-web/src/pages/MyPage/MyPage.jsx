@@ -61,6 +61,8 @@ const MyPage = ({ lang, toggleLang }) => {
 
             // 가져온 applications를 localStorage에 저장하거나
             localStorage.setItem("applications", JSON.stringify(applications));
+            localStorage.setItem("verifiedEmail", email);
+
 
             // /mypage/home 으로 이동
             navigate("/mypage/home");
