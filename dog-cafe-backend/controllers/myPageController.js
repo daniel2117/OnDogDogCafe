@@ -41,7 +41,7 @@ const myPageController = {
             time: r.timeSlot,
             reservedFacility: r.selectedServices.join(', '),
             specialRequest: r.customerInfo.specialRequest || 'n/a',
-            status: 'confirmed'  // Always confirmed as per requirement
+            status: r.status  // Use the actual status from the reservation
         }));
 
         const formattedAdoptions = adoptions.map(a => ({

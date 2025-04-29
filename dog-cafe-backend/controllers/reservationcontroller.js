@@ -219,8 +219,7 @@ const reservationController = {
                 date: reservationDate,
                 timeSlot,
                 selectedServices,
-                numberOfPeople,
-                status: 'pending'
+                numberOfPeople
             });
 
             // Clear availability cache after successful reservation
@@ -289,18 +288,24 @@ const reservationController = {
         const reservation = await Reservation.findOne({
             _id: id,
             'customerInfo.email': email,
-            'customerInfo.phone': phone
+            'customerInfo.phone': phone,
+            status: { $ne: 'cancelled' }
         });
 
         if (!reservation) {
             return res.status(404).json({
-                message: 'Reservation not found'
+                message: 'Active reservation not found'
             });
         }
 
-        if (reservation.status === 'cancelled') {
+        // Check if cancellation is within allowed time (24 hours before)
+        const reservationTime = new Date(`${reservation.date}T${reservation.timeSlot}`);
+        const now = new Date();
+        const hoursUntilReservation = (reservationTime - now) / (1000 * 60 * 60);
+
+        if (hoursUntilReservation < 24) {
             return res.status(400).json({
-                message: 'Reservation is already cancelled'
+                message: 'Reservations can only be cancelled at least 24 hours in advance'
             });
         }
 
@@ -309,17 +314,112 @@ const reservationController = {
 
         // Send cancellation notification
         try {
-            await sendEmail(
+            await emailService.sendReservationConfirmation(
                 reservation.customerInfo.email,
-                'Reservation Cancelled',
-                `Your reservation for ${reservation.selectedServices.join(', ')} on ${reservation.date} has been cancelled.`
+                {
+                    ...reservation.toObject(),
+                    status: 'cancelled',
+                    formattedDate: reservation.date.toLocaleDateString()
+                }
             );
         } catch (error) {
-            console.error('Notification error:', error);
+            console.error('Email notification error:', error);
         }
 
         res.json({
-            message: 'Reservation cancelled successfully'
+            message: 'Reservation cancelled successfully',
+            reservation: {
+                id: reservation._id,
+                status: reservation.status,
+                date: reservation.date,
+                timeSlot: reservation.timeSlot
+            }
+        });
+    }),
+
+    // Modify reservation
+    modifyReservation: asyncHandler(async (req, res) => {
+        const { id } = req.params;
+        const { email, phone } = req.body;
+        const updates = req.body.updates;
+
+        // Validate updates
+        const validation = validators.isValidReservationUpdate(updates);
+        if (!validation.isValid) {
+            return res.status(400).json({
+                message: 'Invalid update data',
+                errors: validation.errors
+            });
+        }
+
+        const reservation = await Reservation.findOne({
+            _id: id,
+            'customerInfo.email': email,
+            'customerInfo.phone': phone,
+            status: { $ne: 'cancelled' }
+        });
+
+        if (!reservation) {
+            return res.status(404).json({
+                message: 'Active reservation not found'
+            });
+        }
+
+        // Check if modification is within allowed time (24 hours before)
+        const reservationTime = new Date(`${reservation.date}T${reservation.timeSlot}`);
+        const now = new Date();
+        const hoursUntilReservation = (reservationTime - now) / (1000 * 60 * 60);
+
+        if (hoursUntilReservation < 24) {
+            return res.status(400).json({
+                message: 'Reservations can only be modified at least 24 hours in advance'
+            });
+        }
+
+        // If date or time is being changed, check availability
+        if (updates.date || updates.timeSlot) {
+            const checkDate = updates.date ? new Date(updates.date) : reservation.date;
+            const checkTime = updates.timeSlot || reservation.timeSlot;
+            const isAvailable = await Reservation.checkAvailability(
+                checkDate,
+                checkTime,
+                reservation.selectedServices
+            );
+
+            if (!isAvailable) {
+                return res.status(400).json({
+                    message: 'The requested time slot is not available'
+                });
+            }
+        }
+
+        // Apply updates
+        Object.assign(reservation, updates);
+        await reservation.save();
+
+        // Send modification confirmation
+        try {
+            await emailService.sendReservationConfirmation(
+                reservation.customerInfo.email,
+                {
+                    ...reservation.toObject(),
+                    formattedDate: reservation.date.toLocaleDateString()
+                }
+            );
+        } catch (error) {
+            console.error('Email notification error:', error);
+        }
+
+        res.json({
+            message: 'Reservation modified successfully',
+            reservation: {
+                id: reservation._id,
+                status: reservation.status,
+                date: reservation.date,
+                timeSlot: reservation.timeSlot,
+                numberOfPeople: reservation.numberOfPeople,
+                selectedServices: reservation.selectedServices
+            }
         });
     })
 };

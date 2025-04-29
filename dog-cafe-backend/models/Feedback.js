@@ -9,14 +9,19 @@ const feedbackSchema = new mongoose.Schema({
     },
     name: {
         type: String,
-        required: true,
         trim: true
     },
     rating: {
         type: Number,
         required: true,
-        min: 1,
-        max: 5
+        min: 0,
+        max: 5,
+        validate: {
+            validator: function(v) {
+                return v % 0.5 === 0;
+            },
+            message: 'Rating must be in 0.5 increments'
+        }
     },
     comment: {
         type: String,

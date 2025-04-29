@@ -94,8 +94,8 @@ const reservationSchema = new mongoose.Schema({
     }],
     status: {
         type: String,
-        enum: ['pending', 'confirmed', 'cancelled'],
-        default: 'pending',
+        enum: ['confirmed', 'cancelled'],
+        default: 'confirmed',
         index: true
     },
     verificationCode: {

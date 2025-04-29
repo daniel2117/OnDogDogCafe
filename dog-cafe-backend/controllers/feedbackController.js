@@ -6,6 +6,16 @@ const feedbackController = {
     submitFeedback: asyncHandler(async (req, res) => {
         const { email, name, rating, comment } = req.body;
 
+        if (!email) {
+            res.status(400);
+            throw new Error('Email is required');
+        }
+
+        if (rating < 0 || rating > 5 || rating % 0.5 !== 0) {
+            res.status(400);
+            throw new Error('Rating must be between 0 and 5 in 0.5 increments');
+        }
+
         const feedback = await Feedback.create({
             email,
             name,
