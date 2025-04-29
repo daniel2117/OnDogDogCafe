@@ -121,7 +121,7 @@ export const contentApi = {
 };
 
 export const contactApi = {
-    submitMessage: async (data) => {
+    submit: async (data) => {
         try {
             const res = await axiosInstance.post('/contact/submit', data);
             return res.data;
@@ -305,9 +305,9 @@ export const reservationApi = {
             throw err.response?.data || { message: 'Failed to fetch reservation history' };
         }
     },
-    cancel: async (id, email, phone) => {
+    cancel: async (id, email) => {
         try {
-            const res = await axiosInstance.post(`/reservations/${id}/cancel`, { email, phone });
+            const res = await axiosInstance.post(`/reservations/${id}/cancel`, { headers: { email } });
             return res.data;
         } catch (err) {
             throw err.response?.data || { message: 'Failed to cancel reservation' };
@@ -315,7 +315,7 @@ export const reservationApi = {
     },
     modify: async (id, data) => {
         try {
-            const res = await axiosInstance.put(`/reservations/${id}`, { data});
+            const res = await axiosInstance.put(`/reservations/${id}`, { data });
             return res.data;
         } catch (err) {
             throw err.response?.data || { message: 'Failed to modify reservation' };

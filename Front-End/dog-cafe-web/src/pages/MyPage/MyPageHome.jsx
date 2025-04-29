@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import FeedbackForm from "../../components/FeedbackForm";  // 네가 만든 컴포넌트 경로에 맞게 수정!
-
+import FeedbackForm from "../../components/FeedbackForm";
+import { reservationApi } from "../../services/api";
 
 const MyPageHome = ({ lang, toggleLang }) => {
     const navigate = useNavigate();
@@ -29,6 +29,19 @@ const MyPageHome = ({ lang, toggleLang }) => {
             setApplications(JSON.parse(data));
         }
     }, []);
+
+    const handleCancel = async (id) => {
+        try {
+            console.log(id, verifiedEmail);
+            await reservationApi.cancel(id, verifiedEmail);
+            const updatedReservations = applications.reservations.map(res =>
+                res.id === id ? { ...res, status: 'cancelled' } : res
+            );
+            setApplications(prev => ({ ...prev, reservations: updatedReservations }));
+        } catch (error) {
+            alert(error.message || 'Failed to cancel reservation');
+        }
+    };
 
     const renderTableRows = () => {
         const today = new Date();
@@ -60,7 +73,12 @@ const MyPageHome = ({ lang, toggleLang }) => {
                                 ) : (
                                     <>
                                         <button className="bg-purple-500 text-white px-3 py-1 rounded text-xs">Modify Booking</button>
-                                        <button className="bg-gray-400 text-white px-3 py-1 rounded text-xs">Cancel</button>
+                                        <button
+                                            className="bg-gray-400 text-white px-3 py-1 rounded text-xs"
+                                            onClick={() => handleCancel(item.id)}
+                                        >
+                                            Cancel
+                                        </button>
                                     </>
                                 )}
 
