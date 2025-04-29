@@ -194,43 +194,72 @@ const adoptionController = {
         });
     }),
 
-    getApplicationsByDogId: asyncHandler(async (req, res) => {
-        const dogId = req.params.id;
+    getApplicationById: asyncHandler(async (req, res) => {
+        const applicationId = req.params.id;
         
-        // Validate if dogId is a valid MongoDB ObjectId
-        if (!mongoose.Types.ObjectId.isValid(dogId)) {
+        // Validate if applicationId is a valid MongoDB ObjectId
+        if (!mongoose.Types.ObjectId.isValid(applicationId)) {
             return res.status(400).json({
-                message: 'Invalid dog ID format'
+                message: 'Invalid application ID format'
             });
         }
 
-        // Find the dog first to verify it exists
-        const dog = await Dog.findById(dogId);
-        if (!dog) {
+        const application = await AdoptionApplication.findById(applicationId)
+            .populate('dogId', 'name breed imageUrl')  // Get basic dog info if available
+            .lean();
+
+        if (!application) {
             return res.status(404).json({
-                message: 'Dog not found'
+                message: 'Application not found'
             });
         }
-
-        // Get all applications for this dog with pagination
-        const page = Math.max(1, parseInt(req.query.page) || 1);
-        const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 10));
-
-        const [applications, total] = await Promise.all([
-            AdoptionApplication.find({ dogId })
-                .select('firstName lastName email status submittedAt')
-                .sort({ submittedAt: -1 })
-                .skip((page - 1) * limit)
-                .limit(limit),
-            AdoptionApplication.countDocuments({ dogId })
-        ]);
 
         res.json({
-            applications,
-            currentPage: page,
-            totalPages: Math.ceil(total / limit),
-            total,
-            hasMore: page * limit < total
+            application,
+            success: true
+        });
+    }),
+
+    updateApplication: asyncHandler(async (req, res) => {
+        const applicationId = req.params.id;
+        
+        if (!mongoose.Types.ObjectId.isValid(applicationId)) {
+            return res.status(400).json({
+                message: 'Invalid application ID format'
+            });
+        }
+
+        const application = await AdoptionApplication.findByIdAndUpdate(
+            applicationId,
+            { $set: req.body },
+            { new: true, runValidators: true }
+        ).populate('dogId', 'name breed imageUrl');
+
+        if (!application) {
+            return res.status(404).json({
+                message: 'Application not found'
+            });
+        }
+
+        // Send email notification about the update
+        await emailService.sendAdoptionApplicationConfirmation(
+            application.email,
+            {
+                customerInfo: {
+                    name: `${application.firstName} ${application.lastName}`
+                },
+                dog: {
+                    name: application.dogId ? application.dogId.name : 'Adoption Application'
+                },
+                _id: application._id,
+                status: application.status
+            }
+        );
+
+        res.json({
+            message: 'Application updated successfully',
+            application,
+            success: true
         });
     })
 };
