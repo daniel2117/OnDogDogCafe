@@ -94,19 +94,14 @@ const BookingDetail = ({ lang, toggleLang }) => {
         const formatted = formatDate(date);
 
         if (date < today) return false;
-        if (officialHolidays.includes(formatted)) return false;
         if (day === 1) return false;
         return true;
     };
 
     const getDayLabel = (date) => {
-        const day = date.getDay();
-        const formatted = formatDate(date);
-        if (officialHolidays.includes(formatted)) return "Public Holiday";
-        if (day === 1) return "Cafe Closed";
-        return null;
+        return date.getDay() === 1 ? "Cafe Closed" : null;
     };
-
+    
     const toggleService = (s) => {
         setSelectedServices(prev =>
             prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]
@@ -117,18 +112,22 @@ const BookingDetail = ({ lang, toggleLang }) => {
         if (!date) return alert("Please select a date.");
         try {
             const res = await reservationApi.getAvailability(date.toISOString().split("T")[0]);
-            setAvailableSlots(res.availableSlots || {});
+            setAvailableSlots(res.timeSlots || {}); // 🔁 저장 포맷 변경
         } catch (err) {
             alert(err.message || "Failed to fetch availability");
         }
     };
+    
 
     const getCommonSlots = () => {
         if (!selectedServices.length) return [];
-        return selectedServices
-            .map(service => availableSlots[service] || [])
-            .reduce((a, b) => a.filter(t => b.includes(t)));
+        return Object.entries(availableSlots)
+            .filter(([time, services]) =>
+                selectedServices.every(s => services.includes(s))
+            )
+            .map(([time]) => time);
     };
+    
 
     const handleInput = e => {
         const { name, value } = e.target;
