@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { adoptionApi } from "../services/api";
+import { adoptionApi, feedbackApi } from "../services/api";
 import GoogleMapComponent from '../components/GoogleMapComponent';
+import FeedbackSection from "../components/FeedbackSection";
 
 
 const Home = ({ lang, toggleLang }) => {
@@ -237,6 +238,10 @@ const Home = ({ lang, toggleLang }) => {
                     </div>
                 </div>
             </div>
+
+            {/* Feedback */}
+            <FeedbackSection lang={lang} />
+
 
             {/* Footer */}
             <footer className="text-center text-sm text-gray-600 py-8">

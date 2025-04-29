@@ -70,7 +70,15 @@ export const adoptionApi = {
         } catch (err) {
             throw err.response?.data || { message: 'Failed to submit application' };
         }
-    }
+    },
+    getApplication: async (id) => {
+        try {
+            const res = await axiosInstance.get(`/adoption/application/${id}`);
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to submit application' };
+        }
+    },
 };
 
 
@@ -154,6 +162,14 @@ export const feedbackApi = {
             return res.data;
         } catch (err) {
             throw err.response?.data || { message: 'Failed to submit feedback' };
+        }
+    },
+    getList: async (params) => {
+        try {
+            const res = await axiosInstance.get(`/feedback/getlist`, { params });
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to fetch feedback List' };
         }
     },
     getById: async (id) => {

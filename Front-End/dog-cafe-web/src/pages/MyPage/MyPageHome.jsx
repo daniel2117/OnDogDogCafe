@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import FeedbackForm from "../../components/FeedbackForm";
-import { reservationApi } from "../../services/api";
+import { reservationApi, adoptionApi } from "../../services/api";
+import AdoptionApplicationView from "../../components/AdoptionApplicationView";
 
 const MyPageHome = ({ lang, toggleLang }) => {
     const navigate = useNavigate();
@@ -97,7 +98,19 @@ const MyPageHome = ({ lang, toggleLang }) => {
                     <td className="py-2 capitalize">{item.status}</td>
                     <td className="py-2">
                         <div className="flex gap-2 flex-wrap">
-                            <button className="bg-purple-500 text-white px-3 py-1 rounded text-xs">View Application</button>
+                            <button
+                                className="bg-purple-500 text-white px-3 py-1 rounded text-xs"
+                                onClick={async () => {
+                                    try {
+                                        const res = await adoptionApi.getApplication(item.id);  
+                                        navigate("/adoption-application-view", { state: { application: res.application } });
+                                    } catch (err) {
+                                        alert(err.message || "Failed to fetch application.");
+                                    }
+                                }}
+                            >
+                                View Application
+                            </button>
                             <button className="bg-purple-500 text-white px-3 py-1 rounded text-xs">Update Application</button>
                             <button className="bg-gray-400 text-white px-3 py-1 rounded text-xs">Withdraw</button>
                         </div>

@@ -18,6 +18,7 @@ import RehomeApplication from "./pages/RehomeApplication/RehomeApplication";
 //MyPage
 import MyPage from "./pages/MyPage/MyPage";
 import MyPageHome from "./pages/MyPage/MyPageHome";
+import AdoptionApplicationView from "./components/AdoptionApplicationView";
 
 function App() {
   const [lang, setLang] = useState("en"); // "en" or "zh"
@@ -45,6 +46,7 @@ function App() {
         {/* MyPage */}
         <Route path="/mypage" element={<MyPage lang={lang} toggleLang={toggleLang} />} />
         <Route path="/mypage/home" element={<MyPageHome lang={lang} toggleLang={toggleLang} />} />
+        <Route path="/adoption-application-view" element={<AdoptionApplicationView />} />
       </Routes>
     </Router>
   );
