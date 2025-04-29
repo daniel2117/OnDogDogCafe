@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 
 const Step2Address = ({ formData, setFormData, next, back, lang, toggleLang }) => {
-    const [line1, setLine1] = useState(formData.line1 || "");
-    const [line2, setLine2] = useState(formData.line2 || "");
+    const [line1, setLine1] = useState(formData.addressLine1 || "");
+    const [line2, setLine2] = useState(formData.addressLine2 || "");
     const [town, setTown] = useState(formData.town || "");
     const [phone, setPhone] = useState(formData.phone || "");
 
@@ -17,8 +17,8 @@ const Step2Address = ({ formData, setFormData, next, back, lang, toggleLang }) =
         }
         setFormData(prev => ({
             ...prev,
-            line1,
-            line2,
+            addressLine1: line1,
+            addressLine2: line2,
             town,
             phone
         }));

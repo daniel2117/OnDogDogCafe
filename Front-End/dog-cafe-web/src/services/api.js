@@ -79,6 +79,14 @@ export const adoptionApi = {
             throw err.response?.data || { message: 'Failed to submit application' };
         }
     },
+    update: async (id, data) => {
+        try {
+            const res = await axiosInstance.put(`/adoption/application/${id}`, data);
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to update adoption application' };
+        }
+    },
 };
 
 

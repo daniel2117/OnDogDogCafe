@@ -94,11 +94,9 @@ const Step5Roommate = ({ formData, setFormData, next, back }) => {
                     <button onClick={back} className="border border-purple-500 text-purple-500 px-6 py-2 rounded hover:bg-purple-50">◀ Back</button>
                     <button onClick={handleNext} className="bg-purple-500 text-white px-6 py-2 rounded hover:bg-purple-600">Continue ▶</button>
                 </div>
-               
+
 
                 <div className="mt-10 text-center text-sm text-gray-500">
-                    <p>6613 2128</p>
-                    <p className="mt-1">何文田梭椏道3號1樓<br />1/F, 3 Soares Avenue</p>
                     <p className="text-xs mt-2">©2025 by On Dog Dog Cafe.</p>
                 </div>
             </div>

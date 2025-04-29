@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { adoptionApi } from "../../services/api";
 
 const Step7Confirmation = ({ formData, back }) => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const isModify = location.state?.modify || false;
+    const applicationId = location.state?.application?._id;
+
     const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
@@ -14,15 +18,14 @@ const Step7Confirmation = ({ formData, back }) => {
         setSubmitting(true);
         try {
             console.log("Raw formData:", formData);
-
             const body = {
                 email: formData.email || "",
                 firstName: formData.firstName || "",
                 lastName: formData.lastName || "",
                 phone: formData.phone || "",
                 address: {
-                    line1: formData.line1 || "",
-                    line2: formData.line2 || "",
+                    line1: formData.addressLine1 || "",
+                    line2: formData.addressLine2 || "",
                     town: formData.town || ""
                 },
                 garden: formData.garden || "",
@@ -35,18 +38,21 @@ const Step7Confirmation = ({ formData, back }) => {
                 children: formData.children || "",
                 youngestAge: formData.youngestAge || "",
                 hasVisitingChildren: formData.hasVisitingChildren || "",
+                visitingAge: formData.visitingAge || "",
                 hasFlatmates: formData.hasFlatmates || "",
+                allergies: formData.allergies || "",
                 hasOtherAnimals: formData.hasOtherAnimals || "",
+                otherAnimalDetails: formData.otherAnimalDetails || "",
                 neutered: formData.neutered || "",
-                vaccinated: formData.vaccinated || ""
+                vaccinated: formData.vaccinated || "",
+                experience: formData.experience || ""
             };
+            console.log(body);
 
+            const response = isModify
+                ? await adoptionApi.update(applicationId, body)
+                : await adoptionApi.apply(body);
 
-
-            console.log("Formatted body for API:", body);
-
-            const response = await adoptionApi.apply(body);
-            console.log("Adoption application submitted:", response);
             alert("Your adoption application has been submitted successfully!");
             navigate(`/`);
         } catch (error) {
@@ -57,7 +63,6 @@ const Step7Confirmation = ({ formData, back }) => {
         }
     };
 
-
     return (
         <div className="min-h-screen bg-white flex flex-col items-center px-6 py-12">
             <div className="w-full max-w-2xl text-center">
@@ -66,14 +71,13 @@ const Step7Confirmation = ({ formData, back }) => {
                     Please review your application before submitting.
                 </p>
 
-                {/* Summary */}
                 <div className="bg-gray-50 border rounded p-6 text-left text-sm w-full mb-8">
                     <h2 className="text-base font-semibold mb-4 text-purple-700">Submission Summary</h2>
                     <div className="space-y-2">
                         <p><strong>Email:</strong> {formData.email}</p>
                         <p><strong>Name:</strong> {formData.firstName} {formData.lastName}</p>
                         <p><strong>Phone:</strong> {formData.phone}</p>
-                        <p><strong>Address:</strong> {formData.line1} {formData.line2}, {formData.town}</p>
+                        <p><strong>Address:</strong> {formData.addressLine1} {formData.addressLine2}, {formData.town}</p>
                         <p><strong>Garden:</strong> {formData.garden}</p>
                         <p><strong>Home Situation:</strong> {formData.homeSituation}</p>
                         <p><strong>Household Setting:</strong> {formData.householdSetting}</p>
@@ -92,7 +96,6 @@ const Step7Confirmation = ({ formData, back }) => {
                         <p><strong>Experience with Animals:</strong> {formData.experience}</p>
                     </div>
 
-                    {/* Home Images Preview */}
                     {formData.homeImages && formData.homeImages.length > 0 && (
                         <div className="mt-6">
                             <h3 className="text-sm font-semibold mb-2">Uploaded Home Images:</h3>
@@ -117,10 +120,8 @@ const Step7Confirmation = ({ formData, back }) => {
                             </div>
                         </div>
                     )}
-
                 </div>
 
-                {/* Buttons */}
                 <div className="flex justify-between w-full">
                     <button
                         onClick={back}
@@ -137,10 +138,8 @@ const Step7Confirmation = ({ formData, back }) => {
                     </button>
                 </div>
 
-                {/* Footer */}
                 <div className="text-center text-sm text-gray-500 mt-10">
-                    <p>6613 2128</p>
-                    <p className="mt-1">何文田梭椏道3號1樓<br />1/F, 3 Soares Avenue</p>
+
                     <p className="text-xs mt-2">©2025 by On Dog Dog Cafe.</p>
                 </div>
             </div>
