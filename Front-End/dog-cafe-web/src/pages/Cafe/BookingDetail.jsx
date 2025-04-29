@@ -29,7 +29,7 @@ const BookingDetail = ({ lang, toggleLang }) => {
         language: lang === "zh" ? "English" : "中文",
         services: {
             "Cafe Visit": lang === "zh" ? "咖啡廳探訪" : "Cafe Visit",
-            "Dog Cake": lang === "zh" ? "狗狗蛋糕" : "Dog Cake",
+            "Dog Party": lang === "zh" ? "狗派對" : "Dog Party",
             "Dog Day Care": lang === "zh" ? "狗狗托育" : "Dog Day Care",
             "Swimming Pool": lang === "zh" ? "狗狗游泳池" : "Swimming Pool"
         },
@@ -61,13 +61,13 @@ const BookingDetail = ({ lang, toggleLang }) => {
         numberOfPeople: "",
         phone: "",
         message: ""
-      });
-      
+    });
+
 
 
     const serviceIcons = {
         "Cafe Visit": "/icons/cafe_visit.png",
-        "Dog Cake": "/icons/dog_cake.png",
+        "Dog Party": "/icons/dog_cake.png",
         "Dog Day Care": "/icons/day_care.png",
         "Swimming Pool": "/icons/swimming_pool.png"
     };
@@ -201,7 +201,7 @@ const BookingDetail = ({ lang, toggleLang }) => {
             numberOfPeople: formData.numberOfPeople,
             petName: formData.petName
         };
-        
+
 
         try {
             await reservationApi.create(payload);
