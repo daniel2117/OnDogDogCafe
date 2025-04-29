@@ -40,20 +40,15 @@ const reservationController = {
                 // Start with all services and filter based on constraints
                 let availableServices = Object.values(SERVICES);
 
-                // If there's a dog party, remove cafe visit
+                // Apply backend constraints
                 if (hasDogParty) {
                     availableServices = availableServices.filter(service => 
                         service !== SERVICES.CAFE_VISIT && service !== SERVICES.DOG_PARTY
                     );
-                } 
-                // If there are cafe visits
-                else if (cafeVisitCount > 0) {
-                    // Remove dog party from available services
+                } else if (cafeVisitCount > 0) {
                     availableServices = availableServices.filter(service => 
                         service !== SERVICES.DOG_PARTY
                     );
-                    
-                    // If max cafe visits reached, also remove cafe visit
                     if (cafeVisitCount >= 2) {
                         availableServices = availableServices.filter(service => 
                             service !== SERVICES.CAFE_VISIT
@@ -61,26 +56,12 @@ const reservationController = {
                     }
                 }
 
-                availability[timeSlot] = {
-                    available: availableServices.length > 0,
-                    availableServices,
-                    restrictions: []
-                };
-
-                // Add relevant restrictions messages
-                if (hasDogParty) {
-                    availability[timeSlot].restrictions.push('Dog Party booked - Cafe Visit unavailable');
-                } else if (cafeVisitCount >= 2) {
-                    availability[timeSlot].restrictions.push('Maximum Cafe Visits reached');
-                } else if (cafeVisitCount === 1) {
-                    availability[timeSlot].restrictions.push('One Cafe Visit slot remaining');
-                }
+                availability[timeSlot] = availableServices;
             }
 
             res.json({
                 date: queryDate,
-                timeSlots: availability,
-                serviceConstraints: SERVICE_CONSTRAINTS
+                timeSlots: availability
             });
 
         } catch (error) {
