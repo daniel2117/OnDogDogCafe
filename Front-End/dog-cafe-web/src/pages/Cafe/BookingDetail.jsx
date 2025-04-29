@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { reservationApi } from "../../services/api";
@@ -48,6 +48,9 @@ const BookingDetail = ({ lang, toggleLang }) => {
     const [loading, setLoading] = useState(false);
     const [timer, setTimer] = useState(null);
     const [canResend, setCanResend] = useState(false);
+    const location = useLocation();
+    const isModify = location.state?.modify || false;
+    const reservation = location.state?.reservation || null;
 
     const [showSummary, setShowSummary] = useState(false);
     const [selectedServices, setSelectedServices] = useState([]);
@@ -62,6 +65,25 @@ const BookingDetail = ({ lang, toggleLang }) => {
         phone: "",
         message: ""
     });
+
+    useEffect(() => {
+        if (isModify && reservation) {
+            setFormData({
+                name: reservation.customerInfo.name || "",
+                phone: reservation.customerInfo.phone || "",
+                petName: reservation.customerInfo.petName || "",
+                petType: reservation.customerInfo.petType || "",
+                numberOfPeople: reservation.numberOfPeople?.toString() || "",
+                message: reservation.customerInfo.message || "",
+                bringingPet: reservation.customerInfo.petName ? "yes" : "no",
+            });
+            setEmail(reservation.customerInfo.email || "");
+            setVerified(true);
+            setDate(new Date(reservation.date));
+            setTime(reservation.timeSlot);
+            setSelectedServices(reservation.selectedServices || []);
+        }
+    }, [isModify, reservation]);
 
 
 
@@ -101,7 +123,7 @@ const BookingDetail = ({ lang, toggleLang }) => {
     const getDayLabel = (date) => {
         return date.getDay() === 1 ? "Cafe Closed" : null;
     };
-    
+
     const toggleService = (s) => {
         setSelectedServices(prev =>
             prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]
@@ -117,7 +139,7 @@ const BookingDetail = ({ lang, toggleLang }) => {
             alert(err.message || "Failed to fetch availability");
         }
     };
-    
+
 
     const getCommonSlots = () => {
         if (!selectedServices.length) return [];
@@ -127,7 +149,7 @@ const BookingDetail = ({ lang, toggleLang }) => {
             )
             .map(([time]) => time);
     };
-    
+
 
     const handleInput = e => {
         const { name, value } = e.target;
@@ -193,18 +215,25 @@ const BookingDetail = ({ lang, toggleLang }) => {
                 name: formData.name,
                 email: email,
                 phone: formData.phone,
+                petName: formData.petName,
+                petType: formData.petType || "",
+                message: formData.message
             },
             date: formatDate(date),
             timeSlot: time,
             selectedServices: selectedServices,
-            numberOfPeople: formData.numberOfPeople,
-            petName: formData.petName
+            numberOfPeople: parseInt(formData.numberOfPeople, 10)
         };
 
-
         try {
-            await reservationApi.create(payload);
-            alert("Reservation submitted successfully!");
+            if (isModify && reservation?._id) {
+                console.log(payload);
+                await reservationApi.modify(reservation._id, payload);
+                alert("Reservation updated successfully!");
+            } else {
+                await reservationApi.create(payload);
+                alert("Reservation submitted successfully!");
+            }
             setShowSummary(true);
         } catch (err) {
             alert(err.message || "Failed to submit reservation.");
@@ -335,6 +364,19 @@ const BookingDetail = ({ lang, toggleLang }) => {
                                     className="w-full border rounded p-2 mb-2"
                                     placeholder={lang === 'zh' ? "寵物名字" : "Pet Name"}
                                 />
+                                <h2 className="text-lg font-bold">{lang === 'zh' ? "寵物種類" : "Pet Type"}</h2>
+                                <select
+                                    name="petType"
+                                    className="w-full border rounded p-2 mb-2"
+                                    value={formData.petType || ""}
+                                    onChange={handleInput}
+                                >
+                                    <option value="">{lang === 'zh' ? "請選擇" : "Please select"}</option>
+                                    <option value="Dog">{lang === 'zh' ? "狗" : "Dog"}</option>
+                                    <option value="Cat">{lang === 'zh' ? "貓" : "Cat"}</option>
+                                    <option value="Other">{lang === 'zh' ? "其他" : "Other"}</option>
+                                </select>
+
                             </>
                         )}
 
@@ -347,12 +389,11 @@ const BookingDetail = ({ lang, toggleLang }) => {
                             onChange={handleInput}
                         >
                             <option value="">{lang === 'zh' ? "請選擇" : "Please select"}</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5+">5+</option>
+                            {Array.from({ length: 10 }, (_, i) => (
+                                <option key={i + 1} value={i + 1}>{i + 1}</option>
+                            ))}
                         </select>
+
                         <p className="text-xs text-gray-500 mb-6">{t.peopleGuide}</p>
 
 

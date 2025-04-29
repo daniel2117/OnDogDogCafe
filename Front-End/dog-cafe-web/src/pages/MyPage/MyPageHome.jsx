@@ -1,21 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import FeedbackForm from "../../components/FeedbackForm";
-import { reservationApi, adoptionApi } from "../../services/api";
-import AdoptionApplicationView from "../../components/AdoptionApplicationView";
+import { reservationApi, adoptionApi, myPageApi } from "../../services/api";
 
 const MyPageHome = ({ lang, toggleLang }) => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState("Reservation");
     const [applications, setApplications] = useState({ reservations: [], adoptions: [], rehoming: [] });
-
+    const [isLoading, setIsLoading] = useState(true);
     const [showFeedbackForm, setShowFeedbackForm] = useState(false);
     const [selectedEmail, setSelectedEmail] = useState("");
 
-
     const tabs = ["Reservation", "Adoption", "Rehoming"];
     const verifiedEmail = localStorage.getItem("verifiedEmail");
-
 
     const t = {
         reservation: lang === "zh" ? "預約" : "Reservation",
@@ -25,15 +22,33 @@ const MyPageHome = ({ lang, toggleLang }) => {
     };
 
     useEffect(() => {
-        const data = localStorage.getItem("applications");
-        if (data) {
-            setApplications(JSON.parse(data));
-        }
-    }, []);
+        const fetchApplications = async () => {
+            if (!verifiedEmail) return;
+            setIsLoading(true);
+            try {
+                const res = await myPageApi.getApplications(verifiedEmail);
+                if (res) {
+                    setApplications(res);
+                    localStorage.setItem("applications", JSON.stringify(res));
+                }
+            } catch (err) {
+                console.error("Failed to fetch applications:", err);
+                alert("Failed to load your applications. Please try again later.");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchApplications();
+    }, [verifiedEmail]);
+
+    useEffect(() => {
+        console.log("applications:", applications);
+        console.log("reservations:", applications.reservations);
+    }, [applications]);
+
 
     const handleCancel = async (id) => {
         try {
-            console.log(id, verifiedEmail);
             await reservationApi.cancel(id, verifiedEmail);
             const updatedReservations = applications.reservations.map(res =>
                 res.id === id ? { ...res, status: 'cancelled' } : res
@@ -44,14 +59,12 @@ const MyPageHome = ({ lang, toggleLang }) => {
         }
     };
 
-    const renderTableRows = () => {
+    const renderRows = () => {
         const today = new Date();
-
         if (activeTab === "Reservation") {
             return applications.reservations.map((item, idx) => {
                 const reservationDate = new Date(item.date);
                 const isPast = reservationDate < today;
-
                 return (
                     <tr key={idx} className="border-b">
                         <td className="py-2">{reservationDate.toLocaleDateString()}</td>
@@ -65,7 +78,7 @@ const MyPageHome = ({ lang, toggleLang }) => {
                                     <button
                                         className="bg-purple-200 text-purple-800 px-3 py-1 rounded text-xs"
                                         onClick={() => {
-                                            setSelectedEmail(verifiedEmail); // 예약 객체에 email 있어야 함
+                                            setSelectedEmail(verifiedEmail);
                                             setShowFeedbackForm(true);
                                         }}
                                     >
@@ -73,7 +86,28 @@ const MyPageHome = ({ lang, toggleLang }) => {
                                     </button>
                                 ) : (
                                     <>
-                                        <button className="bg-purple-500 text-white px-3 py-1 rounded text-xs">Modify Booking</button>
+                                        <button
+                                            className="bg-purple-500 text-white px-3 py-1 rounded text-xs"
+                                            onClick={async () => {
+                                                try {
+                                                    const res = await reservationApi.getHistory(verifiedEmail);
+                                                    const reservation = res.find(r => r._id === item.id);
+                                                    if (!reservation) return alert("Reservation not found.");
+                                                    console.log(reservation);
+                                                    navigate("/bookingDetail", {
+                                                        state: {
+                                                            modify: true,
+                                                            reservation
+                                                        }
+                                                    });
+                                                } catch (err) {
+                                                    alert(err.message || "Failed to load reservation history.");
+                                                }
+                                            }}
+                                        >
+                                            Modify Booking
+                                        </button>
+
                                         <button
                                             className="bg-gray-400 text-white px-3 py-1 rounded text-xs"
                                             onClick={() => handleCancel(item.id)}
@@ -81,15 +115,14 @@ const MyPageHome = ({ lang, toggleLang }) => {
                                             Cancel
                                         </button>
                                     </>
-                                )}
 
+                                )}
                             </div>
                         </td>
                     </tr>
                 );
             });
         }
-
         if (activeTab === "Adoption") {
             return applications.adoptions.map((item, idx) => (
                 <tr key={idx} className="border-b">
@@ -102,7 +135,7 @@ const MyPageHome = ({ lang, toggleLang }) => {
                                 className="bg-purple-500 text-white px-3 py-1 rounded text-xs"
                                 onClick={async () => {
                                     try {
-                                        const res = await adoptionApi.getApplication(item.id);  
+                                        const res = await adoptionApi.getApplication(item.id);
                                         navigate("/adoption-application-view", { state: { application: res.application } });
                                     } catch (err) {
                                         alert(err.message || "Failed to fetch application.");
@@ -111,14 +144,13 @@ const MyPageHome = ({ lang, toggleLang }) => {
                             >
                                 View Application
                             </button>
-                            <button className="bg-purple-500 text-white px-3 py-1 rounded text-xs">Update Application</button>
+                            {/* <button className="bg-purple-500 text-white px-3 py-1 rounded text-xs">Update Application</button> */}
                             <button className="bg-gray-400 text-white px-3 py-1 rounded text-xs">Withdraw</button>
                         </div>
                     </td>
                 </tr>
             ));
         }
-
         if (activeTab === "Rehoming") {
             return applications.rehoming.map((item, idx) => (
                 <tr key={idx} className="border-b">
@@ -128,7 +160,7 @@ const MyPageHome = ({ lang, toggleLang }) => {
                     <td className="py-2">
                         <div className="flex gap-2 flex-wrap">
                             <button className="bg-purple-500 text-white px-3 py-1 rounded text-xs">View Application</button>
-                            <button className="bg-purple-500 text-white px-3 py-1 rounded text-xs">Update Application</button>
+                            {/* <button className="bg-purple-500 text-white px-3 py-1 rounded text-xs">Update Application</button> */}
                             <button className="bg-gray-400 text-white px-3 py-1 rounded text-xs">Withdraw</button>
                         </div>
                     </td>
@@ -136,8 +168,6 @@ const MyPageHome = ({ lang, toggleLang }) => {
             ));
         }
     };
-
-
 
     return (
         <div className="min-h-screen bg-white flex flex-col items-center px-6 py-10">
@@ -177,29 +207,29 @@ const MyPageHome = ({ lang, toggleLang }) => {
                         {activeTab === "Reservation" ? (lang === 'zh' ? "我的預約" : "My Booking") : (lang === 'zh' ? "我的申請" : "My Application")}
                     </h3>
 
-                    <table className="w-full text-sm">
-                        <thead>
-                            <tr className="border-b">
-                                <th className="text-left py-2">Date</th>
-                                <th className="text-left py-2">
-                                    {activeTab === "Reservation" ? "Time" : "Pet / Application"}
-                                </th>
-                                {activeTab === "Reservation" && (
-                                    <>
-                                        <th className="text-left py-2">Facility</th>
-                                        <th className="text-left py-2">Request</th>
-                                    </>
-                                )}
-                                <th className="text-left py-2">Status</th>
-                                <th className="text-left py-2">Actions</th>
-                            </tr>
-                        </thead>
-
-
-                        <tbody>
-                            {renderTableRows()}
-                        </tbody>
-                    </table>
+                    {isLoading ? (
+                        <div className="text-center py-10 text-gray-500">Loading...</div>
+                    ) : (
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="border-b">
+                                    <th className="text-left py-2">Date</th>
+                                    <th className="text-left py-2">{activeTab === "Reservation" ? "Time" : "Pet / Application"}</th>
+                                    {activeTab === "Reservation" && (
+                                        <>
+                                            <th className="text-left py-2">Facility</th>
+                                            <th className="text-left py-2">Request</th>
+                                        </>
+                                    )}
+                                    <th className="text-left py-2">Status</th>
+                                    <th className="text-left py-2">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {renderRows()}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
 
                 <button
