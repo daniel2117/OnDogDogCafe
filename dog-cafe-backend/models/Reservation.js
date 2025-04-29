@@ -7,9 +7,20 @@ const TIME_SLOTS = [
 
 const SERVICES = {
     CAFE_VISIT: 'Cafe Visit',
-    DOG_CAKE: 'Dog Cake',
+    DOG_PARTY: 'Dog Party',  // Changed from DOG_CAKE
     SWIMMING_POOL: 'Swimming Pool',
     DOG_DAY_CARE: 'Dog Day Care'
+};
+
+const SERVICE_CONSTRAINTS = {
+    'Dog Party': {
+        maxPerSlot: 1,
+        excludes: ['Cafe Visit']
+    },
+    'Cafe Visit': {
+        maxPerSlot: 2,
+        excludes: ['Dog Party']
+    }
 };
 
 const reservationSchema = new mongoose.Schema({
@@ -104,14 +115,40 @@ reservationSchema.index({ createdAt: -1 });
 
 // Add method to check availability
 reservationSchema.statics.checkAvailability = async function(date, timeSlot, services) {
+    // Get existing reservations for this time slot
     const existingReservations = await this.find({
         date: date,
         timeSlot: timeSlot,
-        selectedServices: { $in: services },
         status: { $ne: 'cancelled' }
     });
 
-    return existingReservations.length === 0;
+    // Check for each requested service
+    for (const service of services) {
+        const constraint = SERVICE_CONSTRAINTS[service];
+        if (!constraint) continue;
+
+        // Count existing reservations with this service
+        const serviceCount = existingReservations.filter(res => 
+            res.selectedServices.includes(service)
+        ).length;
+
+        // Check if adding this reservation would exceed the limit
+        if (serviceCount >= constraint.maxPerSlot) {
+            return false;
+        }
+
+        // Check for mutually exclusive services
+        if (constraint.excludes) {
+            const hasExcludedService = existingReservations.some(res =>
+                res.selectedServices.some(s => constraint.excludes.includes(s))
+            );
+            if (hasExcludedService) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 };
 
 // Add middleware to prevent duplicate reservations

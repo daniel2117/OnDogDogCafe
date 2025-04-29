@@ -1,5 +1,5 @@
 const asyncHandler = require('express-async-handler');
-const { Reservation, TIME_SLOTS, SERVICES } = require('../models/Reservation');
+const { Reservation, TIME_SLOTS, SERVICES, SERVICE_CONSTRAINTS } = require('../models/Reservation');
 const emailService = require('../utils/emailService');
 const cache = require('../utils/cache');
 const { sendEmail } = require('../utils/notifications');
@@ -8,52 +8,69 @@ const validators = require('../utils/validator');
 const reservationController = {
     // Get available time slots and services
     getAvailability: asyncHandler(async (req, res) => {
-        const { date } = req.query;
+        try {
+            const { date } = req.query;
+            
+            if (!date) {
+                return res.status(400).json({ message: 'Date is required' });
+            }
 
-        if (!date || !validators.isValidDate(date)) {
-            return res.status(400).json({ 
-                message: 'Valid date is required (YYYY-MM-DD format)' 
+            const queryDate = new Date(date);
+            queryDate.setHours(0, 0, 0, 0);
+
+            // Get all reservations for the specified date
+            const reservations = await Reservation.find({
+                date: queryDate,
+                status: { $ne: 'cancelled' }
             });
-        }
 
-        const queryDate = new Date(date);
-        const cacheKey = `availability:${queryDate.toISOString().split('T')[0]}`;
-        
-        // Try to get from cache first
-        const cached = await cache.get(cacheKey);
-        if (cached) {
-            return res.json(cached);
-        }
-    
-        // Get existing reservations for the date
-        const reservations = await Reservation.find({
-            date: queryDate,
-            status: { $ne: 'cancelled' }
-        }).select('timeSlot selectedServices');
-    
-        // Calculate available slots for each service
-        const availableSlots = {};
-        Object.values(SERVICES).forEach(service => {
-            availableSlots[service] = TIME_SLOTS.filter(slot => {
-                const serviceReservations = reservations.filter(r => 
-                    r.timeSlot === slot && r.selectedServices.includes(service)
+            // Calculate availability for each time slot
+            const availability = {};
+            for (const timeSlot of TIME_SLOTS) {
+                const slotReservations = reservations.filter(r => r.timeSlot === timeSlot);
+                
+                const cafeVisitCount = slotReservations.filter(r => 
+                    r.selectedServices.includes(SERVICES.CAFE_VISIT)
+                ).length;
+
+                const hasDogParty = slotReservations.some(r => 
+                    r.selectedServices.includes(SERVICES.DOG_PARTY)
                 );
-                return serviceReservations.length < 2;
-            });
-        });
-    
-        // Cache the result for 5 minutes
-        await cache.set(cacheKey, {
-            date: queryDate,
-            availableSlots,
-            services: Object.values(SERVICES)
-        }, 300);
 
-        res.json({
-            date: queryDate,
-            availableSlots,
-            services: Object.values(SERVICES)
-        });
+                availability[timeSlot] = {
+                    available: true,
+                    availableServices: Object.values(SERVICES),
+                    restrictions: []
+                };
+
+                // Apply restrictions based on existing bookings
+                if (hasDogParty) {
+                    availability[timeSlot].availableServices = Object.values(SERVICES)
+                        .filter(service => service !== SERVICES.CAFE_VISIT);
+                    availability[timeSlot].restrictions.push('Dog Party booked - Cafe Visit unavailable');
+                } else if (cafeVisitCount >= 2) {
+                    availability[timeSlot].availableServices = Object.values(SERVICES)
+                        .filter(service => service !== SERVICES.CAFE_VISIT 
+                                      && service !== SERVICES.DOG_PARTY);
+                    availability[timeSlot].restrictions.push('Maximum Cafe Visits reached');
+                } else if (cafeVisitCount === 1) {
+                    availability[timeSlot].availableServices = Object.values(SERVICES)
+                        .filter(service => service !== SERVICES.DOG_PARTY);
+                    availability[timeSlot].restrictions.push('One Cafe Visit slot remaining');
+                }
+
+                availability[timeSlot].available = availability[timeSlot].availableServices.length > 0;
+            }
+
+            res.json({
+                date: queryDate,
+                timeSlots: availability,
+                serviceConstraints: SERVICE_CONSTRAINTS
+            });
+
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
     }),
 
     verifyContact: asyncHandler(async (req, res) => {
