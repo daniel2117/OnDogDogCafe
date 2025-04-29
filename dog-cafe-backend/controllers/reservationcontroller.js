@@ -279,12 +279,11 @@ const reservationController = {
     // Cancel reservation
     cancelReservation: asyncHandler(async (req, res) => {
         const { id } = req.params;
-        const { email, phone } = req.body;
+        const { email } = req.body;
 
         const reservation = await Reservation.findOne({
             _id: id,
             'customerInfo.email': email,
-            'customerInfo.phone': phone,
             status: { $ne: 'cancelled' }
         });
 
