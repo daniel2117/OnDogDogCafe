@@ -37,29 +37,44 @@ const reservationController = {
                     r.selectedServices.includes(SERVICES.DOG_PARTY)
                 );
 
+                // Start with all services and filter based on constraints
+                let availableServices = Object.values(SERVICES);
+
+                // If there's a dog party, remove cafe visit
+                if (hasDogParty) {
+                    availableServices = availableServices.filter(service => 
+                        service !== SERVICES.CAFE_VISIT && service !== SERVICES.DOG_PARTY
+                    );
+                } 
+                // If there are cafe visits
+                else if (cafeVisitCount > 0) {
+                    // Remove dog party from available services
+                    availableServices = availableServices.filter(service => 
+                        service !== SERVICES.DOG_PARTY
+                    );
+                    
+                    // If max cafe visits reached, also remove cafe visit
+                    if (cafeVisitCount >= 2) {
+                        availableServices = availableServices.filter(service => 
+                            service !== SERVICES.CAFE_VISIT
+                        );
+                    }
+                }
+
                 availability[timeSlot] = {
-                    available: true,
-                    availableServices: Object.values(SERVICES),
+                    available: availableServices.length > 0,
+                    availableServices,
                     restrictions: []
                 };
 
-                // Apply restrictions based on existing bookings
+                // Add relevant restrictions messages
                 if (hasDogParty) {
-                    availability[timeSlot].availableServices = Object.values(SERVICES)
-                        .filter(service => service !== SERVICES.CAFE_VISIT);
                     availability[timeSlot].restrictions.push('Dog Party booked - Cafe Visit unavailable');
                 } else if (cafeVisitCount >= 2) {
-                    availability[timeSlot].availableServices = Object.values(SERVICES)
-                        .filter(service => service !== SERVICES.CAFE_VISIT 
-                                      && service !== SERVICES.DOG_PARTY);
                     availability[timeSlot].restrictions.push('Maximum Cafe Visits reached');
                 } else if (cafeVisitCount === 1) {
-                    availability[timeSlot].availableServices = Object.values(SERVICES)
-                        .filter(service => service !== SERVICES.DOG_PARTY);
                     availability[timeSlot].restrictions.push('One Cafe Visit slot remaining');
                 }
-
-                availability[timeSlot].available = availability[timeSlot].availableServices.length > 0;
             }
 
             res.json({
