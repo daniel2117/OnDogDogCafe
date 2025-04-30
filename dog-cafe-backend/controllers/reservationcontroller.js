@@ -272,14 +272,28 @@ const reservationController = {
         const reservations = await Reservation.find(filter)
             .sort({ date: -1 })
             .select('-__v')
-            .lean();  // Convert to plain objects for easier manipulation
+            .lean();
 
-        // Transform the reservations to include the missing fields
+        // Transform the reservations to include all necessary fields
         const formattedReservations = reservations.map(reservation => ({
-            ...reservation,
-            message: reservation.customerInfo.message || '',
-            petName: reservation.customerInfo.petName || '',
-            petType: reservation.customerInfo.petType || ''
+            id: reservation._id,
+            status: reservation.status,
+            date: reservation.date,
+            timeSlot: reservation.timeSlot,
+            numberOfPeople: reservation.numberOfPeople,
+            selectedServices: reservation.selectedServices,
+            customerInfo: {
+                name: reservation.customerInfo.name,
+                email: reservation.customerInfo.email,
+                phone: reservation.customerInfo.phone,
+                petName: reservation.customerInfo.petName || '',
+                petType: reservation.customerInfo.petType || '',
+                message: reservation.customerInfo.message || '',
+                location: reservation.customerInfo.location || ''
+            },
+            createdAt: reservation.createdAt,
+            updatedAt: reservation.updatedAt,
+            version: reservation.__v
         }));
 
         res.json(formattedReservations);
