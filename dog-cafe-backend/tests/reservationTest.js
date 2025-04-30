@@ -72,6 +72,9 @@ const testReservationAPIs = async () => {
             }
 
             // Continue with remaining tests only if verification succeeds
+            // Store the reservation ID for cancellation test
+            let createdReservationId;
+            
             // Test 4: Create Reservation
             console.log('\n4. Testing reservation creation...');
             const reservationPayload = {
@@ -94,12 +97,27 @@ const testReservationAPIs = async () => {
                     reservationPayload
                 );
                 console.log('Reservation Created Successfully:', reservationResponse.data);
+                createdReservationId = reservationResponse.data.reservation._id;
             } catch (error) {
                 console.log('Reservation creation response:', error.response?.data);
+                throw error; // Stop execution if creation fails
             }
 
-            // Test 5: Get User Reservations
-            console.log('\n5. Testing get user reservations...');
+            // Test 5: Cancel Reservation
+            if (createdReservationId) {
+                console.log('\n5. Testing reservation cancellation...');
+                try {
+                    const cancelResponse = await axios.post(
+                        `${API_URL}/reservations/${createdReservationId}/cancel`
+                    );
+                    console.log('Cancellation Response:', cancelResponse.data);
+                } catch (error) {
+                    console.log('Cancellation failed:', error.response?.data);
+                }
+            }
+
+            // Test 6: Get User Reservations (now includes cancelled ones)
+            console.log('\n6. Testing get user reservations...');
             const userReservationsResponse = await axios.get(
                 `${API_URL}/reservations/history`,
                 {
