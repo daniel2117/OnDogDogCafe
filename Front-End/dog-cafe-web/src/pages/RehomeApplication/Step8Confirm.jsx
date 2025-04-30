@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { rehomingApi } from "../../services/api";
 
-const Step8Confirm = ({ formData, back, lang }) => {
+const Step8Confirm = ({ formData, back, lang, isModify }) => {
     const navigate = useNavigate();
     const [submitting, setSubmitting] = useState(false);
 
@@ -19,9 +19,7 @@ const Step8Confirm = ({ formData, back, lang }) => {
     const handleSubmit = async () => {
         setSubmitting(true);
         try {
-            const checklistRaw = typeof formData.keyFacts === "string"
-                ? JSON.parse(formData.keyFacts)
-                : formData.keyFacts;
+            const checklistRaw = formData.checklist || {};
 
             const checklist = {
                 shotsUpToDate: checklistRaw.shotsUpToDate === "yes",
@@ -34,6 +32,7 @@ const Step8Confirm = ({ formData, back, lang }) => {
                 hasSpecialNeeds: checklistRaw.specialNeeds === "yes",
                 hasBehaviouralIssues: checklistRaw.behaviouralIssues === "yes",
             };
+            console.log("checklistRaw" + checklistRaw);
 
             const uploadedPhotos = (formData.uploadedPhotos || []);
             console.log(formData);

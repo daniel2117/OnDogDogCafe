@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { adoptionApi } from "../../services/api";
 
-const Step4Characteristics = ({ formData, setFormData, next, back, lang }) => {
+const Step4Characteristics = ({ formData, setFormData, next, back, lang, isModify }) => {
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: "auto" });
     }, []);
-    const [filters, setFilters] = useState({ breed: [], color: [], gender: [], age: [], size: [] });
 
     const t = {
         petName: lang === 'zh' ? "寵物名字" : "Pet's Name",
@@ -21,17 +20,27 @@ const Step4Characteristics = ({ formData, setFormData, next, back, lang }) => {
         continue: lang === 'zh' ? "繼續" : "Continue",
     };
 
-    useEffect(() => {
-        const fetchFilters = async () => {
-            try {
-                const res = await adoptionApi.getFilters();
-                setFilters(res);
-            } catch (e) {
-                console.error("Failed to load filters:", e);
-            }
-        };
-        fetchFilters();
-    }, []);
+    const ageOptions = Array.from({ length: 21 }, (_, i) => i.toString());
+    const sizeOptions = ["small", "medium", "large"];
+    const genderOptions = ["male", "female"];
+    const breedOptions = [
+        "Australian Cattle Dog", "Australian Shepherd", "Beagle", "Border Collie", "Boston Terrier",
+        "Cane Corso", "Cardigan Welsh Corgi", "Chihuahua", "Cocker Spaniel", "Dachshund",
+        "Doberman Pinscher", "French Bulldog", "German Shepherd", "Golden Retriever", "Goldendoodle",
+        "Great Dane", "Irish Setter", "Italian Greyhound", "Labrador Retriever", "Maltese",
+        "Pembroke Welsh Corgi", "Pomeranian", "Poodle", "Pug", "Samoyed",
+        "Shetland Sheepdog", "Shiba Inu", "Siberian Husky", "Standard Poodle", "Vizsla",
+        "Weimaraner", "Mixed", "Unknown", "Other"
+    ];
+    const colorOptions = [
+        "Apricot", "Black", "Black and White", "Blue", "Blue Heeler",
+        "Blue Merle", "Brown", "Chestnut", "Chocolate", "Cream",
+        "Dark Gray", "Fawn", "Golden", "Gray", "Harlequin",
+        "Mahogany", "Orange-red", "Red", "Red & White", "Red and White",
+        "Rust-colored", "Sable", "Seal", "Silver", "Tan",
+        "Tan and Black", "Tri-color", "White", "Yellow", "Brindle",
+        "Merle", "Mixed", "Unknown", "Other"
+    ];
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -69,35 +78,35 @@ const Step4Characteristics = ({ formData, setFormData, next, back, lang }) => {
                         <label className="block text-sm font-medium mb-1">{t.age} *</label>
                         <select name="age" value={formData.age || ""} onChange={handleChange} className="w-full border p-2 rounded">
                             <option value="">{t.select}</option>
-                            {filters.age.map((age) => <option key={age} value={age}>{age}</option>)}
+                            {ageOptions.map((age) => <option key={age} value={age}>{age}</option>)}
                         </select>
                     </div>
                     <div>
                         <label className="block text-sm font-medium mb-1">{t.size} *</label>
                         <select name="size" value={formData.size || ""} onChange={handleChange} className="w-full border p-2 rounded">
                             <option value="">{t.select}</option>
-                            {filters.size.map((s) => <option key={s} value={s}>{s}</option>)}
+                            {sizeOptions.map((s) => <option key={s} value={s}>{s}</option>)}
                         </select>
                     </div>
                     <div>
                         <label className="block text-sm font-medium mb-1">{t.gender} *</label>
                         <select name="gender" value={formData.gender || ""} onChange={handleChange} className="w-full border p-2 rounded">
                             <option value="">{t.select}</option>
-                            {filters.gender.map((g) => <option key={g} value={g}>{g}</option>)}
+                            {genderOptions.map((g) => <option key={g} value={g}>{g}</option>)}
                         </select>
                     </div>
                     <div>
                         <label className="block text-sm font-medium mb-1">{t.breed} *</label>
                         <select name="breed" value={formData.breed || ""} onChange={handleChange} className="w-full border p-2 rounded">
                             <option value="">{t.pick}</option>
-                            {filters.breed.map((b) => <option key={b} value={b}>{b}</option>)}
+                            {breedOptions.map((b) => <option key={b} value={b}>{b}</option>)}
                         </select>
                     </div>
                     <div>
                         <label className="block text-sm font-medium mb-1">{t.color} *</label>
                         <select name="color" value={formData.color || ""} onChange={handleChange} className="w-full border p-2 rounded">
                             <option value="">{t.all}</option>
-                            {filters.color.map((c) => <option key={c} value={c}>{c}</option>)}
+                            {colorOptions.map((c) => <option key={c} value={c}>{c}</option>)}
                         </select>
                     </div>
                 </div>
@@ -106,12 +115,6 @@ const Step4Characteristics = ({ formData, setFormData, next, back, lang }) => {
                     <button onClick={back} className="border border-purple-500 text-purple-500 px-6 py-2 rounded hover:bg-purple-50">◀ {t.back}</button>
                     <button onClick={handleNext} className="bg-purple-500 text-white px-6 py-2 rounded hover:bg-purple-600">{t.continue} ▶</button>
                 </div>
-                {/* <button
-                    onClick={next}
-                    className="text-xs text-gray-400 underline"
-                >
-                    Skip verification for development →
-                </button> */}
             </div>
         </div>
     );

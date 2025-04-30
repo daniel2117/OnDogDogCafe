@@ -1,10 +1,11 @@
 import React from "react";
 import { useEffect } from "react";
 
-const Step5KeyFacts = ({ formData, setFormData, next, back, lang }) => {
+const Step5KeyFacts = ({ formData, setFormData, next, back, lang, isModify }) => {
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: "auto" });
     }, []);
+
     const fields = [
         "shotsUpToDate",
         "microchipped",
@@ -45,18 +46,23 @@ const Step5KeyFacts = ({ formData, setFormData, next, back, lang }) => {
     const options = ["yes", "no", "unknown"];
 
     const handleChange = (field, value) => {
-        setFormData(prev => ({ ...prev, keyFacts: { ...prev.keyFacts, [field]: value } }));
+        setFormData(prev => ({ ...prev, checklist: { ...prev.checklist, [field]: value } }));
     };
 
     const handleNext = () => {
-        const facts = formData.keyFacts || {};
+        const facts = formData.checklist || {};
         const allAnswered = fields.every(f => facts[f]);
-        if (!allAnswered) {
+        if (!isModify && !allAnswered) {
             alert(lang === "zh" ? "請完成所有欄位。" : "Please answer all the fields.");
             return;
         }
         next();
     };
+    const parseValue = (raw) => {
+        if (typeof raw === "boolean") return raw ? "yes" : "no";
+        return raw || ""; // "yes", "no", "unknown", 또는 undefined
+    };
+
 
     return (
         <div className="min-h-screen flex flex-col items-center px-6 py-8">
@@ -72,7 +78,7 @@ const Step5KeyFacts = ({ formData, setFormData, next, back, lang }) => {
                                     type="radio"
                                     name={field}
                                     value={opt}
-                                    checked={formData.keyFacts?.[field] === opt}
+                                    checked={parseValue(formData.checklist?.[field]) === opt}
                                     onChange={() => handleChange(field, opt)}
                                     className="mr-1"
                                 />
@@ -85,6 +91,7 @@ const Step5KeyFacts = ({ formData, setFormData, next, back, lang }) => {
                                     : opt.charAt(0).toUpperCase() + opt.slice(1)}
                             </label>
                         ))}
+
                     </div>
                 ))}
 
@@ -102,12 +109,6 @@ const Step5KeyFacts = ({ formData, setFormData, next, back, lang }) => {
                         {lang === 'zh' ? '繼續' : 'Continue'} ▶
                     </button>
                 </div>
-                {/* <button
-                    onClick={next}
-                    className="text-xs text-gray-400 underline"
-                >
-                    Skip verification for development →
-                </button> */}
             </div>
         </div>
     );
