@@ -3,6 +3,7 @@ const router = express.Router();
 const reservationController = require('../controllers/reservationcontroller');
 
 router.get('/availability', reservationController.getAvailability);
+router.get('/:id', reservationController.getReservationById); // Add this line
 router.post('/verify-email', reservationController.verifyContact);
 router.post('/verify-code', reservationController.verifyCode);
 router.post('/create', reservationController.createReservation);
