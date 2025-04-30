@@ -44,17 +44,18 @@ const Home = ({ lang, toggleLang }) => {
             cafeServices: [
                 {
                     title: "Pet Cafe",
-                    desc: "A cozy haven where animal lovers can unwind and enjoy the company of adorable furry friends."
+                    desc: "A cozy haven where animal lovers can unwind and enjoy the company of adorable furry friends.\nAdmission: $170/person (unlimited time). Includes 1 drink voucher. Outside food and delivery allowed."
                 },
                 {
                     title: "Dog Swimming Pool",
-                    desc: "A safe and climate-controlled environment where your furry friends can enjoy swimming year-round."
+                    desc: "A safe and climate-controlled environment where your furry friends can enjoy swimming year-round.\n30-min sessions from 10am–6pm daily. Fees: $450–$950 by dog size. Max 2 dogs/session. $1,000 cleaning fee if accidents occur."
                 },
                 {
                     title: "Day Care Service",
-                    desc: "A safe and stimulating environment for your furry companions to socialize and play while you're away."
+                    desc: "A safe and stimulating environment for your furry companions to socialize and play while you're away.\nAvailable weekends/holidays only. Fees: $750–$1,000/hr. Min. 2-hour booking, 2 weeks advance reservation required."
                 }
             ]
+
         },
         zh: {
             myPage: "我的頁面",
@@ -75,17 +76,19 @@ const Home = ({ lang, toggleLang }) => {
             cafeServices: [
                 {
                     title: "寵物咖啡廳",
-                    desc: "一個讓愛動物的人可以放鬆並享受毛孩陪伴的溫馨天地。"
+                    desc: "一個讓愛動物的人可以放鬆並享受毛孩陪伴的溫馨天地。\n入場費：每人 $170（不限時）。包含 1 張飲品券，允許攜帶外食或叫外賣。"
                 },
                 {
                     title: "狗狗游泳池",
-                    desc: "安全並全年恆溫的游泳空間，讓毛孩盡情享受戲水樂趣。"
+                    desc: "安全並全年恆溫的游泳空間，讓毛孩盡情享受戲水樂趣。\n每日 10am–6pm 開放，每節 30 分鐘。收費依體型 $450–$950。每節最多 2 隻狗，若超過 20kg 則限 1 隻。若有意外，清潔費 $1,000。"
                 },
                 {
                     title: "日間托管服務",
-                    desc: "提供安全又充滿刺激的環境，讓毛孩在你外出時也能玩得開心。"
+                    desc: "提供安全又充滿刺激的環境，讓毛孩在你外出時也能玩得開心。\n僅限週末及公眾假期。收費每小時 $750–$1,000。最少預約 2 小時，需提前 2 週預訂。"
                 }
             ]
+
+
         },
     };
 
