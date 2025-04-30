@@ -63,7 +63,8 @@ const BookingDetail = ({ lang, toggleLang }) => {
         bringingPet: "",
         numberOfPeople: "",
         phone: "",
-        message: ""
+        message: "",
+        email: "",
     });
 
     useEffect(() => {
@@ -196,6 +197,7 @@ const BookingDetail = ({ lang, toggleLang }) => {
         try {
             await reservationApi.verifyCode(email, code);
             setVerified(true);
+            setFormData(prev => ({ ...prev, email }));
             alert("Email verified successfully!");
         } catch (err) {
             alert(err.message || "Verification failed");
@@ -205,6 +207,7 @@ const BookingDetail = ({ lang, toggleLang }) => {
     };
 
     const handleSubmit = async () => {
+        console.log(formData);
         if (!formData.name || !formData.petName || !formData.phone || !formData.message || !email || !verified || !date || !time || selectedServices.length === 0) {
             alert("Please complete all fields and verify your email.");
             return;
@@ -213,7 +216,7 @@ const BookingDetail = ({ lang, toggleLang }) => {
         const payload = {
             customerInfo: {
                 name: formData.name,
-                email: email,
+                email: formData.email || email,
                 phone: formData.phone,
                 petName: formData.petName,
                 petType: formData.petType || "",
@@ -222,8 +225,10 @@ const BookingDetail = ({ lang, toggleLang }) => {
             date: formatDate(date),
             timeSlot: time,
             selectedServices: selectedServices,
-            numberOfPeople: parseInt(formData.numberOfPeople, 10)
+            numberOfPeople: parseInt(formData.numberOfPeople, 10),
+
         };
+
 
         try {
             if (isModify && reservation?._id) {

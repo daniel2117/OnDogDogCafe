@@ -49,6 +49,7 @@ const MyPageHome = ({ lang, toggleLang }) => {
 
     const handleCancel = async (id) => {
         try {
+            console.log(id);
             await reservationApi.cancel(id, verifiedEmail);
             const updatedReservations = applications.reservations.map(res =>
                 res.id === id ? { ...res, status: 'cancelled' } : res
@@ -91,7 +92,7 @@ const MyPageHome = ({ lang, toggleLang }) => {
                                             onClick={async () => {
                                                 try {
                                                     const res = await reservationApi.getHistory(verifiedEmail);
-                                                    const reservation = res.find(r => r._id === item.id);
+                                                    const reservation = res.find(r => r.id === item.id);
                                                     if (!reservation) return alert("Reservation not found.");
                                                     console.log(reservation);
                                                     navigate("/bookingDetail", {
@@ -136,6 +137,7 @@ const MyPageHome = ({ lang, toggleLang }) => {
                                 onClick={async () => {
                                     try {
                                         const res = await adoptionApi.getApplication(item.id);
+                                        console.log(res);
                                         navigate("/adoption-application-view", { state: { application: res.application } });
                                     } catch (err) {
                                         alert(err.message || "Failed to fetch application.");
