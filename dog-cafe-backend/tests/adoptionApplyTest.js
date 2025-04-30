@@ -58,6 +58,7 @@ const testAdoptionApplication = async () => {
             console.log('\nSuccess!');
             console.log('Status:', response.status);
             console.log('Response:', JSON.stringify(response.data, null, 2));
+            return response.data; // Return response data for further use
         } else {
             console.error('\nRequest failed!');
             console.error('Status:', response.status);
@@ -79,4 +80,181 @@ const testAdoptionApplication = async () => {
     }
 };
 
-testAdoptionApplication();
+const testUpdateApplication = async (applicationId) => {
+    try {
+        console.log('\nTesting Adoption Application Updates...\n');
+
+        // Test 1: Valid update
+        const validUpdate = {
+            phone: '+886987654321',
+            garden: 'no',
+            homeSituation: 'apartment'
+        };
+
+        console.log('Test 1: Testing valid update with data:', JSON.stringify(validUpdate, null, 2));
+        let response = await axios.put(
+            `${API_URL}/adoption/application/${applicationId}`,
+            validUpdate,
+            {
+                headers: { 'Content-Type': 'application/json' },
+                validateStatus: false
+            }
+        );
+        console.log('Valid Update Response:', {
+            status: response.status,
+            data: response.data
+        });
+
+        // Test 2: Invalid phone number
+        const invalidPhoneUpdate = {
+            phone: '123', // Invalid phone number
+            garden: 'yes'
+        };
+
+        console.log('\nTest 2: Testing invalid phone update with data:', JSON.stringify(invalidPhoneUpdate, null, 2));
+        response = await axios.put(
+            `${API_URL}/adoption/application/${applicationId}`,
+            invalidPhoneUpdate,
+            {
+                headers: { 'Content-Type': 'application/json' },
+                validateStatus: false
+            }
+        );
+        console.log('Invalid Phone Update Response:', {
+            status: response.status,
+            data: response.data
+        });
+
+        // Test 3: Invalid enum value
+        const invalidEnumUpdate = {
+            garden: 'maybe', // Invalid enum value (should be 'yes' or 'no')
+            homeSituation: 'mansion' // Invalid enum value
+        };
+
+        console.log('\nTest 3: Testing invalid enum update with data:', JSON.stringify(invalidEnumUpdate, null, 2));
+        response = await axios.put(
+            `${API_URL}/adoption/application/${applicationId}`,
+            invalidEnumUpdate,
+            {
+                headers: { 'Content-Type': 'application/json' },
+                validateStatus: false
+            }
+        );
+        console.log('Invalid Enum Update Response:', {
+            status: response.status,
+            data: response.data
+        });
+
+        // Test 4: Invalid application ID
+        console.log('\nTest 4: Testing update with invalid application ID');
+        response = await axios.put(
+            `${API_URL}/adoption/application/invalid-id`,
+            validUpdate,
+            {
+                headers: { 'Content-Type': 'application/json' },
+                validateStatus: false
+            }
+        );
+        console.log('Invalid ID Update Response:', {
+            status: response.status,
+            data: response.data
+        });
+
+    } catch (error) {
+        console.error('\nUpdate tests failed with the following error:');
+        if (error.response) {
+            console.error('Server responded with error:');
+            console.error('Status:', error.response.status);
+            console.error('Data:', JSON.stringify(error.response.data, null, 2));
+        } else {
+            console.error('Error:', error.message);
+        }
+    }
+};
+
+const testGetApplicationById = async (applicationId) => {
+    try {
+        console.log('\nTesting Get Application Details...\n');
+
+        // Test 1: Valid application ID
+        console.log('Test 1: Testing with valid application ID:', applicationId);
+        let response = await axios.get(
+            `${API_URL}/adoption/application/${applicationId}`,
+            {
+                headers: { 'Content-Type': 'application/json' },
+                validateStatus: false
+            }
+        );
+        console.log('Valid ID Response:', {
+            status: response.status,
+            success: response.data.success,
+            hasApplication: !!response.data.application
+        });
+
+        // Test 2: Invalid application ID format
+        console.log('\nTest 2: Testing with invalid application ID format');
+        response = await axios.get(
+            `${API_URL}/adoption/application/invalid-id`,
+            {
+                headers: { 'Content-Type': 'application/json' },
+                validateStatus: false
+            }
+        );
+        console.log('Invalid ID Response:', {
+            status: response.status,
+            data: response.data
+        });
+
+        // Test 3: Non-existent but valid format ID
+        console.log('\nTest 3: Testing with non-existent application ID');
+        response = await axios.get(
+            `${API_URL}/adoption/application/507f1f77bcf86cd799439011`,
+            {
+                headers: { 'Content-Type': 'application/json' },
+                validateStatus: false
+            }
+        );
+        console.log('Non-existent ID Response:', {
+            status: response.status,
+            data: response.data
+        });
+
+    } catch (error) {
+        console.error('\nGet application test failed with error:');
+        if (error.response) {
+            console.error('Server responded with error:');
+            console.error('Status:', error.response.status);
+            console.error('Data:', JSON.stringify(error.response.data, null, 2));
+        } else {
+            console.error('Error:', error.message);
+        }
+    }
+};
+
+const runAllTests = async () => {
+    try {
+        console.log('Starting Adoption Application Tests...\n');
+        
+        // Run the original application submission test
+        const submissionResponse = await testAdoptionApplication();
+        
+        if (submissionResponse?.applicationId) {
+            console.log('\nSubmission successful, proceeding with other tests...');
+            
+            // Run get application test
+            await testGetApplicationById(submissionResponse.applicationId);
+            
+            // Run update application test
+            await testUpdateApplication(submissionResponse.applicationId);
+        } else {
+            console.error('Submission failed, skipping subsequent tests');
+        }
+        
+        console.log('\nAll tests completed.');
+    } catch (error) {
+        console.error('Test suite failed:', error.message);
+    }
+};
+
+// Run the test suite
+runAllTests();
