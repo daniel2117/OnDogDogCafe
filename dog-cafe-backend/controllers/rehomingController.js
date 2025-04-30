@@ -168,15 +168,13 @@ const rehomingController = {
             await application.save();
 
             try {
-                await emailService.sendRehomingApplicationConfirmation(
-                    application.ownerInfo.email,
-                    {
-                        name: application.ownerInfo.firstName,
-                        petName: application.petInfo.name,
-                        applicationId: application._id,
-                        status: 'withdrawn'
-                    }
+                const emailResult = await emailService.sendVerificationEmail(
+                    application.ownerInfo.email, 
+                    'WITHDRAWN'
                 );
+                if (!emailResult) {
+                    console.error('Failed to send withdrawal confirmation email');
+                }
             } catch (emailError) {
                 console.error('Failed to send withdrawal confirmation email:', emailError);
             }

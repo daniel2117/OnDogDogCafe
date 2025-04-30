@@ -300,15 +300,13 @@ const adoptionController = {
             await application.save();
 
             try {
-                await emailService.sendAdoptionApplicationConfirmation(
-                    application.email,
-                    {
-                        name: `${application.firstName} ${application.lastName}`,
-                        applicationId: application._id,
-                        status: 'withdrawn',
-                        dogName: application.dogId?.name
-                    }
+                const emailResult = await emailService.sendVerificationEmail(
+                    application.email, 
+                    'WITHDRAWN'
                 );
+                if (!emailResult) {
+                    console.error('Failed to send withdrawal confirmation email');
+                }
             } catch (emailError) {
                 console.error('Failed to send withdrawal confirmation email:', emailError);
             }
