@@ -42,12 +42,10 @@ const adoptionApplicationSchema = new mongoose.Schema({
     },
     householdSetting: {
         type: String,
-        enum: ['single', 'couple', 'family', 'shared'],
         required: true
     },
     activityLevel: {
         type: String,
-        enum: ['low', 'moderate', 'high'],
         required: true
     },
     incomeLevel: {
@@ -82,8 +80,7 @@ const adoptionApplicationSchema = new mongoose.Schema({
         required: true
     },
     visitingAge: {
-        type: String,
-        enum: ['toddler', 'child', 'teen', 'n/a']
+        type: String
     },
     hasFlatmates: {
         type: String,
