@@ -276,40 +276,55 @@ const adoptionController = {
     }),
 
     withdrawApplication: asyncHandler(async (req, res) => {
-        const { id } = req.params;
+        try {
+            const { id } = req.params;
 
-        const application = await AdoptionApplication.findOne({
-            _id: id,
-            status: 'pending'  // Can only withdraw pending applications
-        }).populate('dogId', 'name');
+            if (!mongoose.Types.ObjectId.isValid(id)) {
+                return res.status(400).json({
+                    message: 'Invalid application ID format'
+                });
+            }
 
-        if (!application) {
-            return res.status(404).json({
-                message: 'Active application not found'
+            const application = await AdoptionApplication.findOne({
+                _id: id,
+                status: 'pending'
+            }).populate('dogId', 'name');
+
+            if (!application) {
+                return res.status(404).json({
+                    message: 'Active application not found'
+                });
+            }
+
+            application.status = 'withdrawn';
+            await application.save();
+
+            try {
+                const emailResult = await emailService.sendVerificationEmail(
+                    application.email, 
+                    'WITHDRAWN'
+                );
+                if (!emailResult) {
+                    console.error('Failed to send withdrawal confirmation email');
+                }
+            } catch (emailError) {
+                console.error('Failed to send withdrawal confirmation email:', emailError);
+            }
+
+            res.json({
+                message: 'Application withdrawn successfully',
+                application: {
+                    id: application._id,
+                    status: application.status
+                }
+            });
+        } catch (error) {
+            console.error('Error withdrawing application:', error);
+            res.status(500).json({
+                message: 'Failed to withdraw application',
+                error: error.message
             });
         }
-
-        application.status = 'withdrawn';
-        await application.save();
-
-        // Send withdrawal confirmation email
-        await emailService.sendAdoptionApplicationConfirmation(
-            application.email,
-            {
-                name: `${application.firstName} ${application.lastName}`,
-                applicationId: application._id,
-                status: 'withdrawn',
-                dogName: application.dogId?.name
-            }
-        );
-
-        res.json({
-            message: 'Application withdrawn successfully',
-            application: {
-                id: application._id,
-                status: application.status
-            }
-        });
     })
 };
 

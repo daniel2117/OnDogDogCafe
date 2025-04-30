@@ -7,15 +7,30 @@ const transporter = nodemailer.createTransport(emailConfig.smtp);
 const emailService = {
     async sendVerificationEmail(email, verificationCode) {
         console.log(`[Email Service] Attempting to send verification email to: ${email}`);
+        
+        let subject = 'Verify Your Email for Dog Cafe Reservation';
+        let html = `
+            <h2>Welcome to Dog Cafe!</h2>
+            <p>Your verification code is: <strong>${verificationCode}</strong></p>
+            <p>This code will expire in 10 minutes.</p>
+        `;
+
+        // Handle withdrawal notifications
+        if (verificationCode === 'WITHDRAWN') {
+            subject = 'Application Withdrawal Confirmation';
+            html = `
+                <h2>Application Withdrawal Confirmation</h2>
+                <p>Your application has been successfully withdrawn.</p>
+                <p>If you wish to submit a new application in the future, please visit our website.</p>
+                <p>Thank you for your interest in Dog Cafe!</p>
+            `;
+        }
+
         const mailOptions = {
             from: emailConfig.from,
             to: email,
-            subject: 'Verify Your Email for Dog Cafe Reservation',
-            html: `
-                <h2>Welcome to Dog Cafe!</h2>
-                <p>Your verification code is: <strong>${verificationCode}</strong></p>
-                <p>This code will expire in 10 minutes.</p>
-            `
+            subject: subject,
+            html: html
         };
 
         try {

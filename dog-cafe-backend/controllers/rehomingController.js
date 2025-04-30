@@ -4,6 +4,7 @@ const gridfsStorage = require('../utils/gridfsStorage');
 const { sendEmail } = require('../utils/notifications');
 const Dog = require('../models/Dog');
 const validators = require('../utils/validator');
+const emailService = require('../utils/emailService');
 
 const rehomingController = {
     uploadPhotos: asyncHandler(async (req, res) => {
@@ -143,40 +144,55 @@ const rehomingController = {
     }),
 
     withdrawApplication: asyncHandler(async (req, res) => {
-        const { id } = req.params;
+        try {
+            const { id } = req.params;
+            
+            if (!mongoose.Types.ObjectId.isValid(id)) {
+                return res.status(400).json({
+                    message: 'Invalid application ID format'
+                });
+            }
 
-        const application = await RehomingApplication.findOne({
-            _id: id,
-            status: 'pending'  // Can only withdraw pending applications
-        });
+            const application = await RehomingApplication.findOne({
+                _id: id,
+                status: 'pending'
+            });
 
-        if (!application) {
-            return res.status(404).json({
-                message: 'Active application not found'
+            if (!application) {
+                return res.status(404).json({
+                    message: 'Active application not found'
+                });
+            }
+
+            application.status = 'withdrawn';
+            await application.save();
+
+            try {
+                const emailResult = await emailService.sendVerificationEmail(
+                    application.ownerInfo.email, 
+                    'WITHDRAWN'
+                );
+                if (!emailResult) {
+                    console.error('Failed to send withdrawal confirmation email');
+                }
+            } catch (emailError) {
+                console.error('Failed to send withdrawal confirmation email:', emailError);
+            }
+
+            res.json({
+                message: 'Application withdrawn successfully',
+                application: {
+                    id: application._id,
+                    status: application.status
+                }
+            });
+        } catch (error) {
+            console.error('Error withdrawing application:', error);
+            res.status(500).json({
+                message: 'Failed to withdraw application',
+                error: error.message
             });
         }
-
-        application.status = 'withdrawn';
-        await application.save();
-
-        // Send withdrawal confirmation email
-        await emailService.sendRehomingApplicationConfirmation(
-            application.ownerInfo.email,
-            {
-                name: application.ownerInfo.firstName,
-                petName: application.petInfo.name,
-                applicationId: application._id,
-                status: 'withdrawn'
-            }
-        );
-
-        res.json({
-            message: 'Application withdrawn successfully',
-            application: {
-                id: application._id,
-                status: application.status
-            }
-        });
     }),
 
     // Admin endpoints
