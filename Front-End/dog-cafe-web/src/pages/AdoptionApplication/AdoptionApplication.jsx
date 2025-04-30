@@ -56,6 +56,10 @@ const AdoptionApplication = ({ lang, toggleLang }) => {
                 hasOtherAnimals: application.hasOtherAnimals || "",
                 neutered: application.neutered || "",
                 vaccinated: application.vaccinated || "",
+                allergies: application.allergies || "",
+                experience: application.experience || "",
+                visitingAge: application.visitingAge || "",
+                otherAnimalDetails: application.otherAnimalDetails || "",
                 // homeImages는 수정 화면에서는 제외 (업로드 다시 하게 할 수도 있음)
             });
         }
