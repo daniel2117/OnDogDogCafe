@@ -462,6 +462,44 @@ const reservationController = {
                 selectedServices: reservation.selectedServices
             }
         });
+    }),
+
+    getReservationById: asyncHandler(async (req, res) => {
+        const { id } = req.params;
+
+        if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                message: 'Invalid reservation ID'
+            });
+        }
+
+        const reservation = await Reservation.findById(id);
+
+        if (!reservation) {
+            return res.status(404).json({
+                message: 'Reservation not found'
+            });
+        }
+
+        res.json({
+            id: reservation._id,
+            status: reservation.status,
+            date: reservation.date,
+            timeSlot: reservation.timeSlot,
+            numberOfPeople: reservation.numberOfPeople,
+            selectedServices: reservation.selectedServices,
+            customerInfo: {
+                name: reservation.customerInfo.name,
+                email: reservation.customerInfo.email,
+                phone: reservation.customerInfo.phone,
+                petName: reservation.customerInfo.petName || '',
+                petType: reservation.customerInfo.petType || '',
+                message: reservation.customerInfo.message || '',
+                location: reservation.customerInfo.location || ''
+            },
+            createdAt: reservation.createdAt,
+            updatedAt: reservation.updatedAt
+        });
     })
 };
 
