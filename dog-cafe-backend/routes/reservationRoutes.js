@@ -3,13 +3,13 @@ const router = express.Router();
 const reservationController = require('../controllers/reservationcontroller');
 
 router.get('/availability', reservationController.getAvailability);
-router.get('/:id', reservationController.getReservationById); // Add this line
+router.get('/:id', reservationController.getReservationById);
 router.post('/verify-email', reservationController.verifyContact);
 router.post('/verify-code', reservationController.verifyCode);
 router.post('/create', reservationController.createReservation);
 router.get('/history', reservationController.getUserReservations);
 router.post('/:id/cancel', reservationController.cancelReservation);
-router.put('/:id', reservationController.modifyReservation);
+router.put('/:id/modify', reservationController.modifyReservation);
 
 router.post('/test-email', async (req, res) => {
     try {

@@ -374,12 +374,7 @@ const reservationController = {
     // Modify reservation
     modifyReservation: asyncHandler(async (req, res) => {
         const { id } = req.params;
-        const updates = {
-            date: req.body.date,
-            timeSlot: req.body.timeSlot,
-            selectedServices: req.body.selectedServices,
-            numberOfPeople: req.body.numberOfPeople
-        };
+        const { customerInfo, ...updates } = req.body;  // Separate customerInfo from other updates
 
         // Validate updates
         const validation = validators.isValidReservationUpdate(updates);
@@ -429,12 +424,21 @@ const reservationController = {
             }
         }
 
-        // Apply updates
+        // Apply updates to both reservation details and customerInfo
         Object.keys(updates).forEach(key => {
             if (updates[key] !== undefined) {
                 reservation[key] = updates[key];
             }
         });
+
+        if (customerInfo) {
+            Object.keys(customerInfo).forEach(key => {
+                if (customerInfo[key] !== undefined) {
+                    reservation.customerInfo[key] = customerInfo[key];
+                }
+            });
+        }
+
         await reservation.save();
 
         // Send modification confirmation
