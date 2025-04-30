@@ -2,8 +2,8 @@ const asyncHandler = require('express-async-handler');
 const { Reservation, TIME_SLOTS, SERVICES, SERVICE_CONSTRAINTS } = require('../models/Reservation');
 const emailService = require('../utils/emailService');
 const cache = require('../utils/cache');
-const { sendEmail } = require('../utils/notifications');
 const validators = require('../utils/validator');
+const mongoose = require('mongoose');
 
 const reservationController = {
     // Get available time slots and services
@@ -218,20 +218,19 @@ const reservationController = {
                 numberOfPeople
             });
 
-            // Clear availability cache after successful reservation
-            const cacheKey = `availability:${new Date(date).toISOString().split('T')[0]}`;
-            await cache.del(cacheKey);
-
-            // Send detailed confirmation email
+            // Send confirmation email using emailService
             try {
                 await emailService.sendReservationConfirmation(customerInfo.email, {
-                    ...reservation.toObject(),
-                    formattedDate: reservationDate.toLocaleDateString(),
-                    totalServices: selectedServices.length
+                    customerInfo,
+                    date: reservationDate,
+                    timeSlot,
+                    selectedServices,
+                    numberOfPeople,
+                    _id: reservation._id,
+                    status: 'confirmed'
                 });
-            } catch (error) {
-                console.error('Email notification error:', error);
-                // Continue even if email fails
+            } catch (emailError) {
+                console.error('Failed to send confirmation email:', emailError);
             }
 
             res.status(201).json({
@@ -304,51 +303,72 @@ const reservationController = {
     cancelReservation: asyncHandler(async (req, res) => {
         const { id } = req.params;
 
-        const reservation = await Reservation.findOne({
-            _id: id,
-            status: { $ne: 'cancelled' }
-        });
-
-        if (!reservation) {
-            return res.status(404).json({
-                message: 'Active reservation not found'
-            });
-        }
-
-        // Check if cancellation is within allowed time (24 hours before)
-        const reservationTime = new Date(`${reservation.date}T${reservation.timeSlot}`);
-        const now = new Date();
-        const hoursUntilReservation = (reservationTime - now) / (1000 * 60 * 60);
-
-        if (hoursUntilReservation < 24) {
+        if (!id || !mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({
-                message: 'Reservations can only be cancelled at least 24 hours in advance'
+                message: 'Invalid reservation ID'
             });
         }
 
-        reservation.status = 'cancelled';
-        await reservation.save();
+        try {
+            const reservation = await Reservation.findOne({
+                _id: id,
+                status: { $ne: 'cancelled' }
+            });
 
-        // Send cancellation notification with improved error handling
-        const emailSent = await emailService.sendReservationConfirmation(
-            reservation.customerInfo.email,
-            reservation.toObject()
-        );
-
-        if (!emailSent) {
-            console.warn('Failed to send cancellation email to:', reservation.customerInfo.email);
-        }
-
-        res.json({
-            message: 'Reservation cancelled successfully',
-            reservation: {
-                id: reservation._id,
-                status: reservation.status,
-                date: reservation.date,
-                timeSlot: reservation.timeSlot,
-                emailSent: emailSent
+            if (!reservation) {
+                return res.status(404).json({
+                    message: 'Active reservation not found'
+                });
             }
-        });
+
+            // Check if cancellation is within allowed time (24 hours before)
+            const reservationTime = new Date(`${reservation.date.toISOString().split('T')[0]}T${reservation.timeSlot}`);
+            const now = new Date();
+            const hoursUntilReservation = (reservationTime - now) / (1000 * 60 * 60);
+
+            if (hoursUntilReservation < 24) {
+                return res.status(400).json({
+                    message: 'Reservations can only be cancelled at least 24 hours in advance'
+                });
+            }
+
+            reservation.status = 'cancelled';
+            await reservation.save();
+
+            // Send cancellation email using emailService
+            try {
+                await emailService.sendReservationConfirmation(
+                    reservation.customerInfo.email,
+                    {
+                        customerInfo: reservation.customerInfo,
+                        date: reservation.date,
+                        timeSlot: reservation.timeSlot,
+                        selectedServices: reservation.selectedServices,
+                        numberOfPeople: reservation.numberOfPeople,
+                        _id: reservation._id,
+                        status: 'cancelled'
+                    }
+                );
+            } catch (emailError) {
+                console.error('Failed to send cancellation email:', emailError);
+            }
+
+            res.json({
+                message: 'Reservation cancelled successfully',
+                reservation: {
+                    id: reservation._id,
+                    status: reservation.status,
+                    date: reservation.date,
+                    timeSlot: reservation.timeSlot
+                }
+            });
+        } catch (error) {
+            console.error('Reservation cancellation error:', error);
+            res.status(500).json({
+                message: 'Failed to cancel reservation',
+                error: error.message
+            });
+        }
     }),
 
     // Modify reservation
