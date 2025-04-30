@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { contentApi, reservationApi } from "../../services/api";
 
-const Step1Start = ({ formData, setFormData, next, lang, toggleLang }) => {
+const Step1Start = ({ formData, setFormData, next, lang, toggleLang, isModify }) => {
     const [email, setEmail] = useState(formData.email || "");
     const [firstName, setFirstName] = useState(formData.firstName || "");
     const [lastName, setLastName] = useState(formData.lastName || "");
     const [code, setCode] = useState("");
-    const [emailVerified, setEmailVerified] = useState(false);
+    const [emailVerified, setEmailVerified] = useState(isModify ? true : false);
     const [agree, setAgree] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const [timer, setTimer] = useState(null); // 초기값 null
-    const [canResend, setCanResend] = useState(false); // 초기값 false
-
+    const [timer, setTimer] = useState(null);
+    const [canResend, setCanResend] = useState(false);
+    useEffect(() => {
+        setEmail(formData.email || "");
+        setFirstName(formData.firstName || "");
+        setLastName(formData.lastName || "");
+    }, [formData]);
 
     useEffect(() => {
         let interval;
@@ -27,14 +31,13 @@ const Step1Start = ({ formData, setFormData, next, lang, toggleLang }) => {
         return () => clearInterval(interval);
     }, [timer]);
 
-
     const sendVerification = async () => {
         setLoading(true);
         try {
             await reservationApi.verifyEmail(email);
             alert(lang === 'zh' ? '驗證碼已發送到您的電子郵件。' : "Verification code sent to your email.");
-            setTimer(300); // ✨ 추가: 5분(300초) 타이머 시작
-            setCanResend(false); // ✨ 추가
+            setTimer(300);
+            setCanResend(false);
         } catch (e) {
             alert(e.message || (lang === 'zh' ? '未能發送驗證碼。' : "Failed to send verification code."));
         } finally {
@@ -57,8 +60,7 @@ const Step1Start = ({ formData, setFormData, next, lang, toggleLang }) => {
     };
 
     const handleNext = () => {
-        console.log("Next step with:", { email, firstName, lastName, emailVerified, agree });
-        if (!emailVerified || !firstName || !lastName || !agree) {
+        if ((!emailVerified && !isModify) || !firstName || !lastName || !agree) {
             alert("Please complete all fields and verify your email.");
             return;
         }
@@ -74,7 +76,7 @@ const Step1Start = ({ formData, setFormData, next, lang, toggleLang }) => {
         const m = Math.floor(seconds / 60).toString().padStart(2, '0');
         const s = (seconds % 60).toString().padStart(2, '0');
         return `${m}:${s}`;
-    }; // ✨ 추가: 남은 시간 포맷
+    };
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-start px-4 py-10">
@@ -95,64 +97,67 @@ const Step1Start = ({ formData, setFormData, next, lang, toggleLang }) => {
                         <div className="text-gray-700">{lastName || '—'}</div>
                     </div>
 
-                    <div className="mb-4">
-                        <label className="block text-xs mb-1">{lang === 'zh' ? '請輸入您的電子郵件' : 'Enter your email'}</label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={e => setEmail(e.target.value)}
-                            className="w-full p-2 border rounded"
-                            disabled={emailVerified}
-                        />
-                        {!emailVerified && (
-                            <>
-                                <div className="flex items-center gap-2 mt-2">
-                                    {timer === null && (
-                                        <button
-                                            onClick={sendVerification}
-                                            className="text-xs text-purple-600 underline"
-                                            disabled={loading}
-                                        >
-                                            {lang === 'zh' ? '發送驗證碼' : 'Send Verification Code'}
-                                        </button>
-                                    )}
-                                    {timer !== null && timer > 0 && (
-                                        <div className="text-xs text-gray-500">
-                                            {formatTime(timer)}
+                    {!isModify && (
+                        <>
+                            <div className="mb-4">
+                                <label className="block text-xs mb-1">{lang === 'zh' ? '請輸入您的電子郵件' : 'Enter your email'}</label>
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={e => setEmail(e.target.value)}
+                                    className="w-full p-2 border rounded"
+                                    disabled={emailVerified}
+                                />
+                                {!emailVerified && (
+                                    <>
+                                        <div className="flex items-center gap-2 mt-2">
+                                            {timer === null && (
+                                                <button
+                                                    onClick={sendVerification}
+                                                    className="text-xs text-purple-600 underline"
+                                                    disabled={loading}
+                                                >
+                                                    {lang === 'zh' ? '發送驗證碼' : 'Send Verification Code'}
+                                                </button>
+                                            )}
+                                            {timer !== null && timer > 0 && (
+                                                <div className="text-xs text-gray-500">
+                                                    {formatTime(timer)}
+                                                </div>
+                                            )}
+                                            {canResend && (
+                                                <button
+                                                    onClick={sendVerification}
+                                                    className="text-xs text-purple-600 underline"
+                                                    disabled={loading}
+                                                >
+                                                    {lang === 'zh' ? '重新發送驗證碼' : 'Resend Verification Code'}
+                                                </button>
+                                            )}
                                         </div>
-                                    )}
-                                    {canResend && (
-                                        <button
-                                            onClick={sendVerification}
-                                            className="text-xs text-purple-600 underline"
-                                            disabled={loading}
-                                        >
-                                            {lang === 'zh' ? '重新發送驗證碼' : 'Resend Verification Code'}
-                                        </button>
-                                    )}
+                                    </>
+                                )}
+                            </div>
+
+                            {!emailVerified && (
+                                <div className="mb-4">
+                                    <label className="block text-xs mb-1">{lang === 'zh' ? '請輸入驗證碼' : 'Enter verification code'}</label>
+                                    <input
+                                        type="text"
+                                        value={code}
+                                        onChange={e => setCode(e.target.value)}
+                                        className="w-full p-2 border rounded"
+                                    />
+                                    <button
+                                        onClick={verifyCode}
+                                        className="mt-2 text-xs text-purple-600 underline"
+                                        disabled={loading}
+                                    >
+                                        {lang === 'zh' ? '驗證碼' : 'Verify Code'}
+                                    </button>
                                 </div>
-
-                            </>
-                        )}
-                    </div>
-
-                    {!emailVerified && (
-                        <div className="mb-4">
-                            <label className="block text-xs mb-1">{lang === 'zh' ? '請輸入驗證碼' : 'Enter verification code'}</label>
-                            <input
-                                type="text"
-                                value={code}
-                                onChange={e => setCode(e.target.value)}
-                                className="w-full p-2 border rounded"
-                            />
-                            <button
-                                onClick={verifyCode}
-                                className="mt-2 text-xs text-purple-600 underline"
-                                disabled={loading}
-                            >
-                                {lang === 'zh' ? '驗證碼' : 'Verify Code'}
-                            </button>
-                        </div>
+                            )}
+                        </>
                     )}
 
                     <div className="mb-4">

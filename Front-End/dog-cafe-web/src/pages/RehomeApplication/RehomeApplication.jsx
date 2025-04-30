@@ -24,12 +24,44 @@ const RehomeApplication = ({ lang, toggleLang }) => {
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: "auto" });
     }, []);
+
     const [currentStep, setCurrentStep] = useState(0);
     const [formData, setFormData] = useState({});
     const navigate = useNavigate();
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
+    const { state } = location;
+    const isModify = state?.modify || false;
+    const application = state?.application || null;
 
+    useEffect(() => {
+        console.log("isModify:", isModify);
+        console.log("application:", application);
+    }, []);
+
+    useEffect(() => {
+        if (isModify && application) {
+            setFormData({
+                email: application.ownerInfo.email,
+                firstName: application.ownerInfo.firstName,
+                lastName: application.ownerInfo.lastName,
+                petName: application.petInfo.name,
+                petType: application.petInfo.type,
+                age: application.petInfo.age.toString(),
+                size: application.petInfo.size,
+                gender: application.petInfo.gender,
+                breed: application.petInfo.breed,
+                color: application.petInfo.color,
+                neutered: application.petInfo.isSpayedNeutered ? "yes" : "no",
+                petStory: application.petInfo.description,
+                checklist: application.petInfo.checklist,
+                reason: application.rehomingDetails.reason,
+                duration: application.rehomingDetails.timeWindow,
+                uploadedPhotos: application.media.photos,
+                uploadedDocuments: application.media.documents
+            });
+        }
+    }, [isModify, application]);
 
     const StepComponent = steps[currentStep];
     const next = () => setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
@@ -53,7 +85,9 @@ const RehomeApplication = ({ lang, toggleLang }) => {
 
                 <div className="mb-6 text-center">
                     <h1 className="text-xl font-bold">{lang === 'zh' ? '重新安置申請' : 'Rehoming Application'}</h1>
-                    <p className="text-sm text-gray-500">Step {currentStep + 1} of {steps.length}</p>
+                    <p className="text-sm text-gray-500">
+                        {isModify ? (lang === 'zh' ? '（修改模式）' : '(Modify Mode)') : `Step ${currentStep + 1} of ${steps.length}`}
+                    </p>
                 </div>
 
                 <StepComponent
@@ -64,6 +98,7 @@ const RehomeApplication = ({ lang, toggleLang }) => {
                     isLastStep={currentStep === steps.length - 1}
                     lang={lang}
                     toggleLang={toggleLang}
+                    isModify={isModify}
                 />
             </div>
         </div>

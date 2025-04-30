@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { rehomingApi } from "../../services/api";
 
-const Step3PetImages = ({ formData, setFormData, next, back }) => {
+const Step3PetImages = ({ formData, setFormData, next, back, isModify}) => {
     const [dragIndex, setDragIndex] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [uploaded, setUploaded] = useState(false);
@@ -114,7 +114,7 @@ const Step3PetImages = ({ formData, setFormData, next, back }) => {
                         ◀ Back
                     </button>
 
-                    {!uploaded && ( // ✨ 업로드 성공하면 Upload 버튼 아예 숨기기
+                    {!uploaded && ( 
                         <button
                             onClick={uploadAll}
                             disabled={uploading}

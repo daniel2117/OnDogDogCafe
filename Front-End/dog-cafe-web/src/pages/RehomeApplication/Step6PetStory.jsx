@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-const Step6PetStory = ({ formData, setFormData, next, back, lang }) => {
+const Step6PetStory = ({ formData, setFormData, next, back, lang, isModify }) => {
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: "auto" });
     }, []);

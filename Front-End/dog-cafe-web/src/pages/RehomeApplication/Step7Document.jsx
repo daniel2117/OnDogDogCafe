@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { rehomingApi } from "../../services/api";
 
-const Step7Documents = ({ formData, setFormData, next, back, lang }) => {
+const Step7Documents = ({ formData, setFormData, next, back, lang, isModify }) => {
     const [dragIndex, setDragIndex] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [uploaded, setUploaded] = useState(false);
