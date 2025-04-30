@@ -22,9 +22,9 @@ const testReservationAPIs = async () => {
 
         // Test 1: Check Availability
         console.log('1. Testing availability check...');
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const dateString = tomorrow.toISOString().split('T')[0];
+        const futureDate = new Date();
+        futureDate.setDate(futureDate.getDate() + 7); // Set date 7 days ahead instead of tomorrow
+        const dateString = futureDate.toISOString().split('T')[0];
 
         const availabilityResponse = await axios.get(`${API_URL}/reservations/availability`, {
             params: { date: dateString }
@@ -32,8 +32,8 @@ const testReservationAPIs = async () => {
 
         console.log('Availability Response:', {
             date: availabilityResponse.data.date,
-            availableSlots: availabilityResponse.data.availableSlots,
-            services: availabilityResponse.data.services
+            timeSlots: availabilityResponse.data.timeSlots,  // Changed from availableSlots to timeSlots
+            services: Object.values(availabilityResponse.data.timeSlots || {})  // Extract services from timeSlots
         });
 
         // Test 2: Email Verification Request
@@ -81,13 +81,14 @@ const testReservationAPIs = async () => {
                 customerInfo: {
                     name: "Jeffery",
                     email: "jeffery0797@gmail.com",
-                    phone: "0912345678",  // Changed to a simpler phone format
+                    phone: "0912345678",
                     petName: "Max",
                     petType: "Dog",
                     message: "Test reservation"
                 },
-                date: dateString,
+                date: dateString,  // This will now use the date 7 days in advance
                 timeSlot: "14:00",
+                numberOfPeople: 2,
                 selectedServices: ["Cafe Visit"]
             };
 
@@ -108,11 +109,30 @@ const testReservationAPIs = async () => {
                 console.log('\n5. Testing reservation cancellation...');
                 try {
                     const cancelResponse = await axios.post(
-                        `${API_URL}/reservations/${createdReservationId}/cancel`
+                        `${API_URL}/reservations/${createdReservationId}/cancel`,
+                        {},
+                        {
+                            validateStatus: function (status) {
+                                return status < 500; // Accept any status < 500
+                            }
+                        }
                     );
-                    console.log('Cancellation Response:', cancelResponse.data);
+                    
+                    if (cancelResponse.status === 200) {
+                        console.log('Cancellation successful:', cancelResponse.data);
+                    } else {
+                        console.log('Cancellation failed with status:', cancelResponse.status);
+                        console.log('Error message:', cancelResponse.data.message);
+                        if (cancelResponse.data.error) {
+                            console.log('Error details:', cancelResponse.data.error);
+                        }
+                    }
                 } catch (error) {
-                    console.log('Cancellation failed:', error.response?.data);
+                    console.error('Cancellation request failed:', error.message);
+                    if (error.response) {
+                        console.error('Response data:', error.response.data);
+                        console.error('Response status:', error.response.status);
+                    }
                 }
             }
 

@@ -116,16 +116,11 @@ const adoptionController = {
 
             // Send confirmation email with proper data structure
             await emailService.sendAdoptionApplicationConfirmation(
-                application.email,  // Use application.email directly
+                application.email,
                 {
-                    customerInfo: {
-                        name: `${application.firstName} ${application.lastName}`  // Construct name from application data
-                    },
-                    dog: {
-                        name: 'Adoption Application'  // Default value since we might not have a specific dog
-                    },
-                    _id: application._id,
-                    status: application.status || 'pending'
+                    name: `${application.firstName} ${application.lastName}`,
+                    applicationId: application._id,
+                    status: 'pending'
                 }
             );
 
@@ -230,38 +225,54 @@ const adoptionController = {
             });
         }
 
-        const application = await AdoptionApplication.findByIdAndUpdate(
-            applicationId,
-            { $set: req.body },
-            { new: true, runValidators: true }
-        ).populate('dogId', 'name breed imageUrl');
+        try {
+            const application = await AdoptionApplication.findByIdAndUpdate(
+                applicationId,
+                { $set: req.body },
+                { new: true, runValidators: true }
+            ).populate('dogId', 'name breed imageUrl');
 
-        if (!application) {
-            return res.status(404).json({
-                message: 'Application not found'
+            if (!application) {
+                return res.status(404).json({
+                    message: 'Application not found'
+                });
+            }
+
+            // Send email notification with proper data structure
+            try {
+                const emailSent = await emailService.sendAdoptionApplicationConfirmation(
+                    application.email,
+                    {
+                        name: `${application.firstName} ${application.lastName}`,
+                        applicationId: application._id,
+                        status: 'updated',
+                        dogName: application.dogId?.name
+                    }
+                );
+
+                res.json({
+                    message: 'Application updated successfully',
+                    application,
+                    success: true,
+                    emailSent
+                });
+            } catch (emailError) {
+                // Still return success even if email fails
+                console.error('Error sending email:', emailError);
+                res.json({
+                    message: 'Application updated successfully (email notification failed)',
+                    application,
+                    success: true,
+                    emailSent: false
+                });
+            }
+        } catch (error) {
+            console.error('Error updating adoption application:', error);
+            res.status(500).json({
+                message: error.message || 'Failed to update application',
+                success: false
             });
         }
-
-        // Send email notification about the update
-        await emailService.sendAdoptionApplicationConfirmation(
-            application.email,
-            {
-                customerInfo: {
-                    name: `${application.firstName} ${application.lastName}`
-                },
-                dog: {
-                    name: application.dogId ? application.dogId.name : 'Adoption Application'
-                },
-                _id: application._id,
-                status: application.status
-            }
-        );
-
-        res.json({
-            message: 'Application updated successfully',
-            application,
-            success: true
-        });
     }),
 
     withdrawApplication: asyncHandler(async (req, res) => {
@@ -285,14 +296,10 @@ const adoptionController = {
         await emailService.sendAdoptionApplicationConfirmation(
             application.email,
             {
-                customerInfo: {
-                    name: `${application.firstName} ${application.lastName}`
-                },
-                dog: {
-                    name: application.dogId ? application.dogId.name : 'Dog'
-                },
-                _id: application._id,
-                status: 'withdrawn'
+                name: `${application.firstName} ${application.lastName}`,
+                applicationId: application._id,
+                status: 'withdrawn',
+                dogName: application.dogId?.name
             }
         );
 

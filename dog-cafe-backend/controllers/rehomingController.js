@@ -90,10 +90,14 @@ const rehomingController = {
             });
 
             // Send confirmation email
-            await sendEmail(
+            await emailService.sendRehomingApplicationConfirmation(
                 application.ownerInfo.email,
-                'Rehoming Application Received',
-                `Dear ${application.ownerInfo.firstName},\n\nThank you for submitting a rehoming application for ${application.petInfo.name}. We will review your application and contact you soon.\n\nBest regards,\nDog Cafe Team`
+                {
+                    name: application.ownerInfo.firstName,
+                    petName: application.petInfo.name,
+                    applicationId: application._id,
+                    status: 'received'
+                }
             );
 
             res.status(201).json({
@@ -156,10 +160,14 @@ const rehomingController = {
         await application.save();
 
         // Send withdrawal confirmation email
-        await sendEmail(
+        await emailService.sendRehomingApplicationConfirmation(
             application.ownerInfo.email,
-            'Rehoming Application Withdrawal Confirmation',
-            `Dear ${application.ownerInfo.firstName},\n\nYour rehoming application for ${application.petInfo.name} has been withdrawn.\n\nBest regards,\nDog Cafe Team`
+            {
+                name: application.ownerInfo.firstName,
+                petName: application.petInfo.name,
+                applicationId: application._id,
+                status: 'withdrawn'
+            }
         );
 
         res.json({
@@ -247,10 +255,14 @@ const rehomingController = {
         }
 
         // Send status update email
-        await sendEmail(
+        await emailService.sendRehomingApplicationConfirmation(
             application.ownerInfo.email,
-            'Rehoming Application Status Update',
-            `Dear ${application.ownerInfo.firstName},\n\nYour rehoming application for ${application.petInfo.name} has been ${status}.\n\nBest regards,\nDog Cafe Team`
+            {
+                name: application.ownerInfo.firstName,
+                petName: application.petInfo.name,
+                applicationId: application._id,
+                status: status
+            }
         );
 
         res.json(application);
