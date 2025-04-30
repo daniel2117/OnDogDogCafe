@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import FeedbackForm from "../../components/FeedbackForm";
-import { reservationApi, adoptionApi, myPageApi } from "../../services/api";
+import { reservationApi, adoptionApi, rehomingApi, myPageApi } from "../../services/api";
 
 const MyPageHome = ({ lang, toggleLang }) => {
     const navigate = useNavigate();
@@ -53,6 +53,19 @@ const MyPageHome = ({ lang, toggleLang }) => {
         }
     };
 
+    const handleWithdraw = async (type, id) => {
+        try {
+            if (type === 'adoption') {
+                await adoptionApi.withdraw(id);
+            } else if (type === 'rehoming') {
+                await rehomingApi.withdraw(id);
+            }
+            window.location.reload();
+        } catch (err) {
+            alert(err.message || 'Failed to withdraw application.');
+        }
+    };
+
     const renderRows = () => {
         const today = new Date();
         if (activeTab === "Reservation") {
@@ -87,7 +100,6 @@ const MyPageHome = ({ lang, toggleLang }) => {
                                                 onClick={async () => {
                                                     try {
                                                         const res = await reservationApi.getById(item.id);
-                                                        console.log(res);
                                                         navigate("/bookingDetail", {
                                                             state: {
                                                                 modify: true,
@@ -138,7 +150,14 @@ const MyPageHome = ({ lang, toggleLang }) => {
                             >
                                 View Application
                             </button>
-                            <button className="bg-gray-400 text-white px-3 py-1 rounded text-xs">Withdraw</button>
+                            {item.status === 'pending' && (
+                                <button
+                                    className="bg-gray-400 text-white px-3 py-1 rounded text-xs"
+                                    onClick={() => handleWithdraw('adoption', item.id)}
+                                >
+                                    Withdraw
+                                </button>
+                            )}
                         </div>
                     </td>
                 </tr>
@@ -153,7 +172,14 @@ const MyPageHome = ({ lang, toggleLang }) => {
                     <td className="py-2">
                         <div className="flex gap-2 flex-wrap">
                             <button className="bg-purple-500 text-white px-3 py-1 rounded text-xs">View Application</button>
-                            <button className="bg-gray-400 text-white px-3 py-1 rounded text-xs">Withdraw</button>
+                            {item.status === 'pending' && (
+                                <button
+                                    className="bg-gray-400 text-white px-3 py-1 rounded text-xs"
+                                    onClick={() => handleWithdraw('rehoming', item.id)}
+                                >
+                                    Withdraw
+                                </button>
+                            )}
                         </div>
                     </td>
                 </tr>
