@@ -40,8 +40,8 @@ const myPageController = {
             date: r.date,
             time: r.timeSlot,
             reservedFacility: r.selectedServices.join(', '),
-            specialRequest: r.customerInfo.specialRequest || 'n/a',
-            status: r.status  // Use the actual status from the reservation
+            specialRequest: r.customerInfo.message || 'n/a', // Changed from specialRequest to message
+            status: r.status
         }));
 
         const formattedAdoptions = adoptions.map(a => ({
