@@ -197,7 +197,6 @@ const adoptionController = {
     getApplicationById: asyncHandler(async (req, res) => {
         const applicationId = req.params.id;
         
-        // Validate if applicationId is a valid MongoDB ObjectId
         if (!mongoose.Types.ObjectId.isValid(applicationId)) {
             return res.status(400).json({
                 message: 'Invalid application ID format'
@@ -205,8 +204,10 @@ const adoptionController = {
         }
 
         const application = await AdoptionApplication.findById(applicationId)
-            .populate('dogId', 'name breed imageUrl')  // Get basic dog info if available
-            .lean();
+            .populate({
+                path: 'dogId',
+                select: 'name breed age size gender imageUrl description'
+            }); // Removed .lean()
 
         if (!application) {
             return res.status(404).json({
@@ -260,6 +261,47 @@ const adoptionController = {
             message: 'Application updated successfully',
             application,
             success: true
+        });
+    }),
+
+    withdrawApplication: asyncHandler(async (req, res) => {
+        const { id } = req.params;
+
+        const application = await AdoptionApplication.findOne({
+            _id: id,
+            status: 'pending'  // Can only withdraw pending applications
+        }).populate('dogId', 'name');
+
+        if (!application) {
+            return res.status(404).json({
+                message: 'Active application not found'
+            });
+        }
+
+        application.status = 'withdrawn';
+        await application.save();
+
+        // Send withdrawal confirmation email
+        await emailService.sendAdoptionApplicationConfirmation(
+            application.email,
+            {
+                customerInfo: {
+                    name: `${application.firstName} ${application.lastName}`
+                },
+                dog: {
+                    name: application.dogId ? application.dogId.name : 'Dog'
+                },
+                _id: application._id,
+                status: 'withdrawn'
+            }
+        );
+
+        res.json({
+            message: 'Application withdrawn successfully',
+            application: {
+                id: application._id,
+                status: application.status
+            }
         });
     })
 };

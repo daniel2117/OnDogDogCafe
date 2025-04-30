@@ -138,6 +138,39 @@ const rehomingController = {
         res.json(application);
     }),
 
+    withdrawApplication: asyncHandler(async (req, res) => {
+        const { id } = req.params;
+
+        const application = await RehomingApplication.findOne({
+            _id: id,
+            status: 'pending'  // Can only withdraw pending applications
+        });
+
+        if (!application) {
+            return res.status(404).json({
+                message: 'Active application not found'
+            });
+        }
+
+        application.status = 'withdrawn';
+        await application.save();
+
+        // Send withdrawal confirmation email
+        await sendEmail(
+            application.ownerInfo.email,
+            'Rehoming Application Withdrawal Confirmation',
+            `Dear ${application.ownerInfo.firstName},\n\nYour rehoming application for ${application.petInfo.name} has been withdrawn.\n\nBest regards,\nDog Cafe Team`
+        );
+
+        res.json({
+            message: 'Application withdrawn successfully',
+            application: {
+                id: application._id,
+                status: application.status
+            }
+        });
+    }),
+
     // Admin endpoints
     getAllApplications: asyncHandler(async (req, res) => {
         const page = parseInt(req.query.page) || 1;

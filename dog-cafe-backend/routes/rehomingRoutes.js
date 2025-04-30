@@ -11,6 +11,9 @@ router.post(
     rehomingController.submitApplication
 );
 
+// Add withdrawal endpoint
+router.post('/application/:id/withdraw', rehomingController.withdrawApplication);
+
 router.post(
     '/upload/photos',
     gridfsStorage.upload.array('photos', 5), 

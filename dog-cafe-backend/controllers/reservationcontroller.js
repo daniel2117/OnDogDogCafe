@@ -271,19 +271,26 @@ const reservationController = {
 
         const reservations = await Reservation.find(filter)
             .sort({ date: -1 })
-            .select('-__v');
+            .select('-__v')
+            .lean();  // Convert to plain objects for easier manipulation
 
-        res.json(reservations);
+        // Transform the reservations to include the missing fields
+        const formattedReservations = reservations.map(reservation => ({
+            ...reservation,
+            message: reservation.customerInfo.message || '',
+            petName: reservation.customerInfo.petName || '',
+            petType: reservation.customerInfo.petType || ''
+        }));
+
+        res.json(formattedReservations);
     }),
 
     // Cancel reservation
     cancelReservation: asyncHandler(async (req, res) => {
         const { id } = req.params;
-        const { email } = req.body;
 
         const reservation = await Reservation.findOne({
             _id: id,
-            'customerInfo.email': email,
             status: { $ne: 'cancelled' }
         });
 
@@ -335,8 +342,12 @@ const reservationController = {
     // Modify reservation
     modifyReservation: asyncHandler(async (req, res) => {
         const { id } = req.params;
-        const { email, phone } = req.body;
-        const updates = req.body.updates;
+        const updates = {
+            date: req.body.date,
+            timeSlot: req.body.timeSlot,
+            selectedServices: req.body.selectedServices,
+            numberOfPeople: req.body.numberOfPeople
+        };
 
         // Validate updates
         const validation = validators.isValidReservationUpdate(updates);
@@ -349,8 +360,6 @@ const reservationController = {
 
         const reservation = await Reservation.findOne({
             _id: id,
-            'customerInfo.email': email,
-            'customerInfo.phone': phone,
             status: { $ne: 'cancelled' }
         });
 
@@ -378,7 +387,7 @@ const reservationController = {
             const isAvailable = await Reservation.checkAvailability(
                 checkDate,
                 checkTime,
-                reservation.selectedServices
+                updates.selectedServices || reservation.selectedServices
             );
 
             if (!isAvailable) {
@@ -389,7 +398,11 @@ const reservationController = {
         }
 
         // Apply updates
-        Object.assign(reservation, updates);
+        Object.keys(updates).forEach(key => {
+            if (updates[key] !== undefined) {
+                reservation[key] = updates[key];
+            }
+        });
         await reservation.save();
 
         // Send modification confirmation
@@ -398,6 +411,7 @@ const reservationController = {
                 reservation.customerInfo.email,
                 {
                     ...reservation.toObject(),
+                    isModification: true,
                     formattedDate: reservation.date.toLocaleDateString()
                 }
             );

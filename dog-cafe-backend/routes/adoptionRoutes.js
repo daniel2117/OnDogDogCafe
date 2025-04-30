@@ -28,6 +28,9 @@ router.post(
 // Updated apply route without image upload middleware
 router.post('/apply', adoptionController.createAdoptionApplication);
 
+// Add withdrawal endpoint
+router.post('/application/:id/withdraw', adoptionController.withdrawApplication);
+
 // Get similar dogs
 router.get('/dogs/:id/similar', adoptionController.getSimilarDogs);
 

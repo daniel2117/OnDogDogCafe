@@ -21,7 +21,7 @@ const contactController = {
             email: req.body.email,
             phone: req.body.phone,
             message: req.body.message,
-            agreedToPrivacyPolicy: req.body.agreedToPrivacyPolicy
+            agreedToPrivacyPolicy: req.body.agreed // Map 'agreed' to 'agreedToPrivacyPolicy'
         });
 
         // Send confirmation email
