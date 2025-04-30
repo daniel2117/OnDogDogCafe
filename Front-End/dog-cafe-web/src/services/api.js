@@ -87,6 +87,14 @@ export const adoptionApi = {
             throw err.response?.data || { message: 'Failed to update adoption application' };
         }
     },
+    withdraw: async (id) => {
+        try {
+            const res = await axiosInstance.post(`/adoption/application/${id}/withdraw`);
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to submit rehoming request' };
+        }
+    },
 };
 
 
@@ -207,6 +215,14 @@ export const feedbackApi = {
 };
 
 export const rehomingApi = {
+    withdraw: async (id) => {
+        try {
+            const res = await axiosInstance.post(`/rehoming/application/${id}/withdraw`);
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to submit rehoming request' };
+        }
+    },
     submit: async (data) => {
         try {
             const res = await axiosInstance.post('/rehoming/submit', data);
@@ -323,10 +339,18 @@ export const reservationApi = {
     },
     getHistory: async (email) => {
         try {
-            const res = await axiosInstance.get('/reservations/history', { params: { email} });
+            const res = await axiosInstance.get('/reservations/history', { params: { email } });
             return res.data;
         } catch (err) {
             throw err.response?.data || { message: 'Failed to fetch reservation history' };
+        }
+    },
+    getById: async (id) => {
+        try {
+            const res = await axiosInstance.get(`/reservations/${id}`);
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to fetch reservation data' };
         }
     },
     cancel: async (id, email) => {
