@@ -104,8 +104,7 @@ const testReservationAPIs = async () => {
                 `${API_URL}/reservations/history`,
                 {
                     params: { 
-                        email: 'jeffery0797@gmail.com',
-                        phone: '+1234567890'
+                        email: 'jeffery0797@gmail.com'
                     }
                 }
             );

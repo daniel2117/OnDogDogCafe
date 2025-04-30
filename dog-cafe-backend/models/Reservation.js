@@ -110,7 +110,7 @@ const reservationSchema = new mongoose.Schema({
 
 // Add compound indexes for better query performance
 reservationSchema.index({ date: 1, timeSlot: 1, status: 1 });
-reservationSchema.index({ 'customerInfo.email': 1, 'customerInfo.phone': 1 });
+reservationSchema.index({ 'customerInfo.email': 1 });
 reservationSchema.index({ createdAt: -1 });
 
 // Add method to check availability

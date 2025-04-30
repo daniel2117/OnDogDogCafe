@@ -254,22 +254,23 @@ const reservationController = {
 
     // Get user's reservations history
     getUserReservations: asyncHandler(async (req, res) => {
-        const { email, phone } = req.query;
+        const { email } = req.query;
         
-        if (!email && !phone) {
+        if (!email) {
             return res.status(400).json({
-                message: 'Email or phone is required'
+                message: 'Email is required'
             });
         }
 
-        const filter = {
-            $or: [
-                { 'customerInfo.email': email },
-                { 'customerInfo.phone': phone }
-            ]
-        };
+        if (!validators.isValidEmail(email)) {
+            return res.status(400).json({
+                message: 'Invalid email format'
+            });
+        }
 
-        const reservations = await Reservation.find(filter)
+        const reservations = await Reservation.find({
+            'customerInfo.email': email
+        })
             .sort({ date: -1 })
             .select('-__v')
             .lean();
