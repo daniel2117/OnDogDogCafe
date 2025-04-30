@@ -69,6 +69,8 @@ const BookingDetail = ({ lang, toggleLang }) => {
 
     useEffect(() => {
         if (isModify && reservation) {
+            console.log("Modify load reservation:", reservation);
+
             setFormData({
                 name: reservation.customerInfo.name || "",
                 phone: reservation.customerInfo.phone || "",
@@ -77,7 +79,9 @@ const BookingDetail = ({ lang, toggleLang }) => {
                 numberOfPeople: reservation.numberOfPeople?.toString() || "",
                 message: reservation.customerInfo.message || "",
                 bringingPet: reservation.customerInfo.petName ? "yes" : "no",
+                email: reservation.customerInfo.email || ""
             });
+
             setEmail(reservation.customerInfo.email || "");
             setVerified(true);
             setDate(new Date(reservation.date));
@@ -85,6 +89,7 @@ const BookingDetail = ({ lang, toggleLang }) => {
             setSelectedServices(reservation.selectedServices || []);
         }
     }, [isModify, reservation]);
+
 
 
 
@@ -208,7 +213,7 @@ const BookingDetail = ({ lang, toggleLang }) => {
 
     const handleSubmit = async () => {
         console.log(formData);
-        if (!formData.name || !formData.petName || !formData.phone || !formData.message || !email || !verified || !date || !time || selectedServices.length === 0) {
+        if (!formData.name || !formData.phone || !formData.message || !email || !verified || !date || !time || selectedServices.length === 0) {
             alert("Please complete all fields and verify your email.");
             return;
         }
@@ -232,8 +237,8 @@ const BookingDetail = ({ lang, toggleLang }) => {
 
         try {
             if (isModify && reservation?.id) {
-                console.log(payload);
-                await reservationApi.modify(reservation._id, payload);
+                console.log("modify payload : " + payload);
+                await reservationApi.modify(reservation.id, payload);
                 alert("Reservation updated successfully!");
             } else {
                 await reservationApi.create(payload);

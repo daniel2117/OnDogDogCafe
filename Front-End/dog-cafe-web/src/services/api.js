@@ -299,7 +299,16 @@ export const rehomingApi = {
     },
 
     getAllAdmin: () => axiosInstance.get('/rehoming/admin/applications'),
-    updateStatus: (id, data) => axiosInstance.patch(`/rehoming/admin/application/${id}/status`, data)
+    updateStatus: (id, data) => axiosInstance.patch(`/rehoming/admin/application/${id}/status`, data),
+    
+    getApplication: async (id) => {
+        try {
+            const res = await axiosInstance.get(`/rehoming/application/${id}`);
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to get rehoming application' };
+        }
+    },
 };
 
 export const reservationApi = {
@@ -363,7 +372,7 @@ export const reservationApi = {
     },
     modify: async (id, data) => {
         try {
-            const res = await axiosInstance.put(`/reservation/modify/${id}`, { data });
+            const res = await axiosInstance.put(`/reservations/modify/${id}`, data);
             return res.data;
         } catch (err) {
             throw err.response?.data || { message: 'Failed to modify reservation' };

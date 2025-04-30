@@ -171,7 +171,19 @@ const MyPageHome = ({ lang, toggleLang }) => {
                     <td className="py-2 capitalize">{item.status}</td>
                     <td className="py-2">
                         <div className="flex gap-2 flex-wrap">
-                            <button className="bg-purple-500 text-white px-3 py-1 rounded text-xs">View Application</button>
+                            <button
+                                className="bg-purple-500 text-white px-3 py-1 rounded text-xs"
+                                onClick={async () => {
+                                    try {
+                                        const res = await rehomingApi.getApplication(item.id);
+                                        navigate("/rehoming-application-view", { state: { application: res } });
+                                    } catch (err) {
+                                        alert(err.message || "Failed to fetch application.");
+                                    }
+                                }}
+                            >
+                                View Application
+                            </button>
                             {item.status === 'pending' && (
                                 <button
                                     className="bg-gray-400 text-white px-3 py-1 rounded text-xs"
