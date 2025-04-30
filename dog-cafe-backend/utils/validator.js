@@ -218,7 +218,8 @@ const validators = {
             errors.push('Message cannot exceed 1000 characters');
         }
 
-        if (!data.agreedToPrivacyPolicy) {
+        // Check for either agreedToPrivacyPolicy or agreed field
+        if (!data.agreedToPrivacyPolicy && !data.agreed) {
             errors.push('You must agree to the privacy policy');
         }
 
