@@ -14,8 +14,8 @@ const Step5KeyFacts = ({ formData, setFormData, next, back, lang, isModify }) =>
         "goodWithCats",
         "goodWithKids",
         "purebred",
-        "specialNeeds",
-        "behaviouralIssues"
+        "hasSpecialNeeds",
+        "hasBehaviouralIssues"
     ];
 
     const labels = {
@@ -59,9 +59,11 @@ const Step5KeyFacts = ({ formData, setFormData, next, back, lang, isModify }) =>
         next();
     };
     const parseValue = (raw) => {
-        if (typeof raw === "boolean") return raw ? "yes" : "no";
-        return raw || ""; // "yes", "no", "unknown", 또는 undefined
+        if (raw === true) return "yes";
+        if (raw === false) return "no";
+        return raw || "";
     };
+
 
 
     return (
