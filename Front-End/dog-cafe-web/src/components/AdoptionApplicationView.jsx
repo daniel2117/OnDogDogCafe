@@ -30,10 +30,11 @@ const AdoptionApplicationView = () => {
                 <p><strong>Other Animals:</strong> {application.hasOtherAnimals}</p>
                 <p><strong>Neutered:</strong> {application.neutered}</p>
                 <p><strong>Vaccinated:</strong> {application.vaccinated}</p>
-                <p><strong>allergies:</strong> {application.allergies}</p>
-                <p><strong>experience:</strong> {application.experience}</p>
-                <p><strong>visiting Age:</strong> {application.visitingAge}</p>
-                <p><strong>other Animal Details: </strong> {application.otherAnimalDetails}</p>
+                <p><strong>Allergies:</strong> {application.allergies}</p>
+                <p><strong>Experience:</strong> {application.experience}</p>
+                <p><strong>Visiting Age:</strong> {application.visitingAge}</p>
+                <p><strong>Other Animal Details:</strong> {application.otherAnimalDetails}</p>
+                <p><strong>Status:</strong> {application.status}</p>
                 <p className="text-gray-500 italic">Uploaded home images are securely stored and not publicly displayed.</p>
             </div>
 
@@ -45,15 +46,16 @@ const AdoptionApplicationView = () => {
                     Back
                 </button>
 
-                <button
-                    onClick={() => navigate(`/adoption/apply?lang=${application.lang || 'en'}`, {
-                        state: { application, modify: true }
-                    })}
-                    className="px-6 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-                >
-                    Update Application
-                </button>
-
+                {application.status === 'pending' && (
+                    <button
+                        onClick={() => navigate(`/adoption/apply?lang=${application.lang || 'en'}`, {
+                            state: { application, modify: true }
+                        })}
+                        className="px-6 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+                    >
+                        Update Application
+                    </button>
+                )}
             </div>
         </div>
     );

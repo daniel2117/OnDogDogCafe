@@ -19,6 +19,7 @@ import RehomeApplication from "./pages/RehomeApplication/RehomeApplication";
 import MyPage from "./pages/MyPage/MyPage";
 import MyPageHome from "./pages/MyPage/MyPageHome";
 import AdoptionApplicationView from "./components/AdoptionApplicationView";
+import RehomingApplicationView from "./components/RehomingApplicationView";
 
 function App() {
   const [lang, setLang] = useState("en"); // "en" or "zh"
@@ -46,7 +47,8 @@ function App() {
         {/* MyPage */}
         <Route path="/mypage" element={<MyPage lang={lang} toggleLang={toggleLang} />} />
         <Route path="/mypage/home" element={<MyPageHome lang={lang} toggleLang={toggleLang} />} />
-        <Route path="/adoption-application-view" element={<AdoptionApplicationView />} />
+        <Route path="/adoption-application-view" element={<AdoptionApplicationView lang={lang} toggleLang={toggleLang} />} />
+        <Route path="/rehoming-application-view" element={<RehomingApplicationView lang={lang} toggleLang={toggleLang} />} />
       </Routes>
     </Router>
   );
