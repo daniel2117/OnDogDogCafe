@@ -329,6 +329,14 @@ export const reservationApi = {
             throw err.response?.data || { message: 'Failed to fetch reservation history' };
         }
     },
+    getById: async (id) => {
+        try {
+            const res = await axiosInstance.get(`/reservations/${id}`);
+            return res.data;
+        } catch (err) {
+            throw err.response?.data || { message: 'Failed to fetch reservation data' };
+        }
+    },
     cancel: async (id, email) => {
         try {
             const res = await axiosInstance.post(`/reservations/${id}/cancel`, { headers: { email } });

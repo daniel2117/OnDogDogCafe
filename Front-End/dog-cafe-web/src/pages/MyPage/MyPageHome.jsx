@@ -41,15 +41,8 @@ const MyPageHome = ({ lang, toggleLang }) => {
         fetchApplications();
     }, [verifiedEmail]);
 
-    useEffect(() => {
-        console.log("applications:", applications);
-        console.log("reservations:", applications.reservations);
-    }, [applications]);
-
-
     const handleCancel = async (id) => {
         try {
-            console.log(id);
             await reservationApi.cancel(id, verifiedEmail);
             const updatedReservations = applications.reservations.map(res =>
                 res.id === id ? { ...res, status: 'cancelled' } : res
@@ -66,6 +59,7 @@ const MyPageHome = ({ lang, toggleLang }) => {
             return applications.reservations.map((item, idx) => {
                 const reservationDate = new Date(item.date);
                 const isPast = reservationDate < today;
+                const isCancelled = item.status === 'cancelled';
                 return (
                     <tr key={idx} className="border-b">
                         <td className="py-2">{reservationDate.toLocaleDateString()}</td>
@@ -74,51 +68,50 @@ const MyPageHome = ({ lang, toggleLang }) => {
                         <td className="py-2">{item.specialRequest}</td>
                         <td className="py-2 capitalize">{item.status}</td>
                         <td className="py-2">
-                            <div className="flex gap-2 flex-wrap">
-                                {isPast ? (
-                                    <button
-                                        className="bg-purple-200 text-purple-800 px-3 py-1 rounded text-xs"
-                                        onClick={() => {
-                                            setSelectedEmail(verifiedEmail);
-                                            setShowFeedbackForm(true);
-                                        }}
-                                    >
-                                        Leave Feedback
-                                    </button>
-                                ) : (
-                                    <>
+                            {!isCancelled && (
+                                <div className="flex gap-2 flex-wrap">
+                                    {isPast ? (
                                         <button
-                                            className="bg-purple-500 text-white px-3 py-1 rounded text-xs"
-                                            onClick={async () => {
-                                                try {
-                                                    const res = await reservationApi.getHistory(verifiedEmail);
-                                                    const reservation = res.find(r => r.id === item.id);
-                                                    if (!reservation) return alert("Reservation not found.");
-                                                    console.log(reservation);
-                                                    navigate("/bookingDetail", {
-                                                        state: {
-                                                            modify: true,
-                                                            reservation
-                                                        }
-                                                    });
-                                                } catch (err) {
-                                                    alert(err.message || "Failed to load reservation history.");
-                                                }
+                                            className="bg-purple-200 text-purple-800 px-3 py-1 rounded text-xs"
+                                            onClick={() => {
+                                                setSelectedEmail(verifiedEmail);
+                                                setShowFeedbackForm(true);
                                             }}
                                         >
-                                            Modify Booking
+                                            Leave Feedback
                                         </button>
+                                    ) : (
+                                        <>
+                                            <button
+                                                className="bg-purple-500 text-white px-3 py-1 rounded text-xs"
+                                                onClick={async () => {
+                                                    try {
+                                                        const res = await reservationApi.getById(item.id);
+                                                        console.log(res);
+                                                        navigate("/bookingDetail", {
+                                                            state: {
+                                                                modify: true,
+                                                                reservation: res
+                                                            }
+                                                        });
+                                                    } catch (err) {
+                                                        alert(err.message || "Failed to load reservation.");
+                                                    }
+                                                }}
+                                            >
+                                                Modify Booking
+                                            </button>
 
-                                        <button
-                                            className="bg-gray-400 text-white px-3 py-1 rounded text-xs"
-                                            onClick={() => handleCancel(item.id)}
-                                        >
-                                            Cancel
-                                        </button>
-                                    </>
-
-                                )}
-                            </div>
+                                            <button
+                                                className="bg-gray-400 text-white px-3 py-1 rounded text-xs"
+                                                onClick={() => handleCancel(item.id)}
+                                            >
+                                                Cancel
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                            )}
                         </td>
                     </tr>
                 );
@@ -137,7 +130,6 @@ const MyPageHome = ({ lang, toggleLang }) => {
                                 onClick={async () => {
                                     try {
                                         const res = await adoptionApi.getApplication(item.id);
-                                        console.log(res);
                                         navigate("/adoption-application-view", { state: { application: res.application } });
                                     } catch (err) {
                                         alert(err.message || "Failed to fetch application.");
@@ -146,7 +138,6 @@ const MyPageHome = ({ lang, toggleLang }) => {
                             >
                                 View Application
                             </button>
-                            {/* <button className="bg-purple-500 text-white px-3 py-1 rounded text-xs">Update Application</button> */}
                             <button className="bg-gray-400 text-white px-3 py-1 rounded text-xs">Withdraw</button>
                         </div>
                     </td>
@@ -162,7 +153,6 @@ const MyPageHome = ({ lang, toggleLang }) => {
                     <td className="py-2">
                         <div className="flex gap-2 flex-wrap">
                             <button className="bg-purple-500 text-white px-3 py-1 rounded text-xs">View Application</button>
-                            {/* <button className="bg-purple-500 text-white px-3 py-1 rounded text-xs">Update Application</button> */}
                             <button className="bg-gray-400 text-white px-3 py-1 rounded text-xs">Withdraw</button>
                         </div>
                     </td>
@@ -195,8 +185,7 @@ const MyPageHome = ({ lang, toggleLang }) => {
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
-                            className={`text-lg font-semibold border-b-2 pb-1 ${activeTab === tab ? "border-purple-500 text-black" : "border-transparent text-gray-400"
-                                }`}
+                            className={`text-lg font-semibold border-b-2 pb-1 ${activeTab === tab ? "border-purple-500 text-black" : "border-transparent text-gray-400"}`}
                         >
                             {t[tab.toLowerCase()]}
                         </button>

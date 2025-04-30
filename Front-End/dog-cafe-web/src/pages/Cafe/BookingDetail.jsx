@@ -231,7 +231,7 @@ const BookingDetail = ({ lang, toggleLang }) => {
 
 
         try {
-            if (isModify && reservation?._id) {
+            if (isModify && reservation?.id) {
                 console.log(payload);
                 await reservationApi.modify(reservation._id, payload);
                 alert("Reservation updated successfully!");
@@ -332,7 +332,7 @@ const BookingDetail = ({ lang, toggleLang }) => {
                     {/* Form */}
                     <div className="space-y-4">
                         <h2 className="text-lg font-bold">{t.name}</h2>
-                        <input name="name" required className="w-full border rounded p-2" onChange={handleInput} />
+                        <input name="name" value={formData.name} required className="w-full border rounded p-2" onChange={handleInput} />
 
                         <h2 className="text-lg font-bold">{lang === 'zh' ? "您會攜帶寵物嗎？" : "Are you bringing a pet?"}</h2>
                         <div className="flex gap-6 mb-4">
@@ -403,10 +403,10 @@ const BookingDetail = ({ lang, toggleLang }) => {
 
 
                         <h2 className="text-lg font-bold">{t.phone}</h2>
-                        <input name="phone" required className="w-full border rounded p-2" onChange={handleInput} />
+                        <input name="phone" value={formData.phone} required className="w-full border rounded p-2" onChange={handleInput} />
 
                         <h2 className="text-lg font-bold">{t.message}</h2>
-                        <textarea name="message" required className="w-full border rounded p-2" onChange={handleInput} />
+                        <textarea name="message" value={formData.message} required className="w-full border rounded p-2" onChange={handleInput} />
 
                         {/* Email Verification */}
                         {!verified && (
