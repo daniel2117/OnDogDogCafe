@@ -5,6 +5,7 @@ const { sendEmail } = require('../utils/notifications');
 const Dog = require('../models/Dog');
 const validators = require('../utils/validator');
 const emailService = require('../utils/emailService');
+const mongoose = require('mongoose'); // Add this line
 
 const rehomingController = {
     uploadPhotos: asyncHandler(async (req, res) => {
@@ -155,7 +156,7 @@ const rehomingController = {
 
             const application = await RehomingApplication.findOne({
                 _id: id,
-                status: 'pending'
+                status: 'pending'  // Can only withdraw pending applications
             });
 
             if (!application) {
@@ -167,17 +168,16 @@ const rehomingController = {
             application.status = 'withdrawn';
             await application.save();
 
-            try {
-                const emailResult = await emailService.sendVerificationEmail(
-                    application.ownerInfo.email, 
-                    'WITHDRAWN'
-                );
-                if (!emailResult) {
-                    console.error('Failed to send withdrawal confirmation email');
+            // Send withdrawal confirmation email
+            await emailService.sendRehomingApplicationConfirmation(
+                application.ownerInfo.email,
+                {
+                    name: application.ownerInfo.firstName,
+                    petName: application.petInfo.name,
+                    applicationId: application._id,
+                    status: 'withdrawn'
                 }
-            } catch (emailError) {
-                console.error('Failed to send withdrawal confirmation email:', emailError);
-            }
+            );
 
             res.json({
                 message: 'Application withdrawn successfully',
