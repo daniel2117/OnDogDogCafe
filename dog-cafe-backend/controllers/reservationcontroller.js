@@ -328,18 +328,14 @@ const reservationController = {
         reservation.status = 'cancelled';
         await reservation.save();
 
-        // Send cancellation notification
-        try {
-            await emailService.sendReservationConfirmation(
-                reservation.customerInfo.email,
-                {
-                    ...reservation.toObject(),
-                    status: 'cancelled',
-                    formattedDate: reservation.date.toLocaleDateString()
-                }
-            );
-        } catch (error) {
-            console.error('Email notification error:', error);
+        // Send cancellation notification with improved error handling
+        const emailSent = await emailService.sendReservationConfirmation(
+            reservation.customerInfo.email,
+            reservation.toObject()
+        );
+
+        if (!emailSent) {
+            console.warn('Failed to send cancellation email to:', reservation.customerInfo.email);
         }
 
         res.json({
@@ -348,7 +344,8 @@ const reservationController = {
                 id: reservation._id,
                 status: reservation.status,
                 date: reservation.date,
-                timeSlot: reservation.timeSlot
+                timeSlot: reservation.timeSlot,
+                emailSent: emailSent
             }
         });
     }),
