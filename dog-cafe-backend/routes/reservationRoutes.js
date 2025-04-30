@@ -9,7 +9,7 @@ router.post('/verify-code', reservationController.verifyCode);
 router.post('/create', reservationController.createReservation);
 router.get('/history', reservationController.getUserReservations);
 router.post('/:id/cancel', reservationController.cancelReservation);
-router.put('/:id/modify', reservationController.modifyReservation);
+router.put('/modify/:id', reservationController.modifyReservation);
 
 router.post('/test-email', async (req, res) => {
     try {
