@@ -97,7 +97,7 @@ const rehomingApplicationSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['pending', 'approved', 'rejected', 'completed'],
+        enum: ['pending', 'approved', 'rejected', 'completed', 'withdrawn'],
         default: 'pending'
     }
 }, {

@@ -107,7 +107,7 @@ const adoptionApplicationSchema = new mongoose.Schema({
     experience: String,
     status: {
         type: String,
-        enum: ['pending', 'approved', 'rejected'],
+        enum: ['pending', 'approved', 'rejected', 'withdrawn'],
         default: 'pending'
     },
     submittedAt: {
