@@ -51,24 +51,32 @@ const emailService = {
     },
 
     async sendReservationConfirmation(email, data) {
-        console.log(`[Email Service] Sending reservation confirmation to: ${email}`);
+        console.log(`[Email Service] Sending reservation ${data.status || 'confirmation'} to: ${email}`);
         
+        const getStatusText = (status) => {
+            switch(status) {
+                case 'cancelled': return 'cancelled';
+                case 'modified': return 'updated';
+                default: return 'confirmed';
+            }
+        };
+
         const mailOptions = {
             from: emailConfig.from,
             to: email,
-            subject: `Dog Cafe Reservation ${data.isModification ? 'Update' : 'Confirmation'}`,
+            subject: `Dog Cafe Reservation ${data.status === 'cancelled' ? 'Cancellation' : (data.isModification ? 'Update' : 'Confirmation')}`,
             html: `
                 <div style="font-family: Arial, sans-serif; padding: 20px;">
-                    <h2>Reservation ${data.isModification ? 'Update' : 'Confirmation'}</h2>
+                    <h2>Reservation ${data.status === 'cancelled' ? 'Cancellation' : (data.isModification ? 'Update' : 'Confirmation')}</h2>
                     <p>Dear ${data.customerInfo?.name || 'Valued Customer'},</p>
-                    <p>Your reservation has been ${data.isModification ? 'updated' : 'confirmed'} for:</p>
+                    <p>Your reservation has been ${getStatusText(data.status)} for:</p>
                     <ul>
                         <li>Date: ${new Date(data.date).toLocaleDateString()}</li>
                         <li>Time: ${data.timeSlot}</li>
                         <li>Number of People: ${data.numberOfPeople}</li>
                         <li>Services: ${data.selectedServices.join(', ')}</li>
                     </ul>
-                    <p>Thank you for choosing Dog Cafe!</p>
+                    ${data.status === 'cancelled' ? '<p>We hope to see you again soon!</p>' : '<p>Thank you for choosing Dog Cafe!</p>'}
                 </div>
             `
         };
