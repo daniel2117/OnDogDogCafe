@@ -180,10 +180,29 @@ const dogController = {
             throw new Error('Dog not found');
         }
 
-        const similarDogs = await Dog.find({
+        // First, try to find dogs of the same breed
+        let similarDogs = await Dog.find({
             _id: { $ne: dog._id },
-            breed: dog.breed
+            breed: dog.breed,
+            status: 'available'
         }).limit(4);
+
+        // If we don't have enough dogs of the same breed, get random dogs
+        if (similarDogs.length < 4) {
+            const remainingCount = 4 - similarDogs.length;
+            const randomDogs = await Dog.aggregate([
+                { 
+                    $match: { 
+                        _id: { $ne: dog._id },
+                        breed: { $ne: dog.breed },
+                        status: 'available'
+                    }
+                },
+                { $sample: { size: remainingCount } }
+            ]);
+            
+            similarDogs = [...similarDogs, ...randomDogs];
+        }
 
         res.json(similarDogs);
     }),
