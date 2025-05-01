@@ -346,7 +346,7 @@ const reservationController = {
                         selectedServices: reservation.selectedServices,
                         numberOfPeople: reservation.numberOfPeople,
                         _id: reservation._id,
-                        status: 'cancelled'
+                        status: 'cancelled'  // Explicitly set status as cancelled
                     }
                 );
             } catch (emailError) {
