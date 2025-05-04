@@ -213,7 +213,7 @@ const BookingDetail = ({ lang, toggleLang }) => {
 
     const handleSubmit = async () => {
         console.log(formData);
-        if (!formData.name || !formData.phone || !formData.message || !email || !verified || !date || !time || selectedServices.length === 0) {
+        if (!formData.name || !formData.phone || !email || !verified || !date || !time || selectedServices.length === 0) {
             alert("Please complete all fields and verify your email.");
             return;
         }
