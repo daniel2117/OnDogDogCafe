@@ -149,14 +149,25 @@ const ContactUs = ({ lang, toggleLang }) => {
                         required
                     />
 
-                    <label className="text-sm flex items-start gap-2">
+                    {/* 약관 동의 */}
+                    <label className="text-xs flex items-start gap-1 mb-6">
                         <input
                             type="checkbox"
                             name="agreed"
                             checked={form.agreed}
                             onChange={handleChange}
                         />
-                        {t.agree} <a href="/privacy" className="text-blue-600 underline ml-1">{t.policy}</a>.
+                        <span>
+                            {lang === 'zh' ? '我已閱讀並同意' : 'I have read and agree to the'}
+                            <a
+                                href="/terms.html"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 underline mx-1"
+                            >
+                                {lang === 'zh' ? '條款/隱私政策' : 'Terms/Privacy'}
+                            </a>
+                        </span>
                     </label>
 
                     <button
@@ -165,6 +176,7 @@ const ContactUs = ({ lang, toggleLang }) => {
                     >
                         {t.send}
                     </button>
+
                 </form>
             </div>
         </div>
