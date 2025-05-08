@@ -58,13 +58,13 @@ Welcome to **On Dog Dog Cafe**, a full-stack web application designed to support
 ## 📸 Screenshots
 
 > 🐾 Facility Booking  
-![booking](public/screenshots/Booking.png)
+![booking](Front-End/dog-cafe-web/public/screenshots/Booking.png)
 
 > 🐶 Adoptable Dogs  
-![rehoming](public/screenshots/Adoption.png)
+![rehoming](Front-End/dog-cafe-web/public/screenshots/Adoption.png)
 
 > 📋 My Page  
-![mypage](public/screenshots/MyPage.png)
+![mypage](Front-End/dog-cafe-web/public/screenshots/MyPage.png)
 
 ---
 
