@@ -44,7 +44,14 @@ const BookingDetail = ({ lang, toggleLang }) => {
 
     const [email, setEmail] = useState("");
     const [code, setCode] = useState("");
-    const [verified, setVerified] = useState(false);
+    const isTest = process.env.REACT_APP_TEST_MODE === 'true';
+    useEffect(() => {
+        if (isTest) {
+            setEmail('doya02171@gmail.com');
+            setVerified(true);
+        }
+    }, [isTest]);
+    const [verified, setVerified] = useState(isTest ? true : false);
     const [loading, setLoading] = useState(false);
     const [timer, setTimer] = useState(null);
     const [canResend, setCanResend] = useState(false);
